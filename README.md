@@ -1,53 +1,55 @@
 # Timesheet SaaS
 
-Projeto inicial de Timesheet SaaS usando Next.js 16, Tailwind CSS e Prisma com PostgreSQL.
+Projeto inicial do Timesheet SaaS. Pilha e status atuais:
 
-## O que já está implementado
+- Next.js 16 (app router)
+- Tailwind CSS
+- Prisma + PostgreSQL (cliente em `src/lib/prisma.ts`)
 
-- Estrutura base de aplicativo Next.js com `app/layout.tsx` e `app/page.tsx`.
-- Cliente Prisma configurado em `src/lib/prisma.ts` usando `@prisma/adapter-pg`.
-- Esquema Prisma em `prisma/schema.prisma` com modelos de domínio:
-  - `User`, `Timesheet`, `TimeEntry`, `TimeEntryAdjustment`, `Activity`, `onCallSchedule`, `UserSalaryConfig`, `Holiday`, `Absences`
-- Diretórios de scaffold criados para os próximos módulos:
-  - `src/app/api`
-  - `src/components/shared`
-  - `src/hooks`
-  - `src/schemas`
-  - `src/services`
-  - `src/types`
+O que foi implementado até agora
+
+- Estrutura base do app: `src/app/layout.tsx`, `src/app/page.tsx`.
+- Cliente Prisma configurado e esquema do domínio em `prisma/schema.prisma` com modelos principais: User, Timesheet, TimeEntry, TimeEntryAdjustment, Activity, onCallSchedule, UserSalaryConfig, Holiday, Absences.
+- Scaffolds e diretórios criados para API, componentes e lógica de domínio:
+  - `src/app/api/` (API routes)
+  - `src/components/shared/` (componentes compartilhados)
+  - `src/components/ui/` (UI primitives)
+  - `src/hooks/`, `src/services/`, `src/schemas/`, `src/types/`
 - Configuração de workspace `pnpm` e arquivo `prisma.config.ts` para migrações.
 
-## Rodando localmente
+Como rodar localmente
 
-1. Instale dependências:
+1. Instalar dependências:
 
 ```bash
 pnpm install
 ```
 
-2. Configure variáveis de ambiente:
+2. Configurar variáveis de ambiente (exemplo em `.env`):
 
-- `DATABASE_URL` para o cliente Prisma na aplicação.
-- `DIRECT_URL` para as migrações do Prisma.
+- `DATABASE_URL` — string de conexão para o Prisma no app
+- `DIRECT_URL` — URL usada pelas migrações do Prisma
 
-3. Execute em modo de desenvolvimento:
+3. Rodar o app em desenvolvimento:
 
 ```bash
 pnpm dev
 ```
 
-4. Acesse `http://localhost:3000`.
+4. Abrir `http://localhost:3000`.
 
-## Estrutura atual
+Observações sobre o banco
 
-- `src/app/` - estrutura principal de páginas do Next.js.
-- `src/lib/` - utilitários e inicialização do Prisma.
-- `prisma/` - esquema do banco e migrações.
-- `src/components/shared/` - componente UI compartilhado (scaffold).
+- As migrations estão em `prisma/migrations`.
+- O generator Prisma client emite o cliente em `generated/prisma`.
 
-## Próximos passos
+Próximos passos sugeridos
 
-- Adicionar endpoints API reais em `src/app/api`.
-- Criar modelos e hooks de front-end para timesheets e registro de ponto.
-- Implementar autenticação e autorização.
-- Construir dashboards e relatórios de horas.
+- Implementar endpoints REST/GraphQL em `src/app/api` para timesheets, lançamentos e absências.
+- Implementar autenticação/autorizações (roles: ADMIN, MANAGER, COLLABORATOR).
+- Criar componentes e hooks para registro de ponto e visualização de timesheets.
+- Testes e CI/CD.
+
+Contribuições
+
+Sinta-se à vontade para abrir issues ou PRs com melhorias e correções.
