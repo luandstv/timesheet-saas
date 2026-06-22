@@ -1,4 +1,4 @@
-# Timesheet SaaS
+# Jornix Timesheet SaaS
 
 Projeto inicial do Timesheet SaaS. Pilha e status atuais:
 
