@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Timesheet SaaS
 
-## Getting Started
+Projeto inicial de Timesheet SaaS usando Next.js 16, Tailwind CSS e Prisma com PostgreSQL.
 
-First, run the development server:
+## O que já está implementado
+
+- Estrutura base de aplicativo Next.js com `app/layout.tsx` e `app/page.tsx`.
+- Cliente Prisma configurado em `src/lib/prisma.ts` usando `@prisma/adapter-pg`.
+- Esquema Prisma em `prisma/schema.prisma` com modelos de domínio:
+  - `User`, `Timesheet`, `TimeEntry`, `TimeEntryAdjustment`, `Activity`, `onCallSchedule`, `UserSalaryConfig`, `Holiday`, `Absences`
+- Diretórios de scaffold criados para os próximos módulos:
+  - `src/app/api`
+  - `src/components/shared`
+  - `src/hooks`
+  - `src/schemas`
+  - `src/services`
+  - `src/types`
+- Configuração de workspace `pnpm` e arquivo `prisma.config.ts` para migrações.
+
+## Rodando localmente
+
+1. Instale dependências:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Configure variáveis de ambiente:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `DATABASE_URL` para o cliente Prisma na aplicação.
+- `DIRECT_URL` para as migrações do Prisma.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Execute em modo de desenvolvimento:
 
-## Learn More
+```bash
+pnpm dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+4. Acesse `http://localhost:3000`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Estrutura atual
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `src/app/` - estrutura principal de páginas do Next.js.
+- `src/lib/` - utilitários e inicialização do Prisma.
+- `prisma/` - esquema do banco e migrações.
+- `src/components/shared/` - componente UI compartilhado (scaffold).
 
-## Deploy on Vercel
+## Próximos passos
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Adicionar endpoints API reais em `src/app/api`.
+- Criar modelos e hooks de front-end para timesheets e registro de ponto.
+- Implementar autenticação e autorização.
+- Construir dashboards e relatórios de horas.

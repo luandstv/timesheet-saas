@@ -1,0 +1,230 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  COLLABORATOR
+  MANAGER
+}
+
+enum TimesheetStatus {
+  OPEN
+  SUBMITTED
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum EntryType {
+  CLOCK_IN
+  CLOCK_OUT
+  BREAK_START
+  BREAK_END
+}
+
+enum EntryMode {
+  REGULAR
+  ON_CALL
+  EMERGENCY
+}
+
+enum Period {
+  FHC
+  FHCN
+}
+
+enum HolidayType {
+  NATIONAL
+  STATE
+  MUNICIPAL
+}
+
+enum OnCallType {
+  WEEKDAY
+  WEEKEND
+  HOLIDAY
+}
+
+enum AdjustmentType {
+  INSERTION
+  MODIFICATION
+  DELETION
+}
+
+enum AbsenceType {
+  MEDICAL_LEAVE
+  VACATION
+  COMPENSATORY_OFF
+  DAY_OFF
+  JUSTIFIED_ABSENCE
+  UNJUSTIFIED_ABSENCE
+  BEREAVEMENT
+  MATERNITY
+  PATERNITY
+  OTHER
+}
+
+enum AbsenceStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id          String   @id @default(uuid()) @db.Uuid
+  email       String   @unique
+  name        String
+  role        Role     @default(COLLABORATOR)
+  dailyHours  Int      @default(8) @map("daily_hours")
+  weeklyHours Int      @default(40) @map("weekly_hours")
+  managerId   String?  @map("manager_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  manager          User?                 @relation("management", fields: [managerId], references: [id])
+  subordinates     User[]                @relation("management")
+  timesheets       Timesheet[]
+  activities       Activity[]
+  onCallDays       onCallSchedule[]
+  salaryConfigs    UserSalaryConfig[]
+  adjustments      TimeEntryAdjustment[] @relation("adjustments")
+  absences         Absences[]            @relation("absences")
+  approvedabsences Absences[]            @relation("approved_absences")
+
+  @@map("users")
+}
+
+model Timesheet {
+  id                     String          @id @default(uuid()) @db.Uuid
+  userId                 String          @map("user_id") @db.Uuid
+  date                   DateTime        @db.Date
+  status                 TimesheetStatus @default(OPEN)
+  isHoliday              Boolean         @default(false) @map("is_holiday")
+  isWeekend              Boolean         @default(false) @map("is_weekend")
+  totalworkedMinutes     Int             @default(0) @map("total_worked_minutes")
+  normalFhcMinutes       Int             @default(0) @map("normal_fhc_minutes")
+  normalFhcnMinutes      Int             @default(0) @map("normal_fhcn_minutes")
+  overtime75fhcMinutes   Int             @default(0) @map("overtime_75_fhc_minutes")
+  overtime75fhcnMinutes  Int             @default(0) @map("overtime_75_fhcn_minutes")
+  overtime100fhcMinutes  Int             @default(0) @map("overtime_100_fhc_minutes")
+  overtime100fhcnMinutes Int             @default(0) @map("overtime_100_fhcn_minutes")
+  createdAt              DateTime        @default(now()) @map("created_at")
+  updatedAt              DateTime        @updatedAt @map("updated_at")
+
+  user       User        @relation(fields: [userId], references: [id])
+  entries    TimeEntry[]
+  activities Activity[]
+
+  @@unique([userId, date])
+  @@map("time_sheets")
+}
+
+model TimeEntry {
+  id          String    @id @default(uuid()) @db.Uuid
+  timesheetId String    @map("timesheet_id") @db.Uuid
+  type        EntryType
+  timestamp   DateTime
+  entryMode   EntryMode @default(REGULAR) @map("entry_mode")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  timesheet   Timesheet             @relation(fields: [timesheetId], references: [id])
+  adjustments TimeEntryAdjustment[] @relation("entry_adjustments")
+
+  @@map("time_entries")
+}
+
+model TimeEntryAdjustment {
+  id                String         @id @default(uuid()) @db.Uuid
+  timeEntryId       String         @map("time_entry_id") @db.Uuid
+  adjustmentType    AdjustmentType @map("adjustment_type")
+  previousTimestamp DateTime?      @map("previous_timestamp")
+  newTimestamp      DateTime?      @map("new_timestamp")
+  reason            String
+  adjustedById      String         @map("adjusted_by_id") @db.Uuid
+  createdAt         DateTime       @default(now()) @map("created_at")
+
+  timeEntry  TimeEntry @relation("entry_adjustments", fields: [timeEntryId], references: [id])
+  adjustedBy User      @relation("adjustments", fields: [adjustedById], references: [id])
+
+  @@map("time_entry_adjustments")
+}
+
+model Activity {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  timesheetId     String?   @map("timesheet_id") @db.Uuid
+  description     String
+  incidentCode    String?   @map("incident_code")
+  startTime       DateTime  @map("start_time")
+  endTime         DateTime? @map("end_time")
+  durationMinutes Int       @default(0) @map("duration_minutes")
+  period          Period
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  user      User       @relation(fields: [userId], references: [id])
+  timesheet Timesheet? @relation(fields: [timesheetId], references: [id])
+
+  @@map("activities")
+}
+
+model onCallSchedule {
+  id                 String   @id @default(uuid()) @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  date               DateTime @db.Date
+  totalOnCallMinutes Int      @default(0) @map("total_on_call_minutes")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+  @@map("on_call_schedule")
+}
+
+model UserSalaryConfig {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  baseSalary   Decimal  @map("base_salary") @db.Decimal(10, 2)
+  monthlyHours Int      @default(220) @map("monthly_hours")
+  validFrom    DateTime @map("valid_from") @db.Date
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_salary_configs")
+}
+
+model Holiday {
+  id        String      @id @default(uuid()) @db.Uuid
+  date      DateTime    @db.Date
+  name      String
+  type      HolidayType
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  @@unique([date])
+  @@map("holidays")
+}
+
+model Absences {
+  id           String        @id @default(uuid()) @db.Uuid
+  userId       String        @map("user_id") @db.Uuid
+  startDate    DateTime      @map("start_date") @db.Date
+  endDate      DateTime      @map("end_date") @db.Date
+  type         AbsenceType
+  reason       String
+  documentUrl  String?       @map("document_url")
+  status       AbsenceStatus @default(PENDING)
+  approvedById String?       @map("approved_by_id") @db.Uuid
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  user       User  @relation("absences", fields: [userId], references: [id])
+  approvedBy User? @relation("approved_absences", fields: [approvedById], references: [id])
+
+  @@map("absences")
+}
