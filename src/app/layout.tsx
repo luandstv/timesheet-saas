@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Timesheet App",
+  title: "Jornix | Timesheet App",
   description: "Controle de horas e jornada",
 };
 

@@ -23,7 +23,7 @@ export default function LoginPage() {
           <div className="flex justify-center mb-4">
             <Clock className="h-12 w-12 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Jornix Timesheet App</CardTitle>
+          <CardTitle className="text-2xl">Jornix | Timesheet App</CardTitle>
           <CardDescription>
             Entre com suas credenciais para acessar
           </CardDescription>

@@ -127,13 +127,13 @@ model Timesheet {
 
 model TimeEntry {
   id          String    @id @default(uuid()) @db.Uuid
-  timesheetId String    @map("timesheet_id") @db.Uuid
+  timeSheetId String    @map("time_sheet_id") @db.Uuid
   type        EntryType
   timestamp   DateTime
   entryMode   EntryMode @default(REGULAR) @map("entry_mode")
   createdAt   DateTime  @default(now()) @map("created_at")
 
-  timesheet   Timesheet             @relation(fields: [timesheetId], references: [id])
+  timesheet   Timesheet             @relation(fields: [timeSheetId], references: [id])
   adjustments TimeEntryAdjustment[] @relation("entry_adjustments")
 
   @@map("time_entries")
@@ -158,7 +158,7 @@ model TimeEntryAdjustment {
 model Activity {
   id              String    @id @default(uuid()) @db.Uuid
   userId          String    @map("user_id") @db.Uuid
-  timesheetId     String?   @map("timesheet_id") @db.Uuid
+  timeSheetId     String?   @map("timesheet_id") @db.Uuid
   description     String
   incidentCode    String?   @map("incident_code")
   startTime       DateTime  @map("start_time")
@@ -168,7 +168,7 @@ model Activity {
   createdAt       DateTime  @default(now()) @map("created_at")
 
   user      User       @relation(fields: [userId], references: [id])
-  timesheet Timesheet? @relation(fields: [timesheetId], references: [id])
+  timesheet Timesheet? @relation(fields: [timeSheetId], references: [id])
 
   @@map("activities")
 }
