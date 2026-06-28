@@ -5,6 +5,8 @@ import { Sidebar } from "@/components/shared/sidebar";
 import { UserNav } from "@/components/shared/user-nav";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 
+export const dynamic = "force-dynamic";
+
 export default async function AuthenticatedLayout({
   children,
 }: {

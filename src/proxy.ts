@@ -7,6 +7,15 @@ export async function proxy(request: NextRequest) {
   const { supabaseResponse, user } = await updateSession(request);
 
   const pathname = request.nextUrl.pathname;
+  console.log("Proxy:", pathname);
+
+  if (
+    pathname.startsWith("_next") ||
+    pathname.startsWith("/well-know") ||
+    pathname.includes(".")
+  ) {
+    return NextResponse.next();
+  }
 
   if (!user && !publicRoutes.includes(pathname)) {
     const url = request.nextUrl.clone();

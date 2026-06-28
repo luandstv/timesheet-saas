@@ -1,7 +1,6 @@
 import { DateTime } from "luxon";
 import prisma from "@/lib/prisma";
-
-const TIMEZONE = "America/Sao_Paulo";
+import { TIMEZONE } from "@/lib/constants";
 
 export class TimeEntryService {
   //Buscar ou criar TimeSheet do dia para o user
@@ -78,7 +77,7 @@ export class TimeEntryService {
       },
       include: {
         entries: {
-          orderBy: { timestamp: "asc" },
+          orderBy: { timestamp: "desc" },
         },
       },
     });
