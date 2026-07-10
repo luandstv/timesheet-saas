@@ -62,6 +62,34 @@ export class TimeEntryService {
       },
     });
 
+    if (type === "CLOCK_OUT") {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          dailyHours: true,
+          workStartHour: true,
+          workStartMinute: true,
+          workEndHour: true,
+          workEndMinute: true,
+        },
+      });
+
+      if (user) {
+        const { TimeCalculationService } =
+          await import("./time-calculation.service");
+        await TimeCalculationService.calculateAndUpdateTimeSheet(
+          timeSheet.id,
+          user.dailyHours,
+          {
+            startHour: user.workStartHour,
+            startMinute: user.workStartMinute,
+            endHour: user.workEndHour,
+            endMinute: user.workEndMinute,
+          },
+        );
+      }
+    }
+
     return { entry, type, timeSheet };
   }
 

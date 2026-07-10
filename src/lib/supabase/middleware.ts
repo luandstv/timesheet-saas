@@ -38,6 +38,14 @@ export async function updateSession(request: NextRequest) {
 
     return { supabaseResponse, user };
   } catch {
-    return { supabaseResponse, user: null };
+    const response = NextResponse.next({ request });
+
+    request.cookies.getAll().forEach((cookie) => {
+      if (cookie.name.startsWith("sb-")) {
+        response.cookies.delete(cookie.name);
+      }
+    });
+
+    return { supabaseResponse: response, user: null };
   }
 }

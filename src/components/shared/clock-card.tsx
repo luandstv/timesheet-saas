@@ -30,7 +30,7 @@ export function ClockCard({ nextType, lastEntryTime }: ClockCardProps) {
     const result = await clockIn();
 
     if (!result.success) {
-      alert(result.error);
+      console.error("clock-card:33", result.error);
     } else {
       setCurrentType(result.type === "CLOCK_IN" ? "CLOCK_OUT" : "CLOCK_IN");
       startTransition(() => {

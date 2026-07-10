@@ -75,15 +75,19 @@ enum AbsenceStatus {
 }
 
 model User {
-  id          String   @id @default(uuid()) @db.Uuid
-  email       String   @unique
-  name        String
-  role        Role     @default(COLLABORATOR)
-  dailyHours  Int      @default(8) @map("daily_hours")
-  weeklyHours Int      @default(40) @map("weekly_hours")
-  managerId   String?  @map("manager_id") @db.Uuid
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id              String   @id @default(uuid()) @db.Uuid
+  email           String   @unique
+  name            String
+  role            Role     @default(COLLABORATOR)
+  dailyHours      Int      @default(8) @map("daily_hours")
+  weeklyHours     Int      @default(40) @map("weekly_hours")
+  workStartHour   Int      @default(8) @map("work_start_hour")
+  workStartMinute Int      @default(0) @map("work_start_minute")
+  workEndHour     Int      @default(17) @map("work_end_hour")
+  workEndMinute   Int      @default(0) @map("work_end_minute")
+  managerId       String?  @map("manager_id") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   manager          User?                 @relation("management", fields: [managerId], references: [id])
   subordinates     User[]                @relation("management")
@@ -105,13 +109,12 @@ model Timesheet {
   status                 TimesheetStatus @default(OPEN)
   isHoliday              Boolean         @default(false) @map("is_holiday")
   isWeekend              Boolean         @default(false) @map("is_weekend")
-  totalworkedMinutes     Int             @default(0) @map("total_worked_minutes")
-  normalFhcMinutes       Int             @default(0) @map("normal_fhc_minutes")
-  normalFhcnMinutes      Int             @default(0) @map("normal_fhcn_minutes")
-  overtime75fhcMinutes   Int             @default(0) @map("overtime_75_fhc_minutes")
-  overtime75fhcnMinutes  Int             @default(0) @map("overtime_75_fhcn_minutes")
-  overtime100fhcMinutes  Int             @default(0) @map("overtime_100_fhc_minutes")
-  overtime100fhcnMinutes Int             @default(0) @map("overtime_100_fhcn_minutes")
+  totalWorkedMinutes     Int             @default(0) @map("total_worked_minutes")
+  normalMinutes          Int             @default(0) @map("normal_minutes")
+  overtime75FhcMinutes   Int             @default(0) @map("overtime_75_fhc_minutes")
+  overtime75FhcnMinutes  Int             @default(0) @map("overtime_75_fhcn_minutes")
+  overtime100FhcMinutes  Int             @default(0) @map("overtime_100_fhc_minutes")
+  overtime100FhcnMinutes Int             @default(0) @map("overtime_100_fhcn_minutes")
   createdAt              DateTime        @default(now()) @map("created_at")
   updatedAt              DateTime        @updatedAt @map("updated_at")
 

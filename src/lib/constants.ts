@@ -11,6 +11,13 @@ export const ON_CALL_MULTIPLIER = 1 / 3;
 export const MAX_OVERTIME_75_MINUTES_WEEKDAY = 120; // 2 horas
 
 //========================
+// Faixas horarias normal
+//========================
+
+export const DEFAULT_WORK_START_HOUR = 8;
+export const DEFAULT_WORK_END_HOUR = 17;
+
+//========================
 // Faixas horarias FHC e FHCN
 //========================
 export const FHC_START_HOUR = 6;

@@ -20,7 +20,15 @@ export async function proxy(request: NextRequest) {
   if (!user && !publicRoutes.includes(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    return NextResponse.redirect(url);
+    const redirectResponse = NextResponse.redirect(url);
+
+    request.cookies.getAll().forEach((cookie) => {
+      if (cookie.name.startsWith("sb-")) {
+        redirectResponse.cookies.delete(cookie.name);
+      }
+    });
+
+    return redirectResponse;
   }
 
   if (user && publicRoutes.includes(pathname)) {

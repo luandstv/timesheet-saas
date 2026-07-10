@@ -1,21 +1,16 @@
-import { DateTime } from "luxon";
-import { getAuthenticatedUser } from "@/lib/auth";
-import { TimeEntryService } from "@/services/time-entry.service";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ClockButton } from "@/components/shared/clock-button";
-import { TimeEntriesList } from "@/components/shared/time-entries-list";
-import { TIMEZONE } from "@/lib/constants";
 import { ClockCard } from "@/components/shared/clock-card";
+import { TimeEntriesList } from "@/components/shared/time-entries-list";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getAuthenticatedUser } from "@/lib/auth";
+import { TIMEZONE } from "@/lib/constants";
+import { TimeEntryService } from "@/services/time-entry.service";
+import { DateTime } from "luxon";
 
 export default async function TimeEntriesPage() {
   const user = await getAuthenticatedUser();
   const timeSheet = await TimeEntryService.getTodayEntries(user.id);
 
   const entries = [...(timeSheet?.entries || [])];
-  console.log(
-    "ENTRIE:",
-    entries.map((e) => ({ type: e.type, time: e.timestamp })),
-  );
 
   const sortedEntries = [...entries].sort(
     (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
@@ -31,8 +26,6 @@ export default async function TimeEntriesPage() {
   } else {
     nextType = "CLOCK_OUT";
   }
-
-  console.log("NEXT TYPE:", nextType);
 
   const lastEntryTime = lastEntry
     ? DateTime.fromJSDate(lastEntry.timestamp)

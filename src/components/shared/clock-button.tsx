@@ -17,7 +17,7 @@ export function ClockButton({ nextType }: ClockButtonProps) {
     const result = await clockIn();
 
     if (!result.success) {
-      alert(!result.error);
+      console.error("clock-button:20", !result.error);
     }
 
     setIsLoading(false);
