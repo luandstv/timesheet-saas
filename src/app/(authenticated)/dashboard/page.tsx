@@ -1,9 +1,32 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, Calendar, AlertTriangle, TrendingUp } from "lucide-react";
 import { getAuthenticatedUser } from "@/lib/auth";
+import { DashboardService } from "@/services/dashboard.service";
+import { formatMinutesToHours } from "@/lib/format";
+import { TimeEntriesList } from "@/components/shared/time-entries-list";
+import { TimeEntryService } from "@/services/time-entry.service";
 
 export default async function DashboardPage() {
   const user = await getAuthenticatedUser();
+
+  const timeSheet = await TimeEntryService.getTodayEntries(user.id);
+  const entries = timeSheet?.entries || [];
+
+  const today = await DashboardService.getTodaySummary(user.id);
+  const week = await DashboardService.getWeekSummary(user.id);
+  const month = await DashboardService.getMonthSummary(user.id);
+
+  const monthOvertimeTotal =
+    month.overtime75FhcMinutes +
+    month.overtime75FhcnMinutes +
+    month.overtime100FhcMinutes +
+    month.overtime100FhcnMinutes;
+
+  const monthOvertime75 =
+    month.overtime75FhcMinutes + month.overtime75FhcnMinutes;
+
+  const monthOvertime100 =
+    month.overtime100FhcMinutes + month.overtime100FhcnMinutes;
 
   return (
     <div className="space-y-6">
@@ -21,7 +44,9 @@ export default async function DashboardPage() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0h 00min</div>
+            <div className="text-2xl font-bold">
+              {formatMinutesToHours(today.totalWorkedMinutes)}
+            </div>
             <p className="text-sx text-muted-foreground">
               Jornada: {user?.dailyHours}h
             </p>
@@ -34,7 +59,9 @@ export default async function DashboardPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0h 00min</div>
+            <div className="text-2xl font-bold">
+              {formatMinutesToHours(week.totalWorkedMinutes)}
+            </div>
             <p className="text-sx text-muted-foreground">
               Meta: {user?.weeklyHours}h
             </p>
@@ -49,8 +76,13 @@ export default async function DashboardPage() {
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0h 00min</div>
-            <p className="text-sx text-muted-foreground">75%: 0h | 100%: 0h</p>
+            <div className="text-2xl font-bold">
+              {formatMinutesToHours(monthOvertimeTotal)}
+            </div>
+            <p className="text-sx text-muted-foreground">
+              75%: {formatMinutesToHours(monthOvertime75)} | 100%:{" "}
+              {formatMinutesToHours(monthOvertime100)}
+            </p>
           </CardContent>
         </Card>
 
@@ -73,9 +105,7 @@ export default async function DashboardPage() {
           <CardTitle>Registros de Hoje</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            Nenhum registro hoje. Use o botão de ponto para começar.
-          </p>
+          <TimeEntriesList entries={entries} />
         </CardContent>
       </Card>
     </div>

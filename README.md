@@ -1,55 +1,74 @@
 # Jornix Timesheet SaaS
 
-Projeto inicial do Timesheet SaaS. Pilha e status atuais:
+Aplicação para controle de ponto e gestão de timesheets com autenticação, dashboard e registros diários.
 
-- Next.js 16 (app router)
+## Stack atual
+
+- Next.js 16 (App Router)
+- React 19
 - Tailwind CSS
-- Prisma + PostgreSQL (cliente em `src/lib/prisma.ts`)
+- Prisma + PostgreSQL
+- Supabase Auth
+- Luxon para timezone e cálculos de horários
 
-O que foi implementado até agora
+## Funcionalidades implementadas
 
-- Estrutura base do app: `src/app/layout.tsx`, `src/app/page.tsx`.
-- Cliente Prisma configurado e esquema do domínio em `prisma/schema.prisma` com modelos principais: User, Timesheet, TimeEntry, TimeEntryAdjustment, Activity, onCallSchedule, UserSalaryConfig, Holiday, Absences.
-- Scaffolds e diretórios criados para API, componentes e lógica de domínio:
-  - `src/app/api/` (API routes)
-  - `src/components/shared/` (componentes compartilhados)
-  - `src/components/ui/` (UI primitives)
-  - `src/hooks/`, `src/services/`, `src/schemas/`, `src/types/`
-- Configuração de workspace `pnpm` e arquivo `prisma.config.ts` para migrações.
+- Autenticação com login e cadastro de usuários
+- Rotas autenticadas para dashboard e registro de ponto
+- Tela de ponto com fluxo de clock-in/clock-out
+- Listagem dos registros do dia
+- Cálculo de jornada trabalhada e horas extras (75% e 100%)
+- Resumos diários, semanais e mensais no dashboard
+- Estrutura modular com serviços para dashboard, entradas e cálculos
 
-Como rodar localmente
+## Estrutura relevante
 
-1. Instalar dependências:
+- App Router: `src/app/`
+- Componentes compartilhados: `src/components/shared/`
+- UI primitives: `src/components/ui/`
+- Serviços e regras de negócio: `src/services/`
+- Schema Prisma: `prisma/schema.prisma`
+
+## Como rodar localmente
+
+1. Instale as dependências:
 
 ```bash
 pnpm install
 ```
 
-2. Configurar variáveis de ambiente (exemplo em `.env`):
+2. Configure as variáveis de ambiente em um arquivo `.env`:
 
-- `DATABASE_URL` — string de conexão para o Prisma no app
-- `DIRECT_URL` — URL usada pelas migrações do Prisma
+```env
+DATABASE_URL=your_postgres_connection_string
+DIRECT_URL=your_direct_postgres_connection_string
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-3. Rodar o app em desenvolvimento:
+3. Aplique as migrações do banco:
+
+```bash
+pnpm prisma migrate dev
+```
+
+4. Inicie o projeto:
 
 ```bash
 pnpm dev
 ```
 
-4. Abrir `http://localhost:3000`.
+5. Acesse `http://localhost:3000`.
 
-Observações sobre o banco
+## Observações
 
-- As migrations estão em `prisma/migrations`.
-- O generator Prisma client emite o cliente em `generated/prisma`.
+- As migrações ficam em `prisma/migrations`.
+- O cliente Prisma gerado está em `generated/prisma`.
+- O fuso horário utilizado no fluxo de ponto é configurado via `src/lib/constants.ts`.
 
-Próximos passos sugeridos
+## Próximos passos
 
-- Implementar endpoints REST/GraphQL em `src/app/api` para timesheets, lançamentos e absências.
-- Implementar autenticação/autorizações (roles: ADMIN, MANAGER, COLLABORATOR).
-- Criar componentes e hooks para registro de ponto e visualização de timesheets.
-- Testes e CI/CD.
-
-Contribuições
-
-Sinta-se à vontade para abrir issues ou PRs com melhorias e correções.
+- Expandir regras de cálculo e validações de jornada
+- Implementar permissões por perfil (admin/manager/collaborator)
+- Adicionar testes e CI/CD
+- Evoluir a API interna para mais operações de timesheet e ausência
