@@ -17,6 +17,7 @@ Aplicação para controle de ponto e gestão de timesheets com autenticação, d
 - Rotas autenticadas para dashboard e registro de ponto
 - Tela de ponto com fluxo de clock-in/clock-out
 - Listagem dos registros do dia
+- Página de configurações do usuário para jornada de trabalho e dados salariais
 - Cálculo de jornada trabalhada e horas extras (75% e 100%)
 - Resumos diários, semanais e mensais no dashboard
 - Estrutura modular com serviços para dashboard, entradas e cálculos
