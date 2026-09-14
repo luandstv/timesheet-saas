@@ -5,7 +5,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import link from "next/link";
 import { LoginForm } from "./login-form";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/shared/theme-toggle";

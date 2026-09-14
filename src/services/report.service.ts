@@ -1,8 +1,10 @@
-import { DateTime } from "luxon";
-
-import { TIMEZONE } from "@/lib/constants";
 import { ReportQueryInput } from "@/schemas/report.schema";
 import prisma from "@/lib/prisma";
+import {
+  dateOnlyEnd,
+  dateOnlyStart,
+  formatDateOnly,
+} from "@/lib/date-only";
 import { TimesheetStatus } from "../../generated/prisma/enums";
 
 export type ReportRow = {
@@ -41,23 +43,15 @@ type GetReportDataParams = ReportQueryInput & {
 };
 
 function parseStartDateToDate(value: string) {
-  return DateTime.fromFormat(value, "yyyy-MM-dd", {
-    zone: TIMEZONE,
-  })
-    .startOf("day")
-    .toJSDate();
+  return dateOnlyStart(value);
 }
 
 function parseEndDateToDate(value: string) {
-  return DateTime.fromFormat(value, "yyyy-MM-dd", {
-    zone: TIMEZONE,
-  })
-    .endOf("day")
-    .toJSDate();
+  return dateOnlyEnd(value);
 }
 
 function formatDateToReportValue(date: Date) {
-  return DateTime.fromJSDate(date, { zone: TIMEZONE }).toFormat("yyyy-MM-dd");
+  return formatDateOnly(date);
 }
 
 function getDayTypeLabel(isHoliday: boolean, isWeekend: boolean) {

@@ -4,7 +4,11 @@ import { useState, useEffect } from "react";
 import { DateTime } from "luxon";
 import { TIMEZONE } from "@/lib/constants";
 
-export function LiveClock() {
+interface LiveClockProps {
+  className?: string;
+}
+
+export function LiveClock({ className }: LiveClockProps) {
   const [time, setTime] = useState<string>("");
 
   useEffect(() => {
@@ -18,7 +22,5 @@ export function LiveClock() {
     return () => clearInterval(interval);
   }, []);
 
-  return (
-    <span className="text-4xl font-mono font-bold tabular-nums">{time}</span>
-  );
+  return <span className={className}>{time}</span>;
 }

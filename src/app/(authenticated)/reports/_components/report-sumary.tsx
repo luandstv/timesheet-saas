@@ -1,5 +1,6 @@
 import type { ReportSummary as ReportSummaryData } from "@/services/report.service";
 import { formatMinutesToHours } from "@/lib/format";
+import { Card, CardContent } from "@/components/ui/card";
 
 type ReportSummaryProps = {
   summary: ReportSummaryData;
@@ -44,12 +45,14 @@ export function ReportSummary({ summary }: ReportSummaryProps) {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {items.map((item) => (
-          <div key={item.label} className="rounded-lg border p-4">
-            <p className="text-sm text-muted-foreground">{item.label}</p>
-            <p className="mt-2 text-2xl font-bold">
-              {formatMinutesToHours(item.value)}
-            </p>
-          </div>
+          <Card key={item.label} size="sm">
+            <CardContent>
+              <p className="text-sm text-muted-foreground">{item.label}</p>
+              <p className="mt-2 text-2xl font-bold tabular-nums">
+                {formatMinutesToHours(item.value)}
+              </p>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </section>

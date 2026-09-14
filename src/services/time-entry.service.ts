@@ -1,12 +1,13 @@
 import { DateTime } from "luxon";
 import prisma from "@/lib/prisma";
 import { TIMEZONE } from "@/lib/constants";
+import { dateOnlyStart } from "@/lib/date-only";
 
 export class TimeEntryService {
   //Buscar ou criar TimeSheet do dia para o user
   static async getOrCreateTimeSheet(userId: string, date?: DateTime) {
     const targetDate = date || DateTime.now().setZone(TIMEZONE);
-    const dateOnly = targetDate.startOf("day").toJSDate();
+    const dateOnly = dateOnlyStart(targetDate);
 
     const isWeekend = targetDate.weekday === 6 || targetDate.weekday === 7;
 
@@ -94,7 +95,7 @@ export class TimeEntryService {
   }
 
   static async getTodayEntries(userId: string) {
-    const today = DateTime.now().setZone(TIMEZONE).startOf("day").toJSDate();
+    const today = dateOnlyStart(DateTime.now().setZone(TIMEZONE));
 
     const timeSheet = await prisma.timesheet.findUnique({
       where: {

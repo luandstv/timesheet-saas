@@ -10,6 +10,7 @@ export async function clockIn() {
   try {
     const result = await TimeEntryService.clockIn(user.id);
     revalidatePath("/time-entries");
+    revalidatePath("/dashboard");
     return { success: true, type: result.type };
   } catch (error) {
     return {

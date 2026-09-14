@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Ghost, LogOut, User } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
   DropdownMenu,
@@ -38,7 +38,7 @@ export function UserNav({ name, email }: UserNavProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+        <Button variant="ghost" aria-label="Menu da conta" className="relative h-9 w-9 shrink-0 rounded-full">
           <Avatar className="h-9 w-9">
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>

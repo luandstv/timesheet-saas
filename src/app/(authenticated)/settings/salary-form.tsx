@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { salarySchema, type SalaryFormData } from "@/schemas/settings.schema";
@@ -14,6 +15,7 @@ interface SalaryFormProps {
 }
 
 export function SalaryForm({ defaultValues }: SalaryFormProps) {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
@@ -37,6 +39,7 @@ export function SalaryForm({ defaultValues }: SalaryFormProps) {
 
     if (result.success) {
       setMessage({ type: "success", text: "Salário atualizado com sucesso!" });
+      router.refresh();
     } else {
       setMessage({ type: "error", text: result.error || "Erro ao salvar" });
     }

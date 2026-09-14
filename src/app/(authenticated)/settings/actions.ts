@@ -2,11 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { getAuthenticatedUser } from "@/lib/auth";
+import { dateOnlyStart } from "@/lib/date-only";
+import { TIMEZONE } from "@/lib/constants";
+import { DateTime } from "luxon";
 import type {
   WorkScheduleFormData,
   SalaryFormData,
 } from "@/schemas/settings.schema";
-import { use } from "react";
 
 export async function updateWorkSchedule(data: WorkScheduleFormData) {
   const user = await getAuthenticatedUser();
@@ -42,12 +44,11 @@ export async function updateSalary(data: SalaryFormData) {
   try {
     //buscar config existente ou criar uma nova
     const existing = await prisma.userSalaryConfig.findFirst({
-      where: { id: user.id },
+      where: { userId: user.id },
       orderBy: { validFrom: "desc" },
     });
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = dateOnlyStart(DateTime.now().setZone(TIMEZONE));
 
     if (existing) {
       await prisma.userSalaryConfig.update({

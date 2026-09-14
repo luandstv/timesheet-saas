@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { DateTime } from "luxon";
 
-import { TIMEZONE } from "@/lib/constants";
+import { TIMEZONE } from "../lib/constants";
 
 function parseReportDate(value: string) {
   return DateTime.fromISO(value, {
@@ -41,7 +41,7 @@ export const reportQuerySchema = z
     if (start.toMillis() > end.toMillis()) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["StartDate"],
+        path: ["startDate"],
         message: "A data inicial não pode ser maior que a data final",
       });
     }

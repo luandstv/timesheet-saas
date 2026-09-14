@@ -7,6 +7,7 @@ import { formatMinutesToHours } from "@/lib/format";
 import { DashboardService } from "@/services/dashboard.service";
 import { TimeEntryService } from "@/services/time-entry.service";
 import { DateTime } from "luxon";
+import { Badge } from "@/components/ui/badge";
 
 export default async function TimeEntriesPage() {
   const user = await getAuthenticatedUser();
@@ -46,16 +47,24 @@ export default async function TimeEntriesPage() {
     todaySummary.overtime100FhcMinutes + todaySummary.overtime100FhcnMinutes;
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto w-full max-w-5xl space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Registro de Ponto</h1>
-        <p className="text-muted-foreground capitalize">{fullDateString}</p>
+        <p className="mb-3 text-xs font-medium tracking-[0.18em] text-primary">
+          MEU PONTO
+        </p>
+        <h1 className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
+          Seu registro, sem ruído.
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+          <span className="capitalize">{fullDateString}</span>. Ações rápidas
+          para marcar a jornada e uma leitura completa do dia.
+        </p>
       </div>
 
-      <ClockCard nextType={nextType} lastEntryTime={lastEntryTime} />
+      <ClockCard nextType={nextType} lastEntryTime={lastEntryTime} dateLabel={fullDateString} />
 
       {todaySummary.totalWorkedMinutes > 0 && (
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 ">
               <CardTitle className="text-sm font-medium">Total</CardTitle>
@@ -100,8 +109,16 @@ export default async function TimeEntriesPage() {
       )}
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Registros de Hoje</CardTitle>
+        <CardHeader className="flex flex-row items-start justify-between gap-4">
+          <div>
+            <CardTitle className="text-lg">Registros de hoje</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Todos os movimentos registrados neste dia.
+            </p>
+          </div>
+          <Badge variant="outline" className="border-primary/30 text-primary">
+            {entries.length} {entries.length === 1 ? "movimento" : "movimentos"}
+          </Badge>
         </CardHeader>
         <CardContent>
           <TimeEntriesList entries={entries} />

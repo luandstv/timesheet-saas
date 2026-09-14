@@ -5,7 +5,7 @@ import {
   FHCN_START_HOUR,
   MAX_OVERTIME_75_MINUTES_WEEKDAY,
   TIMEZONE,
-} from "@/lib/constants";
+} from "../lib/constants";
 import { DateTime } from "luxon";
 
 interface TimeEntryForCalc {

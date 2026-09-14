@@ -1,8 +1,5 @@
 import { getAuthenticatedUser } from "@/lib/auth";
-import {
-  formatReportPeriodLabel,
-  getValidatedReportQuery,
-} from "@/lib/reports/report-helpers";
+import { getValidatedReportQuery } from "@/lib/reports/report-helpers";
 import { getReportData } from "@/services/report.service";
 import { ReportFilter } from "./_components/report-filter";
 import { ReportSummary } from "./_components/report-sumary";
@@ -15,7 +12,7 @@ type ReportsPageProps = {
   }>;
 };
 
-export default async function ({ searchParams }: ReportsPageProps) {
+export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   const resolvedSearchParams = (await searchParams) ?? {};
   const { startDate, endDate } = getValidatedReportQuery(resolvedSearchParams);
 

@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --experimental-strip-types --experimental-loader ./tests/loader.mjs --test tests/date-only.test.mjs tests/time-calculation.test.mjs tests/format.test.mjs tests/report-helpers.test.mjs tests/auth-schema.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

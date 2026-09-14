@@ -13,14 +13,11 @@ import { useMemo, useState } from "react";
 
 import type { ReportRow } from "@/services/report.service";
 import { Button } from "@/components/ui/button";
-import {
-  formatDateToDisplay,
-  formatReportDateToDisplay,
-} from "@/lib/reports/report-helpers";
+import { formatReportDateToDisplay } from "@/lib/reports/report-helpers";
 import { formatMinutesToCompact } from "@/lib/format";
-import { tr } from "zod/v4/locales";
 import { getStatusBadgeMeta } from "@/lib/badges";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
 type ReportTableProps = {
   rows: ReportRow[];
@@ -125,18 +122,18 @@ export function ReportTable({ rows }: ReportTableProps) {
   });
 
   return (
-    <section className="space-x-3">
+    <section className="space-y-3">
       <div>
         <h2 className="text-lg font-medium">Detalhamento diário</h2>
-        <p className="text-sm text-muted-foreground mb-4">
+        <p className="text-sm text-muted-foreground">
           Visualize os registros consolidados por dia no período selecionado.
         </p>
       </div>
 
-      <div className="rounded-lg border">
+      <Card className="gap-0 py-0">
         <div className="overflow-x-auto">
           <table className="w-full caption-bottom text-sm">
-            <thead className="[&_tr]:border-b">
+            <thead className="bg-muted/40 [&_tr]:border-b">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id} className="border-b">
                   {headerGroup.headers.map((header) => (
@@ -183,7 +180,7 @@ export function ReportTable({ rows }: ReportTableProps) {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
     </section>
   );
 }

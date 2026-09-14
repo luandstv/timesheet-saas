@@ -1,12 +1,10 @@
 import { DateTime } from "luxon";
 
-import { TIMEZONE } from "@/lib/constants";
+import { TIMEZONE } from "../constants";
 import {
   reportQuerySchema,
   type ReportQueryInput,
-} from "@/schemas/report.schema";
-import { TimesheetStatus } from "../../../generated/prisma/enums";
-import { STATUS_BADGE_STYLES, StatusBadgeMeta } from "../badges";
+} from "../../schemas/report.schema";
 
 type ReportSearchParams = {
   startDate?: string | string[];
@@ -55,7 +53,7 @@ export function formatReportPeriodLabel(startDate: string, endDate: string) {
 
 function getSingValue(value: string | string[] | undefined) {
   if (Array.isArray(value)) {
-    value[0];
+    return value[0];
   }
 
   return value;

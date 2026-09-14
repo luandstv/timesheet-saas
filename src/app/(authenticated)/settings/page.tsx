@@ -14,7 +14,7 @@ export default async function SettingsPage() {
   const user = await getAuthenticatedUser();
 
   const salaryConfig = await prisma.userSalaryConfig.findFirst({
-    where: { id: user.id },
+    where: { userId: user.id },
     orderBy: { validFrom: "desc" },
   });
 
@@ -59,7 +59,7 @@ export default async function SettingsPage() {
           <CardContent>
             <SalaryForm
               defaultValues={{
-                baseSalary: salaryConfig?.baseSalary
+                baseSalary: salaryConfig?.baseSalary != null
                   ? Number(salaryConfig.baseSalary)
                   : 0,
                 monthlyHours: salaryConfig?.monthlyHours ?? 220,
