@@ -1,4 +1,4 @@
-import { TypeOf, z } from "zod";
+import { z } from "zod";
 
 export const loginSchema = z.object({
   email: z.string().min(1, "Email Obrigatorio").email("Email inválido"),
