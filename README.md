@@ -1,75 +1,155 @@
 # Jornix Timesheet SaaS
 
-Aplicação para controle de ponto e gestão de timesheets com autenticação, dashboard e registros diários.
+Jornix é uma aplicação web para registro de ponto, cálculo de jornada e
+acompanhamento de horas trabalhadas. O produto usa o horário civil de
+`America/Sao_Paulo` para registrar e exibir os pontos.
 
-## Stack atual
+## Estado atual
 
-- Next.js 16 (App Router)
-- React 19
-- Tailwind CSS
-- Prisma + PostgreSQL
-- Supabase Auth
-- Luxon para timezone e cálculos de horários
+### Funcionalidades disponíveis
 
-## Funcionalidades implementadas
+- Cadastro e login com Supabase Auth.
+- Dashboard com jornada do dia, semana e mês.
+- Registro alternado de entrada e saída.
+- Lista dos registros do dia.
+- Cálculo de horas normais e horas extras de 75% e 100%.
+- Relatórios por intervalo com resumo e detalhamento diário.
+- Configuração de jornada, carga semanal e dados salariais.
+- Tema claro e escuro.
+- Layout responsivo com navegação lateral no desktop e inferior no mobile.
+- Página inicial de sobreaviso preparada para a integração do domínio.
 
-- Autenticação com login e cadastro de usuários
-- Rotas autenticadas para dashboard e registro de ponto
-- Tela de ponto com fluxo de clock-in/clock-out
-- Listagem dos registros do dia
-- Página de configurações do usuário para jornada de trabalho e dados salariais
-- Cálculo de jornada trabalhada e horas extras (75% e 100%)
-- Resumos diários, semanais e mensais no dashboard
-- Estrutura modular com serviços para dashboard, entradas e cálculos
+### Pendências conhecidas
 
-## Estrutura relevante
+- O sobreaviso ainda usa dados demonstrativos e não entra nos totais reais.
+- O painel de notificações ainda está reservado para uma próxima integração.
+- Ainda não há pipeline de CI/CD configurado.
 
-- App Router: `src/app/`
-- Componentes compartilhados: `src/components/shared/`
-- UI primitives: `src/components/ui/`
-- Serviços e regras de negócio: `src/services/`
-- Schema Prisma: `prisma/schema.prisma`
+As pendências visuais e de produto estão detalhadas em
+[`docs/UI-PENDING.md`](docs/UI-PENDING.md).
 
-## Como rodar localmente
+## Stack
 
-1. Instale as dependências:
+- Next.js 16 com App Router e React 19.
+- TypeScript.
+- Tailwind CSS e componentes baseados em shadcn/ui.
+- Prisma 7 com PostgreSQL.
+- Supabase Auth.
+- Luxon para datas, horários e fuso.
+- Node.js Test Runner para testes unitários determinísticos.
+
+## Rotas principais
+
+| Rota | Descrição |
+| --- | --- |
+| `/login` | Entrada na aplicação |
+| `/register` | Criação de conta |
+| `/dashboard` | Resumo da jornada e registros recentes |
+| `/time-entries` | Consulta e registro de ponto |
+| `/reports` | Relatórios consolidados por período |
+| `/settings` | Jornada, carga horária e salário |
+| `/on-call` | Área visual preparada para sobreaviso |
+
+## Organização do código
+
+```text
+src/
+├─ app/                 # Rotas, páginas e server actions
+├─ components/
+│  ├─ shared/           # Navegação, dashboard e componentes compartilhados
+│  └─ ui/               # Primitivos visuais reutilizáveis
+├─ lib/                 # Autenticação, datas, formatação e utilitários
+├─ schemas/             # Validações de entrada com Zod
+└─ services/            # Regras de negócio e acesso aos dados
+
+prisma/schema.prisma    # Modelo PostgreSQL
+tests/                  # Testes unitários
+docs/                   # Documentação complementar
+```
+
+O dashboard separa a resolução dos parâmetros, o carregamento paralelo dos
+dados e a construção do modelo visual em
+`src/app/(authenticated)/dashboard/_lib/`.
+
+## Configuração local
+
+### Requisitos
+
+- Node.js 20.9 ou superior para executar a aplicação.
+- Node.js 22.6 ou superior para executar a suíte de testes nativa com TypeScript.
+- pnpm.
+- Projeto Supabase com PostgreSQL disponível.
+
+### Instalação
 
 ```bash
 pnpm install
 ```
 
-2. Configure as variáveis de ambiente em um arquivo `.env`:
+Copie `.env.example` para `.env` e preencha:
 
 ```env
-DATABASE_URL=your_postgres_connection_string
-DIRECT_URL=your_direct_postgres_connection_string
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+DATABASE_URL=postgresql://...
+DIRECT_URL=postgresql://...
+NEXT_PUBLIC_SUPABASE_URL=https://...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 ```
 
-3. Aplique as migrações do banco:
+`DATABASE_URL` é usada pelas consultas normais através do pooler. `DIRECT_URL`
+é usada pelo Prisma nas migrações.
+
+### Banco de dados
 
 ```bash
+pnpm prisma generate
 pnpm prisma migrate dev
 ```
 
-4. Inicie o projeto:
+O cliente Prisma é gerado em `generated/prisma`.
+
+### Desenvolvimento
 
 ```bash
 pnpm dev
 ```
 
-5. Acesse `http://localhost:3000`.
+A aplicação fica disponível em <http://localhost:3000>.
 
-## Observações
+## Scripts
 
-- As migrações ficam em `prisma/migrations`.
-- O cliente Prisma gerado está em `generated/prisma`.
-- O fuso horário utilizado no fluxo de ponto é configurado via `src/lib/constants.ts`.
+```bash
+pnpm dev       # servidor de desenvolvimento
+pnpm build     # build de produção
+pnpm start     # inicia o build de produção
+pnpm lint      # ESLint
+pnpm test      # testes unitários
+```
+
+Os testes unitários cobrem cálculo de jornada, horas extras, datas brasileiras,
+formatação, validação de relatórios e autenticação. O detalhamento está em
+[`docs/TESTING.md`](docs/TESTING.md).
+
+## Datas e fuso horário
+
+O fuso funcional do produto é definido em `src/lib/constants.ts` como
+`America/Sao_Paulo`. Entradas, saídas, relógio ao vivo e definição de “hoje”
+usam esse fuso.
+
+As colunas SQL do tipo `DATE` são normalizadas internamente para UTC apenas no
+momento da persistência e da consulta. Isso evita que o horário do servidor
+exclua o primeiro dia de um relatório; não altera o horário exibido ao usuário.
+
+## Documentação complementar
+
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): responsabilidades das camadas
+  e fluxo dos principais dados.
+- [`docs/TESTING.md`](docs/TESTING.md): estratégia, comandos e cobertura atual.
+- [`docs/UI-PENDING.md`](docs/UI-PENDING.md): pendências de produto e interface.
 
 ## Próximos passos
 
-- Expandir regras de cálculo e validações de jornada
-- Implementar permissões por perfil (admin/manager/collaborator)
-- Adicionar testes e CI/CD
-- Evoluir a API interna para mais operações de timesheet e ausência
+- Implementar o domínio de sobreaviso e substituir os mocks.
+- Adicionar notificações persistidas.
+- Criar testes de componentes e fluxos E2E.
+- Configurar CI/CD com lint, TypeScript, testes e build.
+- Evoluir permissões para os perfis administrador, gestor e colaborador.
