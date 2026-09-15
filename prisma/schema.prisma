@@ -129,6 +129,7 @@ model Timesheet {
 model TimeEntry {
   id          String    @id @default(uuid()) @db.Uuid
   timeSheetId String    @map("time_sheet_id") @db.Uuid
+  requestId   String?   @unique @map("request_id")
   type        EntryType
   timestamp   DateTime
   entryMode   EntryMode @default(REGULAR) @map("entry_mode")

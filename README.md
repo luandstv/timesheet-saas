@@ -11,6 +11,7 @@ acompanhamento de horas trabalhadas. O produto usa o horário civil de
 - Cadastro e login com Supabase Auth.
 - Dashboard com jornada do dia, semana e mês.
 - Registro alternado de entrada e saída, preservando entradas abertas após meia-noite.
+- Proteção contra registros duplicados em cliques repetidos e requisições concorrentes.
 - Lista dos registros do dia.
 - Cálculo de horas normais e horas extras de 75% e 100%.
 - Em dias úteis, as primeiras 2h extras são 75% e o excedente é 100%; fins de

@@ -40,10 +40,11 @@ export function RegisterForm() {
   return (
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
       <div className="space-y-2">
-        <Label htmlFor="name">Nome completo</Label>
+        <Label htmlFor="register-name">Nome completo</Label>
         <Input
-          id="name"
+          id="register-name"
           type="text"
+          autoComplete="name"
           placeholder="Seu nome"
           {...register("name")}
         />
@@ -53,10 +54,11 @@ export function RegisterForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="register-email">Email</Label>
         <Input
-          id="email"
+          id="register-email"
           type="email"
+          autoComplete="email"
           placeholder="seu@email.com"
           {...register("email")}
         />
@@ -66,10 +68,11 @@ export function RegisterForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">Senha</Label>
+        <Label htmlFor="register-password">Senha</Label>
         <Input
-          id="password"
+          id="register-password"
           type="password"
+          autoComplete="new-password"
           placeholder="••••••••"
           {...register("password")}
         />
@@ -79,10 +82,11 @@ export function RegisterForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirmar senha</Label>
+        <Label htmlFor="register-confirmPassword">Confirmar senha</Label>
         <Input
-          id="confirmPassword"
-          type="Password"
+          id="register-confirmPassword"
+          type="password"
+          autoComplete="new-password"
           placeholder="••••••••"
           {...register("confirmPassword")}
         />

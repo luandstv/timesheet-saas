@@ -7,6 +7,7 @@ import {
   TIMEZONE,
 } from "../lib/constants";
 import { DateTime } from "luxon";
+import type { Prisma } from "../../generated/prisma/client";
 
 interface TimeEntryForCalc {
   type: "CLOCK_IN" | "CLOCK_OUT";
@@ -266,8 +267,9 @@ export class TimeCalculationService {
     timesheetId: string,
     dailyHours: number,
     schedule: WorkSchedule,
+    db?: Pick<Prisma.TransactionClient, "timesheet">,
   ) {
-    const prisma = (await import("@/lib/prisma")).default;
+    const prisma = db ?? (await import("@/lib/prisma")).default;
 
     const timeSheet = await prisma.timesheet.findUnique({
       where: { id: timesheetId },

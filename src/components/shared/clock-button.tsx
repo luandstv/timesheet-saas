@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Clock, LogIn, LogOut } from "lucide-react";
 import { Button } from "../ui/button";
 import { clockIn } from "@/app/(authenticated)/time-entries/actions";
@@ -11,16 +11,27 @@ interface ClockButtonProps {
 
 export function ClockButton({ nextType }: ClockButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const requestIdRef = useRef<string | null>(null);
 
   async function handleClick() {
+    const requestId =
+      requestIdRef.current ?? (requestIdRef.current = crypto.randomUUID());
     setIsLoading(true);
-    const result = await clockIn();
+    try {
+      const result = await clockIn(requestId);
 
-    if (!result.success) {
-      console.error("clock-button:20", !result.error);
+      if (!result.success) {
+        console.error("clock-button:20", result.error);
+      }
+
+      // Uma resposta do servidor confirma que a chave foi processada. Em caso
+      // de exceção de rede, preservamos a chave para uma nova tentativa segura.
+      requestIdRef.current = null;
+    } catch (error) {
+      console.error("clock-button:20", error);
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   }
 
   const isEntry = nextType === "CLOCK_IN";

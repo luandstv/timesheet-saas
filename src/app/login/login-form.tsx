@@ -36,10 +36,11 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="login-email">Email</Label>
         <Input
-          id="email"
+          id="login-email"
           type="email"
+          autoComplete="username"
           placeholder="seu@email.com"
           {...register("email")}
         />
@@ -49,10 +50,11 @@ export function LoginForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">Senha</Label>
+        <Label htmlFor="login-password">Senha</Label>
         <Input
-          id="password"
+          id="login-password"
           type="password"
+          autoComplete="current-password"
           placeholder="••••••••"
           {...register("password")}
         />

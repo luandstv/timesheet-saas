@@ -13,6 +13,7 @@ let entries;
 let creates;
 let upserts;
 let updates;
+let transactionTail;
 const realNow = Settings.now;
 
 function sheet(id, userId, date, status = "OPEN") {
@@ -27,7 +28,7 @@ function sheet(id, userId, date, status = "OPEN") {
   };
 }
 
-function entry(id, timeSheetId, type, timestamp) {
+function entry(id, timeSheetId, type, timestamp, requestId) {
   return {
     id,
     timeSheetId,
@@ -35,6 +36,7 @@ function entry(id, timeSheetId, type, timestamp) {
     timestamp: new Date(timestamp),
     createdAt: new Date(timestamp),
     entryMode: "REGULAR",
+    requestId,
   };
 }
 
@@ -44,6 +46,7 @@ function filterEntries(where = {}) {
     return (
       (!where.timesheet || owner?.userId === where.timesheet.userId) &&
       (!where.timeSheetId || item.timeSheetId === where.timeSheetId) &&
+      (!where.requestId || item.requestId === where.requestId) &&
       (!where.timestamp?.gte || item.timestamp >= where.timestamp.gte) &&
       (!where.timestamp?.lt || item.timestamp < where.timestamp.lt)
     );
@@ -57,9 +60,29 @@ beforeEach(() => {
   creates = [];
   upserts = [];
   updates = [];
+  transactionTail = Promise.resolve();
 
   Object.assign(prisma, {
+    async $queryRaw() {
+      return [];
+    },
+    async $transaction(callback) {
+      const previous = transactionTail;
+      let release;
+      transactionTail = new Promise((resolve) => {
+        release = resolve;
+      });
+      await previous;
+      try {
+        return await callback(prisma);
+      } finally {
+        release();
+      }
+    },
     timeEntry: {
+      async findMany({ where }) {
+        return filterEntries(where).sort((a, b) => b.timestamp - a.timestamp);
+      },
       async findFirst({ where, include }) {
         const found = filterEntries(where).sort(
           (a, b) => b.timestamp - a.timestamp,
@@ -72,16 +95,19 @@ beforeEach(() => {
           }),
         };
       },
-      async findMany({ where }) {
-        return filterEntries(where).sort((a, b) => b.timestamp - a.timestamp);
-      },
       async create({ data }) {
+        if (data.requestId && entries.some((item) => item.requestId === data.requestId)) {
+          const error = new Error("Unique constraint failed");
+          error.code = "P2002";
+          throw error;
+        }
         creates.push(data);
         const value = entry(
           `created-${creates.length}`,
           data.timeSheetId,
           data.type,
           data.timestamp,
+          data.requestId,
         );
         entries.push(value);
         return value;
@@ -204,6 +230,54 @@ test("continua encerrando e apurando normalmente uma jornada no mesmo dia", asyn
   assert.equal(result.type, "CLOCK_OUT");
   assert.equal(updates[0].totalWorkedMinutes, 50);
   assert.equal(updates[0].normalMinutes, 50);
+});
+
+test("repetir a mesma solicitação retorna o registro original sem duplicá-lo", async () => {
+  Settings.now = () => Date.parse("2026-09-15T08:00:00-03:00");
+
+  const first = await TimeEntryService.clockIn("user-a", "request-1");
+  const repeated = await TimeEntryService.clockIn("user-a", "request-1");
+
+  assert.equal(first.entry.id, repeated.entry.id);
+  assert.equal(first.type, "CLOCK_IN");
+  assert.equal(repeated.type, "CLOCK_IN");
+  assert.equal(creates.length, 1);
+  assert.equal(entries.length, 1);
+});
+
+test("serializa solicitações concorrentes e alterna o estado uma única vez", async () => {
+  Settings.now = () => Date.parse("2026-09-15T08:00:00-03:00");
+
+  const [first, second] = await Promise.all([
+    TimeEntryService.clockIn("user-a", "request-1"),
+    TimeEntryService.clockIn("user-a", "request-2"),
+  ]);
+
+  assert.equal(first.type, "CLOCK_IN");
+  assert.equal(second.type, "CLOCK_OUT");
+  assert.equal(creates.length, 2);
+  assert.equal(entries.length, 2);
+});
+
+test("permite vários pares legítimos na mesma jornada", async () => {
+  Settings.now = () => Date.parse("2026-09-15T08:00:00-03:00");
+  const first = await TimeEntryService.clockIn("user-a", "request-1");
+
+  Settings.now = () => Date.parse("2026-09-15T09:00:00-03:00");
+  const second = await TimeEntryService.clockIn("user-a", "request-2");
+
+  Settings.now = () => Date.parse("2026-09-15T22:00:00-03:00");
+  const third = await TimeEntryService.clockIn("user-a", "request-3");
+
+  Settings.now = () => Date.parse("2026-09-15T23:00:00-03:00");
+  const fourth = await TimeEntryService.clockIn("user-a", "request-4");
+
+  assert.equal(first.type, "CLOCK_IN");
+  assert.equal(second.type, "CLOCK_OUT");
+  assert.equal(third.type, "CLOCK_IN");
+  assert.equal(fourth.type, "CLOCK_OUT");
+  assert.equal(creates.length, 4);
+  assert.equal(new Set(entries.map((value) => value.requestId)).size, 4);
 });
 
 test("último movimento de outra conta não altera nem encerra a jornada do usuário", async () => {

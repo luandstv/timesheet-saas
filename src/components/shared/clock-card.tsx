@@ -22,16 +22,24 @@ export function ClockCard({ nextType, lastEntryTime, lastEntryDate, hasPendingPr
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const submissionInFlight = useRef(false);
+  const requestIdRef = useRef<string | null>(null);
 
   async function handleClick() {
     // Bloqueia também dois cliques antes de React renderizar o botão desabilitado.
     if (submissionInFlight.current) return;
     submissionInFlight.current = true;
+    const requestId =
+      requestIdRef.current ?? (requestIdRef.current = crypto.randomUUID());
     setIsPending(true);
     setError(null);
     try {
-      const result = await clockIn();
-      if (!result.success) setError(result.error ?? "Não foi possível registrar o ponto.");
+      const result = await clockIn(requestId);
+      if (!result.success) {
+        requestIdRef.current = null;
+        setError(result.error ?? "Não foi possível registrar o ponto.");
+      } else {
+        requestIdRef.current = null;
+      }
       // A Server Action já envia a UI atualizada por revalidatePath. Um segundo
       // router.refresh iniciaria outra navegação após a gravação ter terminado.
     } catch {

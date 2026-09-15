@@ -48,7 +48,7 @@ export function SalaryForm({ defaultValues }: SalaryFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       <div className="space-y-2">
         <Label htmlFor="baseSalary">Salário base (R$)</Label>
         <Input
@@ -87,13 +87,14 @@ export function SalaryForm({ defaultValues }: SalaryFormProps) {
       </div>
       {message && (
         <p
-          className={`text-sm ${message.type === "success" ? "text-green-500" : "text-destructive"}`}
+          role="status"
+          className={`rounded-xl border px-3 py-2 text-sm ${message.type === "success" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "border-destructive/30 bg-destructive/10 text-destructive"}`}
         >
           {message.text}
         </p>
       )}
 
-      <Button type="submit" disabled={isLoading}>
+      <Button type="submit" className="w-full sm:w-auto" disabled={isLoading}>
         {isLoading ? "Salvando..." : "Salvar Salário"}
       </Button>
     </form>

@@ -16,7 +16,7 @@ dependência de transformação.
 
 ## Cobertura atual
 
-Os testes em `tests/` cobrem 37 cenários:
+Os testes em `tests/` cobrem 40 cenários:
 
 - normalização de datas civis no fuso brasileiro;
 - intervalos inclusivos para colunas SQL `DATE`;
@@ -37,6 +37,9 @@ Os testes em `tests/` cobrem 37 cenários:
 - divisão explícita de 5h extras em 2h a 75% e 3h a 100% em dia útil;
 - independência do limite entre jornadas e tratamento integral de 100% em
   feriados.
+- idempotência de solicitações repetidas e serialização de solicitações
+  concorrentes do mesmo usuário;
+- suporte a múltiplos pares legítimos de entrada e saída na mesma jornada.
 
 Os testes são unitários e não acessam PostgreSQL, Supabase ou o navegador.
 Isso mantém a execução rápida e determinística.

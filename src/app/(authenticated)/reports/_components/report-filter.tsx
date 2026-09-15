@@ -9,12 +9,14 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useState } from "react";
+import type { FormEvent } from "react";
 import {
   formatDateToDisplay,
   parseQueryDateToJSDate,
@@ -40,7 +42,9 @@ export function ReportFilter({ startDate, endDate }: ReportFilterProps) {
     parseQueryDateToJSDate(endDate),
   );
 
-  function handleApplyFilters() {
+  function handleApplyFilters(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
     if (!startDateValue || !endDateValue) {
       return;
     }
@@ -54,10 +58,14 @@ export function ReportFilter({ startDate, endDate }: ReportFilterProps) {
   }
 
   return (
-    <Card size="sm">
-      <CardContent className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-end">
-        <div className="grid gap-2">
-          <label htmlFor="report-start-date" className="text-sm font-medium">Data inicial</label>
+    <Card size="sm" className="rounded-[22px]">
+      <CardContent className="p-5 sm:p-6">
+        <form
+          onSubmit={handleApplyFilters}
+          className="flex flex-col gap-5 md:flex-row md:flex-wrap md:items-end"
+        >
+          <div className="grid gap-2">
+          <Label htmlFor="report-start-date">Data inicial</Label>
 
           <Popover>
             <PopoverTrigger asChild>
@@ -87,10 +95,10 @@ export function ReportFilter({ startDate, endDate }: ReportFilterProps) {
               />
             </PopoverContent>
           </Popover>
-        </div>
+          </div>
 
-        <div className="grid gap-2">
-          <label htmlFor="report-end-date" className="text-sm font-medium">Data final</label>
+          <div className="grid gap-2">
+          <Label htmlFor="report-end-date">Data final</Label>
 
           <Popover>
             <PopoverTrigger asChild>
@@ -120,9 +128,10 @@ export function ReportFilter({ startDate, endDate }: ReportFilterProps) {
               />
             </PopoverContent>
           </Popover>
-        </div>
+          </div>
 
-        <Button onClick={handleApplyFilters}>Aplicar filtros</Button>
+          <Button type="submit" className="w-full md:w-auto">Aplicar filtros</Button>
+        </form>
       </CardContent>
     </Card>
   );

@@ -37,9 +37,9 @@ o cliente Prisma ignorado pelo Git e depois executa o Next.js. Não depende de
 arquivos gerados previamente na máquina Windows.
 
 O build não aplica migrações. Em banco existente, confira o histórico antes de
-executar `prisma migrate deploy`: há uma migração que substitui colunas de
-minutos, e a preservação dos dados precisa ser avaliada. Não use `migrate dev`
-em produção.
+executar `prisma migrate deploy`: há migrações que alteram colunas de minutos e
+adicionam a chave de idempotência de `time_entries`; a preservação dos dados
+precisa ser avaliada. Não use `migrate dev` em produção.
 
 Crie primeiro um Preview na conta e equipe corretas da Vercel. Este documento
 descreve o procedimento; a URL e os logs do deploy devem ser registrados quando
@@ -82,8 +82,8 @@ Referências: [Prisma na Vercel](https://www.prisma.io/docs/orm/v7/prisma-client
   painel; presença e escopo Preview confirmados pela CLI, sem consultar valores.
 - Integração GitHub pendente: a Vercel solicitou adicionar uma Login Connection
   para a conta GitHub. O Preview poderá ser enviado pela CLI.
-- Local: 26 testes passaram; lint sem erros, com o aviso conhecido do TanStack
-  Table; geração Prisma e build Next.js 16.3.3, incluindo TypeScript, passaram.
+- Local: 40 testes passaram; lint sem erros; geração Prisma e build Next.js
+  16.3.3, incluindo TypeScript, passaram.
 - Validação visual/autenticada pendente: abertura do navegador local bloqueada
   pela revisão automática por limite de uso do Codex. Nenhum registro real foi
   alterado para validar o ponto entre dias.
@@ -129,3 +129,8 @@ encerrar o estado de envio em `finally`, com bloqueio síncrono de cliques
 repetidos. Essa alteração é local e ainda não está no deployment acima.
 A confirmação visual do cenário relatado permanece pendente; a suíte de domínio
 não cobre o ciclo de renderização do navegador.
+
+O AUD-006 adiciona uma migração para `time_entries.request_id`. Antes de
+publicar essa versão, aplique `prisma migrate deploy` no banco de destino e
+execute o fluxo autenticado com dois pares de sobreaviso e uma repetição da
+mesma solicitação.

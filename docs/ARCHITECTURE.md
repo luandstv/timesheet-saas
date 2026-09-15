@@ -42,6 +42,12 @@ Concentra regras de negócio:
 O cálculo do timesheet é atualizado quando uma saída é registrada, pois nesse
 momento existe um par completo de entrada e saída.
 
+O registro é executado dentro de uma transação que bloqueia a linha do usuário
+durante a decisão e a gravação. Cada chamada da interface carrega um
+`requestId` único, salvo em `time_entries`; repetir a mesma chamada devolve o
+registro original. Essa proteção contra duplicidade não limita a quantidade de
+pares legítimos no dia: cada acionamento de sobreaviso usa uma nova chave.
+
 Em dias úteis, a apuração considera primeiro a carga diária configurada como
 horas normais. Das horas excedentes, as primeiras 2 horas (120 minutos) são
 classificadas como extra de 75%; todo o restante é classificado como extra de

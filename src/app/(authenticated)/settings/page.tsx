@@ -28,14 +28,14 @@ export default async function SettingsPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
+        <Card className="rounded-[22px]">
+          <CardHeader className="p-6 pb-3 sm:p-8 sm:pb-3">
             <CardTitle>Jornada De Trabalho</CardTitle>
             <CardDescription>
               Configure seu horário de expediente e carga horária.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6 pt-3 sm:p-8 sm:pt-3">
             <WorkScheduleForm
               defaultValues={{
                 workStartHour: user.workStartHour,
@@ -48,15 +48,15 @@ export default async function SettingsPage() {
             />
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
+        <Card className="rounded-[22px]">
+          <CardHeader className="p-6 pb-3 sm:p-8 sm:pb-3">
             <CardTitle>Dados Salariais</CardTitle>
             <CardDescription>
               Informe seu salário para cálculo de horas extras e sobreaviso.
               Apenas você e seu gestor podem ver esses dados.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6 pt-3 sm:p-8 sm:pt-3">
             <SalaryForm
               defaultValues={{
                 baseSalary: salaryConfig?.baseSalary != null
