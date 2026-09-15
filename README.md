@@ -10,9 +10,11 @@ acompanhamento de horas trabalhadas. O produto usa o horário civil de
 
 - Cadastro e login com Supabase Auth.
 - Dashboard com jornada do dia, semana e mês.
-- Registro alternado de entrada e saída.
+- Registro alternado de entrada e saída, preservando entradas abertas após meia-noite.
 - Lista dos registros do dia.
 - Cálculo de horas normais e horas extras de 75% e 100%.
+- Em dias úteis, as primeiras 2h extras são 75% e o excedente é 100%; fins de
+  semana e feriados são apurados integralmente como 100%.
 - Relatórios por intervalo com resumo e detalhamento diário.
 - Configuração de jornada, carga semanal e dados salariais.
 - Tema claro e escuro.
@@ -75,15 +77,14 @@ dados e a construção do modelo visual em
 
 ### Requisitos
 
-- Node.js 20.9 ou superior para executar a aplicação.
-- Node.js 22.6 ou superior para executar a suíte de testes nativa com TypeScript.
-- pnpm.
+- Node.js 24.x (aplicação e testes).
+- pnpm 11.8.0, fixado no `package.json`.
 - Projeto Supabase com PostgreSQL disponível.
 
 ### Instalação
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 ```
 
 Copie `.env.example` para `.env` e preencha:
@@ -96,7 +97,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 ```
 
 `DATABASE_URL` é usada pelas consultas normais através do pooler. `DIRECT_URL`
-é usada pelo Prisma nas migrações.
+é usada pelo Prisma nas migrações e precisa estar definida ao carregar sua
+configuração durante a geração do cliente no build.
 
 ### Banco de dados
 
@@ -119,7 +121,7 @@ A aplicação fica disponível em <http://localhost:3000>.
 
 ```bash
 pnpm dev       # servidor de desenvolvimento
-pnpm build     # build de produção
+pnpm build     # gera o cliente Prisma e cria o build de produção
 pnpm start     # inicia o build de produção
 pnpm lint      # ESLint
 pnpm test      # testes unitários
@@ -138,6 +140,17 @@ usam esse fuso.
 As colunas SQL do tipo `DATE` são normalizadas internamente para UTC apenas no
 momento da persistência e da consulta. Isso evita que o horário do servidor
 exclua o primeiro dia de um relatório; não altera o horário exibido ao usuário.
+
+Uma entrada sem saída continua aberta no dia seguinte. A saída usa o horário
+atual e fecha a jornada da entrada original; não é retroativa. O histórico
+“Registros de hoje” considera o instante do movimento, enquanto a apuração
+permanece na data da jornada. A interface avisa quando a entrada é de outro dia.
+
+## Deploy na Vercel
+
+O preparo, as quatro variáveis necessárias e a validação após a publicação
+estão em [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). O build gera o cliente
+Prisma, mas não aplica migrações automaticamente.
 
 ## Documentação complementar
 

@@ -81,7 +81,6 @@ export default async function DashboardPage({
   const { weekStart, weekEnd } = context;
   const { firstName, greeting, dateLabel, periods } = header;
   const { entries, days } = activity;
-  const { nextType, lastEntryTime } = journey.clock;
   const { progress, targetMinutes: target } = journey;
   const {
     workedMinutes: weekWorkedMinutes,
@@ -150,9 +149,7 @@ export default async function DashboardPage({
 
       <section className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
         <ClockCard
-          nextType={nextType}
-          lastEntryTime={lastEntryTime}
-          dateLabel={dateLabel}
+          {...journey.clock}
         />
         <Card>
           <CardHeader className="flex flex-row items-start gap-4">

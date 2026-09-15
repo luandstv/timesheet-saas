@@ -1,5 +1,6 @@
 import { DateTime } from "luxon";
 import { TIMEZONE } from "@/lib/constants";
+import { buildClockPresentation, type ClockState } from "@/lib/clock-presentation";
 import type { ReportRow, ReportSummary } from "@/services/report.service";
 
 const MAX_WEEK_OFFSET = 52;
@@ -23,6 +24,7 @@ type DashboardEntry = {
 
 export type DashboardData = {
   entries: DashboardEntry[];
+  clockState: ClockState;
   today: ReportSummary;
   week: ReportSummary;
   month: ReportSummary;
@@ -91,8 +93,6 @@ function buildWeekActivity(context: DashboardQuery, rows: DashboardData["weeklyR
 export function buildDashboardModel(user: DashboardUser, data: DashboardData, context: DashboardQuery) {
   const { now, period, weekOffset } = context;
   const entries = [...data.entries].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-  const lastEntry = entries.at(-1);
-  const nextType: DashboardEntry["type"] = !lastEntry || lastEntry.type === "CLOCK_OUT" ? "CLOCK_IN" : "CLOCK_OUT";
   const dateLabel = now.toFormat("cccc, dd 'de' LLLL");
   const dailyMinutes = Number(user.dailyHours) * 60;
   const weeklyMinutes = Number(user.weeklyHours) * 60;
@@ -113,10 +113,7 @@ export function buildDashboardModel(user: DashboardUser, data: DashboardData, co
     },
     journey: {
       clock: {
-        nextType,
-        lastEntryTime: lastEntry
-          ? DateTime.fromJSDate(lastEntry.timestamp).setZone(TIMEZONE).toFormat("HH:mm:ss")
-          : null,
+        ...buildClockPresentation(data.clockState, now),
         dateLabel,
       },
       title: PERIODS.find((option) => option.value === period)!.title,

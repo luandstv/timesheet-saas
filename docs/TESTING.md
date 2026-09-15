@@ -6,8 +6,8 @@
 pnpm test
 ```
 
-Os testes usam recursos de strip de tipos introduzidos no Node.js 22.6. O
-servidor da aplicação continua compatível com Node.js 20.9 ou superior.
+Use Node.js 24.x e pnpm 11.8.0, conforme `package.json`. Os testes executam
+TypeScript com o suporte nativo de remoção de tipos do Node.js.
 
 O projeto usa o `node:test`, runner nativo e estável do Node.js. Um loader
 pequeno em `tests/loader.mjs` permite que os testes executem módulos TypeScript
@@ -16,7 +16,7 @@ dependência de transformação.
 
 ## Cobertura atual
 
-Os testes em `tests/` cobrem 14 cenários:
+Os testes em `tests/` cobrem 37 cenários:
 
 - normalização de datas civis no fuso brasileiro;
 - intervalos inclusivos para colunas SQL `DATE`;
@@ -27,9 +27,24 @@ Os testes em `tests/` cobrem 14 cenários:
 - formatação longa e compacta de duração;
 - parâmetros repetidos e intervalos inválidos nos relatórios;
 - validação de login e confirmação de senha.
+- continuidade de uma entrada aberta após meia-noite e recálculo na folha original;
+- nova entrada somente após fechar o ponto anterior;
+- isolamento por usuário e bloqueio de folhas não abertas;
+- histórico de hoje incluindo saídas vinculadas à jornada de ontem;
+- aviso de entrada pendente usando a data brasileira, inclusive na virada UTC.
+- limite de 2h a 75% aplicado uma única vez por jornada, inclusive com vários
+  intervalos e mudança de faixa FHC/FHCN;
+- divisão explícita de 5h extras em 2h a 75% e 3h a 100% em dia útil;
+- independência do limite entre jornadas e tratamento integral de 100% em
+  feriados.
 
 Os testes são unitários e não acessam PostgreSQL, Supabase ou o navegador.
 Isso mantém a execução rápida e determinística.
+
+`time-entry.test.mjs` executa os serviços reais de registro e cálculo com
+Prisma em memória. O loader em `tests/fixtures/` intercepta a infraestrutura
+antes de carregar banco ou `.env`. Esses testes não substituem uma verificação
+de integração com PostgreSQL nem cobrem requisições concorrentes.
 
 ## Verificações complementares
 

@@ -1,0 +1,9 @@
+.env*
+!.env.example
+.git
+.next
+node_modules
+.pnpm-store
+.tmp-pnpm-store
+coverage
+*.tsbuildinfo

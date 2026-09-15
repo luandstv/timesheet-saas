@@ -3,6 +3,7 @@ import { TimeEntriesList } from "@/components/shared/time-entries-list";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAuthenticatedUser } from "@/lib/auth";
 import { TIMEZONE } from "@/lib/constants";
+import { buildClockPresentation } from "@/lib/clock-presentation";
 import { formatMinutesToHours } from "@/lib/format";
 import { DashboardService } from "@/services/dashboard.service";
 import { TimeEntryService } from "@/services/time-entry.service";
@@ -11,33 +12,14 @@ import { Badge } from "@/components/ui/badge";
 
 export default async function TimeEntriesPage() {
   const user = await getAuthenticatedUser();
-  const timeSheet = await TimeEntryService.getTodayEntries(user.id);
-
-  const entries = [...(timeSheet?.entries || [])];
-
-  const todaySummary = await DashboardService.getTodaySummary(user.id);
-
-  const sortedEntries = [...entries].sort(
-    (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
-  );
-  const lastEntry = sortedEntries[sortedEntries.length - 1] ?? null;
-
-  const lastEntryTime = lastEntry
-    ? DateTime.fromJSDate(lastEntry.timestamp)
-        .setZone(TIMEZONE)
-        .toFormat("HH:mm:ss")
-    : null;
-
-  let nextType: "CLOCK_IN" | "CLOCK_OUT";
-
-  if (!lastEntry || lastEntry.type === "CLOCK_OUT") {
-    nextType = "CLOCK_IN";
-  } else {
-    nextType = "CLOCK_OUT";
-  }
-
-  const fullDateString = DateTime.now()
-    .setZone(TIMEZONE)
+  const [entries, clockState, todaySummary] = await Promise.all([
+    TimeEntryService.getTodayMovements(user.id),
+    TimeEntryService.getClockState(user.id),
+    DashboardService.getTodaySummary(user.id),
+  ]);
+  const now = DateTime.now().setZone(TIMEZONE);
+  const clock = buildClockPresentation(clockState, now);
+  const fullDateString = now
     .toFormat("cccc, dd 'de' LLLL 'de' yyyy", { locale: "pt-BR" });
 
   const overtime75 =
@@ -61,7 +43,7 @@ export default async function TimeEntriesPage() {
         </p>
       </div>
 
-      <ClockCard nextType={nextType} lastEntryTime={lastEntryTime} dateLabel={fullDateString} />
+      <ClockCard {...clock} dateLabel={fullDateString} />
 
       {todaySummary.totalWorkedMinutes > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

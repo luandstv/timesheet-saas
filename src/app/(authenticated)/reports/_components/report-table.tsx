@@ -110,6 +110,10 @@ export function ReportTable({ rows }: ReportTableProps) {
     [],
   );
 
+  // TanStack Table exposes a mutable instance API that React Compiler cannot
+  // safely memoize. The library owns this stateful object and its usage here
+  // is intentional, so keep the compiler warning scoped to this call.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: rows,
     columns,

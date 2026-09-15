@@ -34,25 +34,45 @@ export class TimeEntryService {
     return timeSheet;
   }
 
-  static async getNextEntryType(timeSheetId: string) {
+  static async getClockState(userId: string) {
+    // O estado do ponto pertence ao usuário: a troca da data não encerra uma
+    // entrada pendente nem autoriza criar outra entrada no timesheet de hoje.
     const lastEntry = await prisma.timeEntry.findFirst({
-      where: { timeSheetId },
-      orderBy: { timestamp: "desc" },
+      where: { timesheet: { userId } },
+      orderBy: [
+        { timestamp: "desc" },
+        { createdAt: "desc" },
+        { id: "desc" },
+      ],
+      include: { timesheet: true },
     });
 
-    if (!lastEntry || lastEntry.type === "CLOCK_OUT") {
-      return "CLOCK_IN" as const;
-    }
-
-    return "CLOCK_OUT" as const;
+    return {
+      lastEntry,
+      nextEntryType:
+        lastEntry?.type === "CLOCK_IN"
+          ? ("CLOCK_OUT" as const)
+          : ("CLOCK_IN" as const),
+    };
   }
 
   static async clockIn(userId: string) {
     const now = DateTime.now().setZone(TIMEZONE);
 
-    const timeSheet = await this.getOrCreateTimeSheet(userId, now);
+    const { lastEntry, nextEntryType: type } = await this.getClockState(userId);
 
-    const type = await this.getNextEntryType(timeSheet.id);
+    // Mantém o par na jornada em que a entrada foi registrada, inclusive após
+    // meia-noite. Só abre o timesheet de hoje quando não há entrada pendente.
+    const timeSheet =
+      lastEntry?.type === "CLOCK_IN"
+        ? lastEntry.timesheet
+        : await this.getOrCreateTimeSheet(userId, now);
+
+    if (timeSheet.status !== "OPEN") {
+      throw new Error(
+        "Esta jornada está bloqueada para novos registros. Solicite um ajuste antes de continuar.",
+      );
+    }
 
     const entry = await prisma.timeEntry.create({
       data: {
@@ -112,5 +132,26 @@ export class TimeEntryService {
     });
 
     return timeSheet;
+  }
+
+  static async getTodayMovements(userId: string) {
+    const start = DateTime.now().setZone(TIMEZONE).startOf("day");
+
+    // Um movimento de hoje pode encerrar a jornada de ontem. O histórico usa
+    // o instante real do registro, enquanto a apuração usa a data da jornada.
+    return prisma.timeEntry.findMany({
+      where: {
+        timesheet: { userId },
+        timestamp: {
+          gte: start.toJSDate(),
+          lt: start.plus({ days: 1 }).toJSDate(),
+        },
+      },
+      orderBy: [
+        { timestamp: "desc" },
+        { createdAt: "desc" },
+        { id: "desc" },
+      ],
+    });
   }
 }

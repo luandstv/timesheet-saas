@@ -184,6 +184,8 @@ export class TimeCalculationService {
     }
 
     const dailyMinutes = dailyHours * 60;
+    // O limite de 2h a 75% vale uma única vez por jornada. Ele é compartilhado
+    // entre todos os intervalos e entre FHC/FHCN; só o excedente vai para 100%.
     const maxOvertime75minutes = MAX_OVERTIME_75_MINUTES_WEEKDAY;
 
     let normalMinutes = 0;

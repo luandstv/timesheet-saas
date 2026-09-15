@@ -9,15 +9,17 @@ export async function loadDashboardData(
   userId: string,
   { startDate, endDate }: Pick<DashboardQuery, "startDate" | "endDate">,
 ): Promise<DashboardData> {
-  const [timeSheet, today, month, weeklyReport] = await Promise.all([
-    TimeEntryService.getTodayEntries(userId),
+  const [entries, clockState, today, month, weeklyReport] = await Promise.all([
+    TimeEntryService.getTodayMovements(userId),
+    TimeEntryService.getClockState(userId),
     DashboardService.getTodaySummary(userId),
     DashboardService.getMonthSummary(userId),
     getReportData({ userId, startDate, endDate }),
   ]);
 
   return {
-    entries: timeSheet?.entries ?? [],
+    entries,
+    clockState,
     today,
     // O resumo e o gráfico vêm da mesma consulta e, portanto, nunca usam
     // intervalos semanais diferentes.

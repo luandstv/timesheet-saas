@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+/.pnpm-store
+/.tmp-pnpm-store
 /.pnp
 .pnp.*
 .yarn/*
@@ -44,3 +46,6 @@ next-env.d.ts
 /src/generated/prisma
 
 /generated/prisma
+
+.env*
+!.env.example

@@ -161,7 +161,7 @@ VALUES (
 
 -- ====================================================
 -- CENÁRIO 4: fim de semana ( 100% tudo)
--- Esperado: normalMinutes = 0, overtime75Fhc = 480
+-- Esperado: normalMinutes = 0, overtime100Fhc = 480
 -- ====================================================
 
 INSERT INTO time_sheets (id, user_id, date, status, is_holiday, is_weekend, updated_at)
@@ -194,7 +194,7 @@ VALUES (
 -- ====================================================
 -- CENÁRIO 5: Acionamentos noturnos (sobreaviso)
 -- Dia normal + acionamento 22:00 as 23:30
--- Esperado: normalMinutes = 480, overtime75Fhc = 120, overtimeFhcn=90
+-- Esperado: normalMinutes = 480, overtime75Fhc = 120, overtime100Fhcn = 90
 -- ====================================================
 
 INSERT INTO time_sheets (id, user_id, date, status, is_holiday, is_weekend, updated_at)

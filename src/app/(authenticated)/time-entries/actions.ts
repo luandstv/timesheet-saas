@@ -11,6 +11,7 @@ export async function clockIn() {
     const result = await TimeEntryService.clockIn(user.id);
     revalidatePath("/time-entries");
     revalidatePath("/dashboard");
+    revalidatePath("/reports");
     return { success: true, type: result.type };
   } catch (error) {
     return {
