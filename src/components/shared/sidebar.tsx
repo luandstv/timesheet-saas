@@ -10,6 +10,7 @@ import { UserNav } from "./user-nav";
 import { BrandMark } from "./brand-mark";
 import { HelpMenu } from "./header-tools";
 import { appNavigation } from "./app-navigation";
+import { NavigationIcon } from "./navigation-icon";
 
 export function Sidebar({ name, email }: { name: string; email: string }) {
   const pathname = usePathname();
@@ -29,7 +30,7 @@ export function Sidebar({ name, email }: { name: string; email: string }) {
         <nav aria-label="Navegação principal" className="mt-3 grid min-h-0 flex-1 content-start gap-2 overflow-y-auto overscroll-contain">
           {appNavigation.map((item) => (
             <Link key={item.href} href={item.href} title={item.title} aria-current={pathname === item.href ? "page" : undefined} className={cn("relative flex min-h-12 items-center gap-4 rounded-lg border border-transparent px-3 text-sm transition-colors hover:bg-sidebar-accent focus-visible:outline-2 focus-visible:outline-ring", pathname === item.href && "border-primary/10 bg-sidebar-accent text-foreground before:absolute before:inset-y-1 before:left-0 before:w-0.5 before:rounded-full before:bg-primary")}>
-              <item.icon className={cn("size-5 shrink-0", pathname === item.href ? "text-sidebar-primary" : "text-muted-foreground")} />
+              <NavigationIcon icon={item.icon} label={item.title} className={cn("size-5 shrink-0", pathname === item.href ? "text-sidebar-primary" : "text-muted-foreground")} />
               <span className={cn(collapsed ? "sr-only" : "sr-only lg:not-sr-only")}>{item.title}</span>
             </Link>
           ))}
@@ -45,7 +46,7 @@ export function Sidebar({ name, email }: { name: string; email: string }) {
       <nav aria-label="Navegação mobile" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-sidebar px-1 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:hidden">
         {appNavigation.map((item) => (
           <Link key={item.href} href={item.href} aria-current={pathname === item.href ? "page" : undefined} className={cn("flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg text-[10px] text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring", pathname === item.href && "bg-accent text-accent-foreground")}>
-            <item.icon className="size-5" />{item.shortTitle}
+            <NavigationIcon icon={item.icon} label={item.title} className="size-5 shrink-0" />{item.shortTitle}
           </Link>
         ))}
       </nav>
