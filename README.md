@@ -26,7 +26,9 @@ acompanhamento de horas trabalhadas. O produto usa o horário civil de
 
 - O sobreaviso ainda usa dados demonstrativos e não entra nos totais reais.
 - O painel de notificações ainda está reservado para uma próxima integração.
-- Ainda não há pipeline de CI/CD configurado.
+- O workflow de CI está preparado em `.github/workflows/ci.yml` e a conexão
+  GitHub → Vercel está confirmada. Falta enviar o workflow e validar a primeira
+  execução da CI e o primeiro deploy automático.
 
 As pendências visuais e de produto estão detalhadas em
 [`docs/UI-PENDING.md`](docs/UI-PENDING.md).
