@@ -36,6 +36,27 @@ Execute `pnpm test`, `pnpm lint` e `pnpm build` antes de publicar. O build gera
 o cliente Prisma ignorado pelo Git e depois executa o Next.js. Não depende de
 arquivos gerados previamente na máquina Windows.
 
+### CI no GitHub e deploy na Vercel
+
+O workflow `.github/workflows/ci.yml` executa em todo push para `main` e em
+pull requests. Ele instala exatamente o lockfile com Node.js 24.x e pnpm
+11.8.0, gera o Prisma Client e roda testes, lint, TypeScript e build. As
+variáveis usadas nesse job são valores sintéticos; a CI não acessa o banco nem
+o Supabase.
+
+O projeto da Vercel está conectado ao repositório `luandstv/timesheet-saas`,
+com a branch de produção `main` e criação de deploys Git habilitada. A integração
+nativa cria um Preview para pull requests e branches e publica em Production
+quando `main` recebe um push. O workflow do GitHub e o build da Vercel são
+independentes: esta configuração não garante que o deploy espere a CI passar.
+Para exigir validação antes de integrar alterações, configure proteção da
+branch `main`, exigindo pull request e o check `Validate application` aprovado.
+A Vercel continua responsável pela publicação e pelas variáveis de ambiente.
+
+Conexão confirmada pela API em 15/09/2026. Os deploys disponíveis nessa
+verificação ainda tinham origem na CLI; falta publicar o workflow e validar
+uma execução no GitHub e um deploy disparado pela integração Git.
+
 O build não aplica migrações. Em banco existente, confira o histórico antes de
 executar `prisma migrate deploy`: há migrações que alteram colunas de minutos e
 adicionam a chave de idempotência de `time_entries`; a preservação dos dados
