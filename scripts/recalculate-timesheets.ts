@@ -80,7 +80,9 @@ async function main() {
       ? parseCustomRange(options.start, options.end)
       : getLastMonthRange();
 
-  const startLabel = DateTime.fromJSDate(start).setZone(TIMEZONE).toFormat("yyyy-MM-dd");
+  const startLabel = DateTime.fromJSDate(start)
+    .setZone(TIMEZONE)
+    .toFormat("yyyy-MM-dd");
   const endLabel = DateTime.fromJSDate(end).setZone(TIMEZONE).toFormat("yyyy-MM-dd");
 
   console.log(`Recalculando timesheets do usuário ${userId}`);
@@ -130,7 +132,9 @@ async function main() {
   let failed = 0;
 
   for (const sheet of timeSheets) {
-    const dateLabel = DateTime.fromJSDate(sheet.date).setZone(TIMEZONE).toFormat("yyyy-MM-dd");
+    const dateLabel = DateTime.fromJSDate(sheet.date)
+      .setZone(TIMEZONE)
+      .toFormat("yyyy-MM-dd");
 
     try {
       const result = await TimeCalculationService.calculateAndUpdateTimeSheet(
@@ -140,7 +144,9 @@ async function main() {
       );
 
       if (!result) {
-        console.warn(`  [!] ${dateLabel} - timesheet não encontrado durante o cálculo (id: ${sheet.id})`);
+        console.warn(
+          `  [!] ${dateLabel} - timesheet não encontrado durante o cálculo (id: ${sheet.id})`,
+        );
         failed++;
         continue;
       }
@@ -160,7 +166,9 @@ async function main() {
     }
   }
 
-  console.log(`\n${processed}/${timeSheets.length} timesheets recalculados com sucesso.`);
+  console.log(
+    `\n${processed}/${timeSheets.length} timesheets recalculados com sucesso.`,
+  );
   if (failed > 0) {
     console.log(`${failed} falharam - veja os logs acima.`);
   }

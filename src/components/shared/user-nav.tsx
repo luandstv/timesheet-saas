@@ -25,6 +25,7 @@ export function UserNav({ name, email }: UserNavProps) {
   async function handleLogaut() {
     const supabase = createClient();
     await supabase.auth.signOut();
+    console.log("User logged out");
     router.push("/login");
   }
 
@@ -38,7 +39,11 @@ export function UserNav({ name, email }: UserNavProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" aria-label="Menu da conta" className="relative h-9 w-9 shrink-0 rounded-full">
+        <Button
+          variant="ghost"
+          aria-label="Menu da conta"
+          className="relative h-9 w-9 shrink-0 rounded-full"
+        >
           <Avatar className="h-9 w-9">
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>

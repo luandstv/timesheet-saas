@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import prisma from "@/lib/prisma";
+import { createPersonalWorkspace } from "@/services/workspace.service";
 
 export async function register(formData: {
   name: string;
@@ -25,12 +26,15 @@ export async function register(formData: {
   }
 
   try {
-    await prisma.user.create({
-      data: {
-        id: data.user.id,
-        email: formData.email,
-        name: formData.name,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.user.create({
+        data: {
+          id: data.user!.id,
+          email: formData.email,
+          name: formData.name,
+        },
+      });
+      await createPersonalWorkspace(tx, data.user!.id);
     });
   } catch (dbError) {
     console.error("erro ao criar usuário no banco", dbError);

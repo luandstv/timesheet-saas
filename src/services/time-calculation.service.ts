@@ -1,3 +1,4 @@
+import { effectiveEntries } from "../lib/effective-entries";
 import {
   FHC_START_HOUR,
   FHC_START_MINUTE,
@@ -38,9 +39,7 @@ interface WorkSchedule {
 }
 
 export class TimeCalculationService {
-  static formPairs(
-    entries: TimeEntryForCalc[],
-  ): { start: DateTime; end: DateTime }[] {
+  static formPairs(entries: TimeEntryForCalc[]): { start: DateTime; end: DateTime }[] {
     const pairs: { start: DateTime; end: DateTime }[] = [];
 
     const sorted = [...entries].sort(
@@ -161,10 +160,7 @@ export class TimeCalculationService {
       allSegments.push(...segments);
     }
 
-    const totalWorkedMinutes = allSegments.reduce(
-      (sum, s) => sum + s.minutes,
-      0,
-    );
+    const totalWorkedMinutes = allSegments.reduce((sum, s) => sum + s.minutes, 0);
 
     if (isWeekend || isHoliday) {
       const fhcMinutes = allSegments
@@ -228,10 +224,7 @@ export class TimeCalculationService {
         const isFhcn = segment.period === "FHCN";
 
         if (overtime75Used < maxOvertime75minutes) {
-          const canUseAs75 = Math.min(
-            remaining,
-            maxOvertime75minutes - overtime75Used,
-          );
+          const canUseAs75 = Math.min(remaining, maxOvertime75minutes - overtime75Used);
 
           if (isFhcn) {
             overtime75FhcnMinutes += canUseAs75;
@@ -274,6 +267,7 @@ export class TimeCalculationService {
     const timeSheet = await prisma.timesheet.findUnique({
       where: { id: timesheetId },
       include: {
+        requests: true,
         entries: {
           orderBy: { timestamp: "asc" },
         },
@@ -285,7 +279,7 @@ export class TimeCalculationService {
     }
 
     const calculation = this.calculateDay(
-      timeSheet.entries,
+      effectiveEntries(timeSheet.entries, timeSheet.requests),
       dailyHours,
       timeSheet.isWeekend,
       timeSheet.isHoliday,

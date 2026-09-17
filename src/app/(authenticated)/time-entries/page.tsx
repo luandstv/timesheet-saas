@@ -1,7 +1,7 @@
 import { ClockCard } from "@/components/shared/clock-card";
 import { TimeEntriesList } from "@/components/shared/time-entries-list";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { getWorkspaceContext } from "@/lib/workspace-context";
 import { TIMEZONE } from "@/lib/constants";
 import { buildClockPresentation } from "@/lib/clock-presentation";
 import { formatMinutesToHours } from "@/lib/format";
@@ -11,16 +11,17 @@ import { DateTime } from "luxon";
 import { Badge } from "@/components/ui/badge";
 
 export default async function TimeEntriesPage() {
-  const user = await getAuthenticatedUser();
+  const { user, workspace, member, memberships } = await getWorkspaceContext();
   const [entries, clockState, todaySummary] = await Promise.all([
-    TimeEntryService.getTodayMovements(user.id),
+    TimeEntryService.getTodayMovements(user.id, workspace.id),
     TimeEntryService.getClockState(user.id),
-    DashboardService.getTodaySummary(user.id),
+    DashboardService.getTodaySummary(user.id, workspace.id),
   ]);
   const now = DateTime.now().setZone(TIMEZONE);
   const clock = buildClockPresentation(clockState, now);
-  const fullDateString = now
-    .toFormat("cccc, dd 'de' LLLL 'de' yyyy", { locale: "pt-BR" });
+  const fullDateString = now.toFormat("cccc, dd 'de' LLLL 'de' yyyy", {
+    locale: "pt-BR",
+  });
 
   const overtime75 =
     todaySummary.overtime75FhcMinutes + todaySummary.overtime75FhcnMinutes;
@@ -38,12 +39,23 @@ export default async function TimeEntriesPage() {
           Seu registro, sem ruído.
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-          <span className="capitalize">{fullDateString}</span>. Ações rápidas
-          para marcar a jornada e uma leitura completa do dia.
+          <span className="capitalize">{fullDateString}</span>. Ações rápidas para
+          marcar a jornada e uma leitura completa do dia.
         </p>
       </div>
 
-      <ClockCard {...clock} dateLabel={fullDateString} />
+      <ClockCard
+        workspaceId={workspace.id}
+        disabled={!member.active}
+        blockedMessage={
+          clockState.lastEntry?.type === "CLOCK_IN" &&
+          clockState.lastEntry.timesheet?.workspaceId !== workspace.id
+            ? `Ponto aberto em ${memberships.find((item) => item.workspaceId === clockState.lastEntry?.timesheet?.workspaceId)?.workspace.name ?? "outro espaço"}. Troque de espaço para encerrá-lo.`
+            : undefined
+        }
+        {...clock}
+        dateLabel={fullDateString}
+      />
 
       {todaySummary.totalWorkedMinutes > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

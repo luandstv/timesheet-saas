@@ -1,0 +1,9 @@
+node_modules
+.next
+generated
+pnpm-lock.yaml
+prisma/migrations
+*.sql
+public
+.env*
+.git

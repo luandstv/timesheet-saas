@@ -1,10 +1,6 @@
 import { ReportQueryInput } from "@/schemas/report.schema";
 import prisma from "@/lib/prisma";
-import {
-  dateOnlyEnd,
-  dateOnlyStart,
-  formatDateOnly,
-} from "@/lib/date-only";
+import { dateOnlyEnd, dateOnlyStart, formatDateOnly } from "@/lib/date-only";
 import { TimesheetStatus } from "../../generated/prisma/enums";
 
 export type ReportRow = {
@@ -40,6 +36,7 @@ export type ReportResult = {
 
 type GetReportDataParams = ReportQueryInput & {
   userId: string;
+  workspaceId: string;
 };
 
 function parseStartDateToDate(value: string) {
@@ -86,6 +83,7 @@ function buildSummary(rows: ReportRow[]): ReportSummary {
 
 export async function getReportData({
   userId,
+  workspaceId,
   startDate,
   endDate,
 }: GetReportDataParams): Promise<ReportResult> {
@@ -95,6 +93,7 @@ export async function getReportData({
   const timeSheets = await prisma.timesheet.findMany({
     where: {
       userId,
+      workspaceId,
       date: {
         gte: start,
         lte: end,

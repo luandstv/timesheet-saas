@@ -3,14 +3,15 @@ import { TIMEZONE } from "@/lib/constants";
 import { dateOnlyEnd, dateOnlyStart } from "@/lib/date-only";
 
 export class DashboardService {
-  static async getTodaySummary(userId: string) {
+  static async getTodaySummary(userId: string, workspaceId: string = userId) {
     const prisma = (await import("@/lib/prisma")).default;
     const today = dateOnlyStart(DateTime.now().setZone(TIMEZONE));
 
     const timeSheet = await prisma.timesheet.findUnique({
       where: {
-        userId_date: {
+        userId_workspaceId_date: {
           userId,
+          workspaceId,
           date: today,
         },
       },
@@ -26,7 +27,7 @@ export class DashboardService {
     };
   }
 
-  static async getWeekSummary(userId: string) {
+  static async getWeekSummary(userId: string, workspaceId: string = userId) {
     const prisma = (await import("@/lib/prisma")).default;
     // Mantemos o mesmo intervalo usado pelo gráfico: domingo a sábado.
     const now = DateTime.now().setZone(TIMEZONE).setLocale("en-US");
@@ -36,6 +37,7 @@ export class DashboardService {
     const timeSheets = await prisma.timesheet.findMany({
       where: {
         userId,
+        workspaceId,
         date: {
           gte: startOfWeek,
           lte: endOfWeek,
@@ -68,7 +70,7 @@ export class DashboardService {
     };
   }
 
-  static async getMonthSummary(userId: string) {
+  static async getMonthSummary(userId: string, workspaceId: string = userId) {
     const prisma = (await import("@/lib/prisma")).default;
     const now = DateTime.now().setZone(TIMEZONE);
     const startOfMonth = dateOnlyStart(now.startOf("month"));
@@ -77,6 +79,7 @@ export class DashboardService {
     const timeSheets = await prisma.timesheet.findMany({
       where: {
         userId,
+        workspaceId,
         date: {
           gte: startOfMonth,
           lte: endOfMonth,

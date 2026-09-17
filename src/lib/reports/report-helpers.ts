@@ -1,10 +1,7 @@
 import { DateTime } from "luxon";
 
 import { TIMEZONE } from "../constants";
-import {
-  reportQuerySchema,
-  type ReportQueryInput,
-} from "../../schemas/report.schema";
+import { reportQuerySchema, type ReportQueryInput } from "../../schemas/report.schema";
 
 type ReportSearchParams = {
   startDate?: string | string[];

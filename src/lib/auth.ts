@@ -1,8 +1,9 @@
+import { cache } from "react";
 import { createClient } from "./supabase/server";
 import { redirect } from "next/navigation";
 import prisma from "./prisma";
 
-export async function getAuthenticatedUser() {
+export const getAuthenticatedUser = cache(async function getAuthenticatedUser() {
   const supabase = await createClient();
   const {
     data: { user: authUser },
@@ -21,4 +22,4 @@ export async function getAuthenticatedUser() {
   }
 
   return user;
-}
+});

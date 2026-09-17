@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import prisma from "@/lib/prisma";
+import { getWorkspaceContext } from "@/lib/workspace-context";
+import { WorkspaceSelector } from "@/components/shared/workspace-selector";
 import { Sidebar } from "@/components/shared/sidebar";
 import { UserNav } from "@/components/shared/user-nav";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
@@ -15,22 +14,7 @@ export default async function AuthenticatedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
-
-  if (!authUser) {
-    redirect("/login");
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id },
-  });
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { user, workspace, member, memberships } = await getWorkspaceContext();
 
   return (
     <div className="flex min-h-dvh w-full overflow-x-clip bg-background">
@@ -38,17 +22,27 @@ export default async function AuthenticatedLayout({
 
       <div className="flex min-h-dvh min-w-0 flex-1 flex-col pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
         <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border bg-card/40 px-4 sm:gap-4 sm:px-6 lg:px-8">
-          <div className="md:hidden"><BrandMark /></div>
-          <div className="mr-auto hidden items-center gap-2 text-sm text-muted-foreground sm:flex">
-            <span>Jornix</span>
-            <span className="text-primary">/</span>
-            <span className="font-medium text-foreground">Meu espaço</span>
+          <div className="md:hidden">
+            <BrandMark />
           </div>
+          <WorkspaceSelector
+            current={workspace.id}
+            spaces={memberships.map((item) => ({
+              id: item.workspaceId,
+              name: item.workspace.name,
+              active: item.active,
+            }))}
+          />
           <HeaderTools />
           <ThemeToggle />
           <UserNav name={user.name} email={user.email} />
         </header>
         <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+          {!member.active && (
+            <p className="mb-5 rounded-lg border border-primary/25 bg-primary/10 px-3 py-2 text-xs text-accent-foreground">
+              Vínculo encerrado. Seu histórico está disponível para consulta.
+            </p>
+          )}
           {children}
         </main>
         <AppFooter />

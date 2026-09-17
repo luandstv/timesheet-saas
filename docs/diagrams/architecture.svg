@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1650" height="920" viewBox="0 0 1650 920"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#1e3a5f"/></marker></defs><rect width="100%" height="100%" fill="#ffffff"/><ellipse cx="210" cy="300" rx="110" ry="50" fill="#fed7aa" stroke="#c2410c" stroke-width="2"/>
+<text x="210" y="294.05" fill="#374151" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17" text-anchor="middle" font-weight="500"><tspan x="210" dy="0">Browser</tspan><tspan x="210" dy="21.25">usuário autenticado</tspan></text>
+<rect x="430" y="210" width="300" height="180" rx="18" fill="#3b82f6" stroke="#1e3a5f" stroke-width="2"/>
+<text x="580" y="294.05" fill="#ffffff" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17" text-anchor="middle" font-weight="500"><tspan x="580" dy="0">Next.js App Router</tspan><tspan x="580" dy="21.25">rotas e componentes</tspan></text>
+<text x="580" y="336" fill="#ffffff" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="14" text-anchor="middle" font-weight="500"><tspan x="580" dy="0">/dashboard  ·  /reports</tspan><tspan x="580" dy="17.5">/adjustments  ·  /workspaces</tspan></text>
+<rect x="850" y="210" width="320" height="180" rx="18" fill="#60a5fa" stroke="#1e3a5f" stroke-width="2"/>
+<text x="1010" y="294.05" fill="#1e3a5f" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17" text-anchor="middle" font-weight="500"><tspan x="1010" dy="0">Serviços e Server Actions</tspan><tspan x="1010" dy="21.25">regras de negócio</tspan></text>
+<text x="1010" y="336" fill="#1e3a5f" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="14" text-anchor="middle" font-weight="500"><tspan x="1010" dy="0">time-entry · adjustment</tspan><tspan x="1010" dy="17.5">workspace · report</tspan></text>
+<rect x="1290" y="210" width="280" height="180" rx="18" fill="#93c5fd" stroke="#1e3a5f" stroke-width="2"/>
+<text x="1430" y="294.05" fill="#1e3a5f" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17" text-anchor="middle" font-weight="500"><tspan x="1430" dy="0">Prisma + Supabase</tspan><tspan x="1430" dy="21.25">PostgreSQL e autenticação</tspan></text>
+<polyline points="320,300 430,300" fill="none" stroke="#c2410c" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="730,300 850,300" fill="none" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="1170,300 1290,300" fill="none" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="735" y="277" fill="#64748b" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="13" text-anchor="start" font-weight="500"><tspan x="735" dy="0">Server Actions / queries</tspan></text>
+<text x="100" y="522" fill="#1e40af" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="22" text-anchor="start" font-weight="500"><tspan x="100" dy="0">Caminho de uma batida de ponto</tspan></text>
+<ellipse cx="210" cy="610" rx="110" ry="50" fill="#fed7aa" stroke="#c2410c" stroke-width="2"/>
+<text x="210" y="604.05" fill="#374151" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17" text-anchor="middle" font-weight="500"><tspan x="210" dy="0">Entrada ou saída</tspan><tspan x="210" dy="21.25">15:27:40</tspan></text>
+<rect x="430" y="560" width="250" height="100" rx="18" fill="#fef3c7" stroke="#b45309" stroke-width="2"/>
+<text x="555" y="604.05" fill="#374151" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17" text-anchor="middle" font-weight="500"><tspan x="555" dy="0">Validação</tspan><tspan x="555" dy="21.25">intervalo e idempotência</tspan></text>
+<rect x="790" y="560" width="270" height="100" rx="18" fill="#a7f3d0" stroke="#047857" stroke-width="2"/>
+<text x="925" y="604.05" fill="#047857" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17" text-anchor="middle" font-weight="500"><tspan x="925" dy="0">Timesheet + TimeEntry</tspan><tspan x="925" dy="21.25">registro persistido</tspan></text>
+<rect x="1170" y="560" width="280" height="100" rx="18" fill="#93c5fd" stroke="#1e3a5f" stroke-width="2"/>
+<text x="1310" y="604.05" fill="#1e3a5f" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17" text-anchor="middle" font-weight="500"><tspan x="1310" dy="0">Relatórios e extras</tspan><tspan x="1310" dy="21.25">apuração consolidada</tspan></text>
+<polyline points="320,610 430,610" fill="none" stroke="#c2410c" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="680,610 790,610" fill="none" stroke="#b45309" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="1060,610 1170,610" fill="none" stroke="#047857" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="430" y="720" width="620" height="120" rx="18" fill="#1e293b" stroke="#1e3a5f" stroke-width="2"/>
+<text x="448" y="753" fill="#22c55e" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="15" text-anchor="start" font-weight="500"><tspan x="448" dy="0">timeEntryService.createEntry()</tspan><tspan x="448" dy="18.75">→ Prisma transaction</tspan><tspan x="448" dy="18.75">→ dateOnlyStart(America/Sao_Paulo)</tspan></text>
+<text x="80" y="80" fill="#1e40af" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="30" text-anchor="start" font-weight="500"><tspan x="80" dy="0">Arquitetura do Jornix</tspan></text>
+<text x="80" y="113" fill="#64748b" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17" text-anchor="start" font-weight="500"><tspan x="80" dy="0">O fluxo separa interface, regras de negócio e persistência para manter a jornada auditável.</tspan></text></svg>

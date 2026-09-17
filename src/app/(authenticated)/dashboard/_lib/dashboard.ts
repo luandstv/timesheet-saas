@@ -33,10 +33,15 @@ export type DashboardData = {
 
 type DashboardUser = { name: string; dailyHours: number; weeklyHours: number };
 
-export function resolveDashboardQuery(query: DashboardSearchParams, currentTime: DateTime) {
-  const period = query.period === "week" || query.period === "month" ? query.period : "day";
+export function resolveDashboardQuery(
+  query: DashboardSearchParams,
+  currentTime: DateTime,
+) {
+  const period =
+    query.period === "week" || query.period === "month" ? query.period : "day";
   const offset = typeof query.week === "string" ? Number(query.week) : 0;
-  const weekOffset = Number.isInteger(offset) && Math.abs(offset) <= MAX_WEEK_OFFSET ? offset : 0;
+  const weekOffset =
+    Number.isInteger(offset) && Math.abs(offset) <= MAX_WEEK_OFFSET ? offset : 0;
   const now = currentTime.setZone(TIMEZONE).setLocale("pt-BR");
   // O resumo semanal do domínio usa domingo como primeiro dia. Aplicar a
   // mesma regra aqui evita que o total fique fora da grade diária.
@@ -61,10 +66,14 @@ export function resolveDashboardQuery(query: DashboardSearchParams, currentTime:
 export type DashboardQuery = ReturnType<typeof resolveDashboardQuery>;
 
 function progressPercentage(minutes: number, target: number) {
-  return target > 0 ? Math.min(100, Math.round(minutes / target * 100)) : 0;
+  return target > 0 ? Math.min(100, Math.round((minutes / target) * 100)) : 0;
 }
 
-function buildWeekActivity(context: DashboardQuery, rows: DashboardData["weeklyRows"], dailyMinutes: number) {
+function buildWeekActivity(
+  context: DashboardQuery,
+  rows: DashboardData["weeklyRows"],
+  dailyMinutes: number,
+) {
   const days = Array.from({ length: 7 }, (_, index) => {
     const date = context.weekStart.plus({ days: index });
     const dateKey = date.toFormat("yyyy-MM-dd");
@@ -77,10 +86,14 @@ function buildWeekActivity(context: DashboardQuery, rows: DashboardData["weeklyR
     };
   });
   const chartMax = Math.max(dailyMinutes, ...days.map((day) => day.minutes), 1);
-  const weekHref = (step: number) => `/dashboard?period=${context.period}&week=${context.weekOffset + step}`;
+  const weekHref = (step: number) =>
+    `/dashboard?period=${context.period}&week=${context.weekOffset + step}`;
 
   return {
-    days: days.map((day) => ({ ...day, heightPercent: day.minutes / chartMax * 100 })),
+    days: days.map((day) => ({
+      ...day,
+      heightPercent: (day.minutes / chartMax) * 100,
+    })),
     startLabel: context.weekStart.toFormat("dd/MM"),
     endLabel: context.weekEnd.toFormat("dd/MM/yyyy"),
     previousHref: context.weekOffset > -MAX_WEEK_OFFSET ? weekHref(-1) : null,
@@ -90,15 +103,23 @@ function buildWeekActivity(context: DashboardQuery, rows: DashboardData["weeklyR
 }
 
 /** Prepara dados para exibição sem consultar serviços ou alterar os objetos recebidos. */
-export function buildDashboardModel(user: DashboardUser, data: DashboardData, context: DashboardQuery) {
+export function buildDashboardModel(
+  user: DashboardUser,
+  data: DashboardData,
+  context: DashboardQuery,
+) {
   const { now, period, weekOffset } = context;
-  const entries = [...data.entries].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  const entries = [...data.entries].sort(
+    (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
+  );
   const dateLabel = now.toFormat("cccc, dd 'de' LLLL");
   const dailyMinutes = Number(user.dailyHours) * 60;
   const weeklyMinutes = Number(user.weeklyHours) * 60;
-  const selected = period === "day" ? data.today : period === "week" ? data.week : data.month;
+  const selected =
+    period === "day" ? data.today : period === "week" ? data.week : data.month;
   // O período mensal ainda não possui uma meta definida pelo domínio.
-  const target = period === "day" ? dailyMinutes : period === "week" ? weeklyMinutes : 0;
+  const target =
+    period === "day" ? dailyMinutes : period === "week" ? weeklyMinutes : 0;
 
   return {
     header: {

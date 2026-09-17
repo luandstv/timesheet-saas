@@ -93,23 +93,44 @@ for (const [extraMinutes, expected75, expected100] of [
 ]) {
   test(`${extraMinutes} minutos extras: ${expected75} a 75% e ${expected100} a 100%`, () => {
     const start = DateTime.fromISO("2026-09-14T17:00:00-03:00");
-    const result = TimeCalculationService.calculateDay([
-      { type: "CLOCK_IN", timestamp: start.toJSDate() },
-      { type: "CLOCK_OUT", timestamp: start.plus({ minutes: extraMinutes }).toJSDate() },
-    ], 8, false, false, schedule);
+    const result = TimeCalculationService.calculateDay(
+      [
+        { type: "CLOCK_IN", timestamp: start.toJSDate() },
+        {
+          type: "CLOCK_OUT",
+          timestamp: start.plus({ minutes: extraMinutes }).toJSDate(),
+        },
+      ],
+      8,
+      false,
+      false,
+      schedule,
+    );
 
     assert.equal(result.normalMinutes, 0);
     assert.equal(result.totalWorkedMinutes, extraMinutes);
-    assert.equal(result.overtime75FhcMinutes + result.overtime75FhcnMinutes, expected75);
-    assert.equal(result.overtime100FhcMinutes + result.overtime100FhcnMinutes, expected100);
+    assert.equal(
+      result.overtime75FhcMinutes + result.overtime75FhcnMinutes,
+      expected75,
+    );
+    assert.equal(
+      result.overtime100FhcMinutes + result.overtime100FhcnMinutes,
+      expected100,
+    );
   });
 }
 
 test("13 horas trabalhadas com limite normal de 8 geram 2 extras a 75% e 3 a 100%", () => {
-  const result = TimeCalculationService.calculateDay([
-    { type: "CLOCK_IN", timestamp: timestamp("08:00:00") },
-    { type: "CLOCK_OUT", timestamp: timestamp("21:00:00") },
-  ], 8, false, false, schedule);
+  const result = TimeCalculationService.calculateDay(
+    [
+      { type: "CLOCK_IN", timestamp: timestamp("08:00:00") },
+      { type: "CLOCK_OUT", timestamp: timestamp("21:00:00") },
+    ],
+    8,
+    false,
+    false,
+    schedule,
+  );
 
   assert.deepEqual(result, {
     totalWorkedMinutes: 780,
@@ -122,12 +143,18 @@ test("13 horas trabalhadas com limite normal de 8 geram 2 extras a 75% e 3 a 100
 });
 
 test("o limite de 2 horas é compartilhado por todas as entradas e saídas da jornada", () => {
-  const result = TimeCalculationService.calculateDay([
-    { type: "CLOCK_IN", timestamp: timestamp("06:30:00") },
-    { type: "CLOCK_OUT", timestamp: timestamp("12:00:00") },
-    { type: "CLOCK_IN", timestamp: timestamp("13:00:00") },
-    { type: "CLOCK_OUT", timestamp: timestamp("20:30:00") },
-  ], 8, false, false, schedule);
+  const result = TimeCalculationService.calculateDay(
+    [
+      { type: "CLOCK_IN", timestamp: timestamp("06:30:00") },
+      { type: "CLOCK_OUT", timestamp: timestamp("12:00:00") },
+      { type: "CLOCK_IN", timestamp: timestamp("13:00:00") },
+      { type: "CLOCK_OUT", timestamp: timestamp("20:30:00") },
+    ],
+    8,
+    false,
+    false,
+    schedule,
+  );
 
   assert.equal(result.totalWorkedMinutes, 780);
   assert.equal(result.normalMinutes, 480);
@@ -136,10 +163,16 @@ test("o limite de 2 horas é compartilhado por todas as entradas e saídas da jo
 });
 
 test("a mudança de FHC para FHCN não reinicia o limite de 75%", () => {
-  const result = TimeCalculationService.calculateDay([
-    { type: "CLOCK_IN", timestamp: timestamp("21:00:00") },
-    { type: "CLOCK_OUT", timestamp: timestamp("23:30:00") },
-  ], 8, false, false, schedule);
+  const result = TimeCalculationService.calculateDay(
+    [
+      { type: "CLOCK_IN", timestamp: timestamp("21:00:00") },
+      { type: "CLOCK_OUT", timestamp: timestamp("23:30:00") },
+    ],
+    8,
+    false,
+    false,
+    schedule,
+  );
 
   assert.equal(result.totalWorkedMinutes, 150);
   assert.equal(result.overtime75FhcMinutes, 60);
@@ -150,20 +183,38 @@ test("a mudança de FHC para FHCN não reinicia o limite de 75%", () => {
 
 test("cada jornada apurada tem seu próprio limite de 2 horas a 75%", () => {
   const days = ["2026-09-14", "2026-09-15"].map((date) =>
-    TimeCalculationService.calculateDay([
-      { type: "CLOCK_IN", timestamp: new Date(`${date}T17:00:00-03:00`) },
-      { type: "CLOCK_OUT", timestamp: new Date(`${date}T19:30:00-03:00`) },
-    ], 8, false, false, schedule),
+    TimeCalculationService.calculateDay(
+      [
+        { type: "CLOCK_IN", timestamp: new Date(`${date}T17:00:00-03:00`) },
+        { type: "CLOCK_OUT", timestamp: new Date(`${date}T19:30:00-03:00`) },
+      ],
+      8,
+      false,
+      false,
+      schedule,
+    ),
   );
-  assert.equal(days.reduce((sum, day) => sum + day.overtime75FhcMinutes, 0), 240);
-  assert.equal(days.reduce((sum, day) => sum + day.overtime100FhcMinutes, 0), 60);
+  assert.equal(
+    days.reduce((sum, day) => sum + day.overtime75FhcMinutes, 0),
+    240,
+  );
+  assert.equal(
+    days.reduce((sum, day) => sum + day.overtime100FhcMinutes, 0),
+    60,
+  );
 });
 
 test("a exceção de feriado classifica as 5 horas integralmente a 100%", () => {
-  const result = TimeCalculationService.calculateDay([
-    { type: "CLOCK_IN", timestamp: timestamp("17:00:00") },
-    { type: "CLOCK_OUT", timestamp: timestamp("22:00:00") },
-  ], 8, false, true, schedule);
+  const result = TimeCalculationService.calculateDay(
+    [
+      { type: "CLOCK_IN", timestamp: timestamp("17:00:00") },
+      { type: "CLOCK_OUT", timestamp: timestamp("22:00:00") },
+    ],
+    8,
+    false,
+    true,
+    schedule,
+  );
 
   assert.equal(result.totalWorkedMinutes, 300);
   assert.equal(result.normalMinutes, 0);

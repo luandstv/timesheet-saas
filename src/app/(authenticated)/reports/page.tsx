@@ -1,4 +1,4 @@
-import { getAuthenticatedUser } from "@/lib/auth";
+import { getWorkspaceContext } from "@/lib/workspace-context";
 import { getValidatedReportQuery } from "@/lib/reports/report-helpers";
 import { getReportData } from "@/services/report.service";
 import { ReportFilter } from "./_components/report-filter";
@@ -16,10 +16,11 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   const resolvedSearchParams = (await searchParams) ?? {};
   const { startDate, endDate } = getValidatedReportQuery(resolvedSearchParams);
 
-  const user = await getAuthenticatedUser();
+  const { user, workspace } = await getWorkspaceContext();
 
   const report = await getReportData({
     userId: user.id,
+    workspaceId: workspace.id,
     startDate,
     endDate,
   });

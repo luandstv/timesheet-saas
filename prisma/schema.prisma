@@ -7,6 +7,142 @@ datasource db {
   provider = "postgresql"
 }
 
+enum WorkspaceKind {
+  PERSONAL
+  COMPANY
+}
+
+enum WorkspaceRole {
+  OWNER
+  MANAGER
+  COLLABORATOR
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model Workspace {
+  id               String                 @id @default(uuid()) @db.Uuid
+  name             String
+  kind             WorkspaceKind
+  personalUserId   String?                @unique @map("personal_user_id") @db.Uuid
+  joinCode         String                 @unique @default(uuid()) @map("join_code")
+  allowProvisional Boolean                @default(false) @map("allow_provisional")
+  createdAt        DateTime               @default(now()) @map("created_at")
+  members          WorkspaceMember[]
+  timesheets       Timesheet[]
+  invitations      WorkspaceInvitation[]
+  joinRequests     WorkspaceJoinRequest[]
+  closures         MonthlyClosure[]
+  audit            WorkspaceAudit[]
+  activities       Activity[]
+  onCallDays       onCallSchedule[]
+  absences         Absences[]
+
+  @@map("workspaces")
+}
+
+model WorkspaceMember {
+  id          String            @id @default(uuid()) @db.Uuid
+  workspaceId String            @map("workspace_id") @db.Uuid
+  userId      String            @map("user_id") @db.Uuid
+  role        WorkspaceRole     @default(COLLABORATOR)
+  active      Boolean           @default(true)
+  managerId   String?           @map("manager_id") @db.Uuid
+  createdAt   DateTime          @default(now()) @map("created_at")
+  workspace   Workspace         @relation(fields: [workspaceId], references: [id])
+  user        User              @relation(fields: [userId], references: [id])
+  manager     WorkspaceMember?  @relation("workspace_management", fields: [managerId], references: [id])
+  reports     WorkspaceMember[] @relation("workspace_management")
+
+  @@unique([workspaceId, userId])
+  @@index([userId, active])
+  @@map("workspace_members")
+}
+
+model WorkspaceInvitation {
+  id          String        @id @default(uuid()) @db.Uuid
+  workspaceId String        @map("workspace_id") @db.Uuid
+  email       String
+  tokenHash   String        @unique @map("token_hash")
+  role        WorkspaceRole @default(COLLABORATOR)
+  managerId   String?       @map("manager_id") @db.Uuid
+  expiresAt   DateTime      @map("expires_at")
+  acceptedAt  DateTime?     @map("accepted_at")
+  revokedAt   DateTime?     @map("revoked_at")
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id])
+
+  @@map("workspace_invitations")
+}
+
+model WorkspaceJoinRequest {
+  id          String        @id @default(uuid()) @db.Uuid
+  workspaceId String        @map("workspace_id") @db.Uuid
+  userId      String        @map("user_id") @db.Uuid
+  status      RequestStatus @default(PENDING)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id])
+
+  @@unique([workspaceId, userId])
+  @@map("workspace_join_requests")
+}
+
+model AdjustmentRequest {
+  id                String         @id @default(uuid()) @db.Uuid
+  timeSheetId       String         @map("time_sheet_id") @db.Uuid
+  // Identifies either a raw movement or a previously approved insertion.
+  targetEventId     String?        @map("target_event_id") @db.Uuid
+  type              AdjustmentType
+  entryType         EntryType      @map("entry_type")
+  previousTimestamp DateTime?      @map("previous_timestamp")
+  newTimestamp      DateTime?      @map("new_timestamp")
+  reason            String
+  forgotten         Boolean        @default(false)
+  provisional       Boolean        @default(false)
+  status            RequestStatus  @default(PENDING)
+  requestedById     String         @map("requested_by_id") @db.Uuid
+  decidedById       String?        @map("decided_by_id") @db.Uuid
+  decidedAt         DateTime?      @map("decided_at")
+  sequence          Int            @unique @default(autoincrement())
+  createdAt         DateTime       @default(now()) @map("created_at")
+  timesheet         Timesheet      @relation(fields: [timeSheetId], references: [id])
+
+  @@index([timeSheetId, status])
+  @@map("adjustment_requests")
+}
+
+model MonthlyClosure {
+  id          String    @id @default(uuid()) @db.Uuid
+  workspaceId String    @map("workspace_id") @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  month       DateTime  @db.Date
+  closed      Boolean   @default(true)
+  snapshot    Json
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@unique([workspaceId, userId, month])
+  @@map("monthly_closures")
+}
+
+model WorkspaceAudit {
+  id          String    @id @default(uuid()) @db.Uuid
+  workspaceId String    @map("workspace_id") @db.Uuid
+  actorId     String    @map("actor_id") @db.Uuid
+  subjectId   String    @map("subject_id") @db.Uuid
+  action      String
+  details     Json
+  createdAt   DateTime  @default(now()) @map("created_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@index([workspaceId, subjectId, createdAt])
+  @@map("workspace_audit")
+}
+
 enum Role {
   ADMIN
   COLLABORATOR
@@ -98,6 +234,7 @@ model User {
   adjustments      TimeEntryAdjustment[] @relation("adjustments")
   absences         Absences[]            @relation("absences")
   approvedabsences Absences[]            @relation("approved_absences")
+  memberships      WorkspaceMember[]
 
   @@map("users")
 }
@@ -105,6 +242,7 @@ model User {
 model Timesheet {
   id                     String          @id @default(uuid()) @db.Uuid
   userId                 String          @map("user_id") @db.Uuid
+  workspaceId            String          @map("workspace_id") @db.Uuid
   date                   DateTime        @db.Date
   status                 TimesheetStatus @default(OPEN)
   isHoliday              Boolean         @default(false) @map("is_holiday")
@@ -118,11 +256,13 @@ model Timesheet {
   createdAt              DateTime        @default(now()) @map("created_at")
   updatedAt              DateTime        @updatedAt @map("updated_at")
 
-  user       User        @relation(fields: [userId], references: [id])
+  user       User                @relation(fields: [userId], references: [id])
   entries    TimeEntry[]
   activities Activity[]
+  workspace  Workspace           @relation(fields: [workspaceId], references: [id])
+  requests   AdjustmentRequest[]
 
-  @@unique([userId, date])
+  @@unique([userId, workspaceId, date])
   @@map("time_sheets")
 }
 
@@ -160,6 +300,7 @@ model TimeEntryAdjustment {
 model Activity {
   id              String    @id @default(uuid()) @db.Uuid
   userId          String    @map("user_id") @db.Uuid
+  workspaceId     String    @map("workspace_id") @db.Uuid
   timeSheetId     String?   @map("timesheet_id") @db.Uuid
   description     String
   incidentCode    String?   @map("incident_code")
@@ -170,6 +311,7 @@ model Activity {
   createdAt       DateTime  @default(now()) @map("created_at")
 
   user      User       @relation(fields: [userId], references: [id])
+  workspace Workspace  @relation(fields: [workspaceId], references: [id])
   timesheet Timesheet? @relation(fields: [timeSheetId], references: [id])
 
   @@map("activities")
@@ -178,13 +320,15 @@ model Activity {
 model onCallSchedule {
   id                 String   @id @default(uuid()) @db.Uuid
   userId             String   @map("user_id") @db.Uuid
+  workspaceId        String   @map("workspace_id") @db.Uuid
   date               DateTime @db.Date
   totalOnCallMinutes Int      @default(0) @map("total_on_call_minutes")
   createdAt          DateTime @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
 
-  @@unique([userId, date])
+  @@unique([workspaceId, userId, date])
   @@map("on_call_schedule")
 }
 
@@ -215,6 +359,7 @@ model Holiday {
 model Absences {
   id           String        @id @default(uuid()) @db.Uuid
   userId       String        @map("user_id") @db.Uuid
+  workspaceId  String        @map("workspace_id") @db.Uuid
   startDate    DateTime      @map("start_date") @db.Date
   endDate      DateTime      @map("end_date") @db.Date
   type         AbsenceType
@@ -225,8 +370,9 @@ model Absences {
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
 
-  user       User  @relation("absences", fields: [userId], references: [id])
-  approvedBy User? @relation("approved_absences", fields: [approvedById], references: [id])
+  user       User      @relation("absences", fields: [userId], references: [id])
+  workspace  Workspace @relation(fields: [workspaceId], references: [id])
+  approvedBy User?     @relation("approved_absences", fields: [approvedById], references: [id])
 
   @@map("absences")
 }

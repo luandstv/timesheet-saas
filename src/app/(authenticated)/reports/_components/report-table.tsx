@@ -35,9 +35,7 @@ export function ReportTable({ rows }: ReportTableProps) {
             <Button
               variant="ghost"
               className="-ml-3"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             >
               Data
               <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -65,17 +63,14 @@ export function ReportTable({ rows }: ReportTableProps) {
             <Button
               variant="ghost"
               className="-ml-3"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             >
               Total trabalhado
               <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
           );
         },
-        cell: ({ row }) =>
-          formatMinutesToCompact(row.original.totalWorkedMinutes),
+        cell: ({ row }) => formatMinutesToCompact(row.original.totalWorkedMinutes),
       },
       {
         accessorKey: "normalMinutes",
@@ -85,26 +80,22 @@ export function ReportTable({ rows }: ReportTableProps) {
       {
         accessorKey: "overtime75FhcMinutes",
         header: "Horas extras 75% FHC",
-        cell: ({ row }) =>
-          formatMinutesToCompact(row.original.overtime75FhcMinutes),
+        cell: ({ row }) => formatMinutesToCompact(row.original.overtime75FhcMinutes),
       },
       {
         accessorKey: "overtime75FhcnMinutes",
         header: "Horas extras 75% FHCN",
-        cell: ({ row }) =>
-          formatMinutesToCompact(row.original.overtime75FhcnMinutes),
+        cell: ({ row }) => formatMinutesToCompact(row.original.overtime75FhcnMinutes),
       },
       {
         accessorKey: "overtime100FhcMinutes",
         header: "Horas extras 100% FHC",
-        cell: ({ row }) =>
-          formatMinutesToCompact(row.original.overtime100FhcMinutes),
+        cell: ({ row }) => formatMinutesToCompact(row.original.overtime100FhcMinutes),
       },
       {
         accessorKey: "overtime100FhcnMinutes",
         header: "Horas extras 100% FHCN",
-        cell: ({ row }) =>
-          formatMinutesToCompact(row.original.overtime100FhcnMinutes),
+        cell: ({ row }) => formatMinutesToCompact(row.original.overtime100FhcnMinutes),
       },
     ],
     [],
@@ -163,10 +154,7 @@ export function ReportTable({ rows }: ReportTableProps) {
                   <tr key={row.id} className="border-b">
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} className="p-4 align-middle">
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}
                   </tr>

@@ -5,6 +5,7 @@ export type ClockState = {
   lastEntry: {
     type: "CLOCK_IN" | "CLOCK_OUT";
     timestamp: Date;
+    timesheet?: { workspaceId: string };
   } | null;
   nextEntryType: "CLOCK_IN" | "CLOCK_OUT";
 };

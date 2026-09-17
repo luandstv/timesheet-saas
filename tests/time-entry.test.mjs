@@ -20,6 +20,7 @@ function sheet(id, userId, date, status = "OPEN") {
   return {
     id,
     userId,
+    workspaceId: userId,
     date: new Date(`${date}T00:00:00.000Z`),
     status,
     isWeekend: false,
@@ -44,7 +45,10 @@ function filterEntries(where = {}) {
   return entries.filter((item) => {
     const owner = sheets.find((value) => value.id === item.timeSheetId);
     return (
-      (!where.timesheet || owner?.userId === where.timesheet.userId) &&
+      (!where.timesheet ||
+        (owner?.userId === where.timesheet.userId &&
+          (!where.timesheet.workspaceId ||
+            owner?.workspaceId === where.timesheet.workspaceId))) &&
       (!where.timeSheetId || item.timeSheetId === where.timeSheetId) &&
       (!where.requestId || item.requestId === where.requestId) &&
       (!where.timestamp?.gte || item.timestamp >= where.timestamp.gte) &&
@@ -79,14 +83,41 @@ beforeEach(() => {
         release();
       }
     },
+    workspaceMember: {
+      async findUnique({ where }) {
+        const { workspaceId, userId } = where.workspaceId_userId;
+        return {
+          workspaceId,
+          userId,
+          active: true,
+          role: "OWNER",
+          workspace: { id: workspaceId, kind: "PERSONAL" },
+        };
+      },
+    },
+    monthlyClosure: {
+      async findUnique() {
+        return null;
+      },
+    },
+    adjustmentRequest: {
+      async findMany() {
+        return [];
+      },
+    },
     timeEntry: {
-      async findMany({ where }) {
-        return filterEntries(where).sort((a, b) => b.timestamp - a.timestamp);
+      async findMany({ where, include }) {
+        return filterEntries(where)
+          .sort((a, b) => b.timestamp - a.timestamp)
+          .map((item) => ({
+            ...item,
+            ...(include?.timesheet && {
+              timesheet: sheets.find((sheet) => sheet.id === item.timeSheetId),
+            }),
+          }));
       },
       async findFirst({ where, include }) {
-        const found = filterEntries(where).sort(
-          (a, b) => b.timestamp - a.timestamp,
-        )[0];
+        const found = filterEntries(where).sort((a, b) => b.timestamp - a.timestamp)[0];
         if (!found) return null;
         return {
           ...found,
@@ -96,7 +127,10 @@ beforeEach(() => {
         };
       },
       async create({ data }) {
-        if (data.requestId && entries.some((item) => item.requestId === data.requestId)) {
+        if (
+          data.requestId &&
+          entries.some((item) => item.requestId === data.requestId)
+        ) {
           const error = new Error("Unique constraint failed");
           error.code = "P2002";
           throw error;
@@ -116,9 +150,12 @@ beforeEach(() => {
     timesheet: {
       async upsert({ where, create }) {
         upserts.push(create);
-        const key = where.userId_date;
+        const key = where.userId_workspaceId_date;
         let value = sheets.find(
-          (item) => item.userId === key.userId && +item.date === +key.date,
+          (item) =>
+            item.userId === key.userId &&
+            item.workspaceId === key.workspaceId &&
+            +item.date === +key.date,
         );
         if (!value) {
           value = { id: `sheet-${sheets.length + 1}`, status: "OPEN", ...create };
@@ -131,6 +168,7 @@ beforeEach(() => {
         if (!value) return null;
         return {
           ...value,
+          requests: [],
           ...(include?.entries && {
             entries: entries.filter((item) => item.timeSheetId === value.id),
           }),
@@ -143,7 +181,11 @@ beforeEach(() => {
         return value;
       },
     },
-    holiday: { async findFirst() { return null; } },
+    holiday: {
+      async findFirst() {
+        return null;
+      },
+    },
     user: {
       async findUnique() {
         return {
@@ -281,10 +323,7 @@ test("permite vários pares legítimos na mesma jornada", async () => {
 });
 
 test("último movimento de outra conta não altera nem encerra a jornada do usuário", async () => {
-  sheets.push(
-    sheet("a", "user-a", "2026-09-14"),
-    sheet("b", "user-b", "2026-09-15"),
-  );
+  sheets.push(sheet("a", "user-a", "2026-09-14"), sheet("b", "user-b", "2026-09-15"));
   entries.push(
     entry("a-in", "a", "CLOCK_IN", "2026-09-14T23:30:00-03:00"),
     entry("b-out", "b", "CLOCK_OUT", "2026-09-15T00:20:00-03:00"),
@@ -294,7 +333,10 @@ test("último movimento de outra conta não altera nem encerra a jornada do usu�
 
   assert.equal(result.type, "CLOCK_OUT");
   assert.equal(result.entry.timeSheetId, "a");
-  assert.deepEqual(updates.map((value) => value.id), ["a"]);
+  assert.deepEqual(
+    updates.map((value) => value.id),
+    ["a"],
+  );
   assert.equal(creates.length, 1);
 });
 
@@ -326,5 +368,8 @@ test("histórico de hoje inclui saída da folha de ontem e respeita dia brasilei
 
   const result = await TimeEntryService.getTodayMovements("user-a");
 
-  assert.deepEqual(result.map((value) => value.id), ["today-in", "today-out"]);
+  assert.deepEqual(
+    result.map((value) => value.id),
+    ["today-in", "today-out"],
+  );
 });
