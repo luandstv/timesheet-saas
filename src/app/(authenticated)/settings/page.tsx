@@ -52,16 +52,17 @@ export default async function SettingsPage() {
           <CardHeader className="p-6 pb-3 sm:p-8 sm:pb-3">
             <CardTitle>Dados Salariais</CardTitle>
             <CardDescription>
-              Informe seu salário para cálculo de horas extras e sobreaviso.
-              Apenas você e seu gestor podem ver esses dados.
+              Informe seu salário para cálculo de horas extras e sobreaviso. Somente
+              você pode ver esses dados, em qualquer espaço.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6 pt-3 sm:p-8 sm:pt-3">
             <SalaryForm
               defaultValues={{
-                baseSalary: salaryConfig?.baseSalary != null
-                  ? Number(salaryConfig.baseSalary)
-                  : 0,
+                baseSalary:
+                  salaryConfig?.baseSalary != null
+                    ? Number(salaryConfig.baseSalary)
+                    : 0,
                 monthlyHours: salaryConfig?.monthlyHours ?? 220,
               }}
             />

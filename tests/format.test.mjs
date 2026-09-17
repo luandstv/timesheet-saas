@@ -1,9 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  formatMinutesToCompact,
-  formatMinutesToHours,
-} from "../src/lib/format.ts";
+import { formatMinutesToCompact, formatMinutesToHours } from "../src/lib/format.ts";
 
 test("formata minutos para leitura humana", () => {
   assert.equal(formatMinutesToHours(0), "0h 00min");

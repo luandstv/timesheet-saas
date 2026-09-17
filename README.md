@@ -21,6 +21,15 @@ acompanhamento de horas trabalhadas. O produto usa o horário civil de
 - Tema claro e escuro.
 - Layout responsivo com navegação lateral no desktop e inferior no mobile.
 - Página inicial de sobreaviso preparada para a integração do domínio.
+- Espaços pessoais e empresas independentes na mesma conta, com seleção de
+  espaço e permissões por vínculo.
+- Convites por email, solicitação por código da empresa e definição do gestor
+  pelo responsável da empresa.
+- Ajustes de ponto por movimento, com motivo obrigatório, histórico imutável,
+  confirmação individual ou em lote e opção de ajuste provisório por
+  esquecimento.
+- Fechamento mensal por pessoa e espaço, reabertura justificada e histórico de
+  auditoria.
 
 ### Pendências conhecidas
 
@@ -45,15 +54,17 @@ As pendências visuais e de produto estão detalhadas em
 
 ## Rotas principais
 
-| Rota | Descrição |
-| --- | --- |
-| `/login` | Entrada na aplicação |
-| `/register` | Criação de conta |
-| `/dashboard` | Resumo da jornada e registros recentes |
-| `/time-entries` | Consulta e registro de ponto |
-| `/reports` | Relatórios consolidados por período |
-| `/settings` | Jornada, carga horária e salário |
-| `/on-call` | Área visual preparada para sobreaviso |
+| Rota            | Descrição                                           |
+| --------------- | --------------------------------------------------- |
+| `/login`        | Entrada na aplicação                                |
+| `/register`     | Criação de conta                                    |
+| `/dashboard`    | Resumo da jornada e registros recentes              |
+| `/time-entries` | Consulta e registro de ponto                        |
+| `/reports`      | Relatórios consolidados por período                 |
+| `/settings`     | Jornada, carga horária e salário                    |
+| `/on-call`      | Área visual preparada para sobreaviso               |
+| `/workspaces`   | Espaços, equipe, convites e permissões              |
+| `/adjustments`  | Ajustes de movimentos, decisões e fechamento mensal |
 
 ## Organização do código
 
@@ -75,6 +86,19 @@ docs/                   # Documentação complementar
 O dashboard separa a resolução dos parâmetros, o carregamento paralelo dos
 dados e a construção do modelo visual em
 `src/app/(authenticated)/dashboard/_lib/`.
+
+Cada conta recebe um espaço pessoal durante a migração. Os registros existentes
+continuam nesse espaço e não são copiados para uma empresa. Um usuário pode
+participar de várias empresas, mas os serviços autenticados validam o
+`workspaceId` e o vínculo ativo antes de ler ou alterar uma jornada. Salário e
+jornada continuam pessoais e não são expostos a gestores.
+
+Os movimentos originais são somente de leitura depois de gravados. Uma correção
+é uma solicitação separada, que pode alterar o horário efetivo após aprovação,
+sem apagar o histórico. A mesma projeção efetiva é usada no relógio, nos
+relatórios e no cálculo de horas extras. A migração
+`20260916190000_workspaces_adjustments_closures` faz o preenchimento inicial;
+valide o banco antes de aplicá-la em produção.
 
 ## Configuração local
 
@@ -112,6 +136,10 @@ pnpm prisma migrate dev
 
 O cliente Prisma é gerado em `generated/prisma`.
 
+Depois de revisar o SQL da migração e fazer o backup do ambiente, a aplicação
+em um banco já existente usa `pnpm prisma migrate deploy`. O build não aplica
+migrações automaticamente.
+
 ### Desenvolvimento
 
 ```bash
@@ -127,6 +155,8 @@ pnpm dev       # servidor de desenvolvimento
 pnpm build     # gera o cliente Prisma e cria o build de produção
 pnpm start     # inicia o build de produção
 pnpm lint      # ESLint
+pnpm format    # formata código e documentação com Prettier
+pnpm format:check # verifica formatação sem alterar arquivos
 pnpm test      # testes unitários
 ```
 
@@ -161,6 +191,8 @@ Prisma, mas não aplica migrações automaticamente.
   e fluxo dos principais dados.
 - [`docs/TESTING.md`](docs/TESTING.md): estratégia, comandos e cobertura atual.
 - [`docs/UI-PENDING.md`](docs/UI-PENDING.md): pendências de produto e interface.
+- [`docs/WORKSPACES-AND-ADJUSTMENTS.md`](docs/WORKSPACES-AND-ADJUSTMENTS.md):
+  regras de espaços, ajustes, permissões e fechamento.
 
 ## Próximos passos
 

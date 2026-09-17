@@ -16,7 +16,7 @@ dependência de transformação.
 
 ## Cobertura atual
 
-Os testes em `tests/` cobrem 40 cenários:
+Os testes em `tests/` cobrem 50 cenários:
 
 - normalização de datas civis no fuso brasileiro;
 - intervalos inclusivos para colunas SQL `DATE`;
@@ -40,6 +40,11 @@ Os testes em `tests/` cobrem 40 cenários:
 - idempotência de solicitações repetidas e serialização de solicitações
   concorrentes do mesmo usuário;
 - suporte a múltiplos pares legítimos de entrada e saída na mesma jornada.
+- permissões de proprietário, gestor e colaborador por espaço;
+- isolamento entre empresas, vínculo desativado e troca de gestor;
+- projeção de correções, inclusões, exclusões, ajustes provisórios e
+  preservação dos movimentos originais;
+- validação de sobreposição, sequência, futuro e saídas em outra jornada.
 
 Os testes são unitários e não acessam PostgreSQL, Supabase ou o navegador.
 Isso mantém a execução rápida e determinística.
@@ -54,6 +59,7 @@ de integração com PostgreSQL nem cobrem requisições concorrentes.
 ```bash
 node node_modules/typescript/bin/tsc --noEmit
 pnpm lint
+pnpm format:check
 git diff --check
 ```
 

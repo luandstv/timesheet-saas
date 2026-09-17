@@ -6,10 +6,11 @@ import { Button } from "../ui/button";
 import { clockIn } from "@/app/(authenticated)/time-entries/actions";
 
 interface ClockButtonProps {
+  workspaceId: string;
   nextType: "CLOCK_IN" | "CLOCK_OUT";
 }
 
-export function ClockButton({ nextType }: ClockButtonProps) {
+export function ClockButton({ nextType, workspaceId }: ClockButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const requestIdRef = useRef<string | null>(null);
 
@@ -18,7 +19,7 @@ export function ClockButton({ nextType }: ClockButtonProps) {
       requestIdRef.current ?? (requestIdRef.current = crypto.randomUUID());
     setIsLoading(true);
     try {
-      const result = await clockIn(requestId);
+      const result = await clockIn(requestId, workspaceId);
 
       if (!result.success) {
         console.error("clock-button:20", result.error);
@@ -51,11 +52,7 @@ export function ClockButton({ nextType }: ClockButtonProps) {
       ) : (
         <LogOut className="h-5 w-5" />
       )}
-      {isLoading
-        ? "Registrando..."
-        : isEntry
-          ? "Registrar Entrada"
-          : "Registrar Saída"}
+      {isLoading ? "Registrando..." : isEntry ? "Registrar Entrada" : "Registrar Saída"}
     </Button>
   );
 }

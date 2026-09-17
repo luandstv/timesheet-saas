@@ -16,7 +16,10 @@ type AuthShellProps = {
 export function AuthShell({ children, tabs }: AuthShellProps) {
   return (
     <main className="relative min-h-dvh overflow-hidden bg-background text-foreground">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 lg:right-[46%]">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 lg:right-[46%]"
+      >
         <Image
           src="/jornix/auth-mountains.png"
           alt=""
@@ -29,18 +32,35 @@ export function AuthShell({ children, tabs }: AuthShellProps) {
       </div>
       <div className="relative grid min-h-dvh lg:grid-cols-[minmax(0,1.08fr)_minmax(26rem,0.92fr)]">
         <section className="sticky top-0 hidden h-dvh overflow-hidden border-r border-border px-8 py-8 text-white [--primary:#ffb65b] lg:flex lg:flex-col lg:justify-between xl:px-16 xl:py-12">
-          <div aria-hidden="true" className="pointer-events-none absolute inset-y-[18%] -right-16 left-[8%] -skew-x-12 [background:repeating-linear-gradient(90deg,transparent_0_88px,rgb(255_255_255_/_0.08)_89px,transparent_90px)]" />
-          <div aria-hidden="true" className="pointer-events-none absolute -bottom-56 -right-48 size-[32rem] rounded-full border border-primary/30 shadow-[0_0_0_36px_color-mix(in_srgb,var(--primary)_7%,transparent),0_0_0_72px_color-mix(in_srgb,var(--primary)_4%,transparent)]" />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-[18%] -right-16 left-[8%] -skew-x-12 [background:repeating-linear-gradient(90deg,transparent_0_88px,rgb(255_255_255_/_0.08)_89px,transparent_90px)]"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-56 -right-48 size-[32rem] rounded-full border border-primary/30 shadow-[0_0_0_36px_color-mix(in_srgb,var(--primary)_7%,transparent),0_0_0_72px_color-mix(in_srgb,var(--primary)_4%,transparent)]"
+          />
 
-          <Link href="/login" aria-label="Jornix — início" className="relative z-10 inline-flex w-fit items-center gap-2 rounded-md text-xl font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-ring">
+          <Link
+            href="/login"
+            aria-label="Jornix — início"
+            className="relative z-10 inline-flex w-fit items-center gap-2 rounded-md text-xl font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-ring"
+          >
             <BrandMark />
             <span>Jornix</span>
           </Link>
 
           <div className="relative z-10 max-w-xl py-8">
-            <p className="mb-5 text-xs font-bold uppercase tracking-[0.2em] text-primary">Seu tempo, com clareza</p>
-            <h1 className="max-w-2xl text-5xl font-semibold leading-[0.98] tracking-[-0.06em] text-balance xl:text-7xl">Comece o dia no ritmo certo.</h1>
-            <p className="mt-6 max-w-md text-base leading-7 text-white/85 xl:text-lg">Registre seus movimentos, acompanhe sua jornada e mantenha o foco no que importa.</p>
+            <p className="mb-5 text-xs font-bold uppercase tracking-[0.2em] text-primary">
+              Seu tempo, com clareza
+            </p>
+            <h1 className="max-w-2xl text-5xl font-semibold leading-[0.98] tracking-[-0.06em] text-balance xl:text-7xl">
+              Comece o dia no ritmo certo.
+            </h1>
+            <p className="mt-6 max-w-md text-base leading-7 text-white/85 xl:text-lg">
+              Registre seus movimentos, acompanhe sua jornada e mantenha o foco no que
+              importa.
+            </p>
             <div className="mt-10 flex max-w-sm items-center gap-3 text-xs text-white/85">
               <span>08:00</span>
               <span className="relative h-px flex-1 bg-white/30 before:absolute before:-top-1 before:left-1/4 before:size-2.5 before:rounded-full before:bg-primary after:absolute after:-top-1 after:right-[12%] after:size-2.5 after:rounded-full after:bg-primary" />
@@ -57,7 +77,11 @@ export function AuthShell({ children, tabs }: AuthShellProps) {
         <section className="flex min-h-dvh items-start justify-center px-5 py-3 sm:px-8 lg:px-12 lg:pt-[max(0.75rem,calc((100dvh-744px)/2))]">
           <div className="w-full max-w-md">
             <div className="mb-3 flex items-center justify-between">
-              <Link href="/login" aria-label="Jornix — início" className="inline-flex items-center gap-2 rounded-md text-lg font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-ring lg:hidden">
+              <Link
+                href="/login"
+                aria-label="Jornix — início"
+                className="inline-flex items-center gap-2 rounded-md text-lg font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-ring lg:hidden"
+              >
                 <BrandMark />
                 <span>Jornix</span>
               </Link>
@@ -71,7 +95,9 @@ export function AuthShell({ children, tabs }: AuthShellProps) {
               {children}
             </Card>
 
-            <p className="mt-3 flex justify-center text-center text-[11px] text-muted-foreground">Acesso seguro para sua jornada de trabalho</p>
+            <p className="mt-3 flex justify-center text-center text-[11px] text-muted-foreground">
+              Acesso seguro para sua jornada de trabalho
+            </p>
           </div>
         </section>
       </div>

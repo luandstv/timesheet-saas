@@ -10,11 +10,11 @@ O pacote `next` já está na versão corrigida para os dois avisos neste checkou
 O projeto também usa ESLint 10.10.0; a compatibilidade do plugin React está
 descrita ao final deste documento.
 
-| Evidência | Versão |
-| --- | --- |
-| `package.json`: `dependencies.next` | 16.3.3 |
-| `pnpm-lock.yaml`: importador e resolução de `next` | 16.3.3 |
-| `node_modules/next/package.json` | 16.3.3 |
+| Evidência                                            | Versão |
+| ---------------------------------------------------- | ------ |
+| `package.json`: `dependencies.next`                  | 16.3.3 |
+| `pnpm-lock.yaml`: importador e resolução de `next`   | 16.3.3 |
+| `node_modules/next/package.json`                     | 16.3.3 |
 | `package.json`: `devDependencies.eslint-config-next` | 16.3.3 |
 
 O commit `160caec48ea1d425a809d89239dd6a87190de5ae` atualizou

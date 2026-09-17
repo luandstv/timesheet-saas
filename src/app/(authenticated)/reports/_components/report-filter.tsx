@@ -10,11 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import {
@@ -65,72 +61,74 @@ export function ReportFilter({ startDate, endDate }: ReportFilterProps) {
           className="flex flex-col gap-5 md:flex-row md:flex-wrap md:items-end"
         >
           <div className="grid gap-2">
-          <Label htmlFor="report-start-date">Data inicial</Label>
+            <Label htmlFor="report-start-date">Data inicial</Label>
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                id="report-start-date"
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal md:w-60",
-                  !startDateValue && "text-muted-foreground",
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {startDateValue ? (
-                  formatDateToDisplay(startDateValue)
-                ) : (
-                  <span>Selecione a data</span>
-                )}
-              </Button>
-            </PopoverTrigger>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="report-start-date"
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal md:w-60",
+                    !startDateValue && "text-muted-foreground",
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDateValue ? (
+                    formatDateToDisplay(startDateValue)
+                  ) : (
+                    <span>Selecione a data</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
 
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={startDateValue}
-                onSelect={setStartDateValue}
-                captionLayout="dropdown"
-              />
-            </PopoverContent>
-          </Popover>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={startDateValue}
+                  onSelect={setStartDateValue}
+                  captionLayout="dropdown"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="grid gap-2">
-          <Label htmlFor="report-end-date">Data final</Label>
+            <Label htmlFor="report-end-date">Data final</Label>
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                id="report-end-date"
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal md:w-60",
-                  !endDateValue && "text-muted-foreground",
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {endDateValue ? (
-                  formatDateToDisplay(endDateValue)
-                ) : (
-                  <span>Selecione a data</span>
-                )}
-              </Button>
-            </PopoverTrigger>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="report-end-date"
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal md:w-60",
+                    !endDateValue && "text-muted-foreground",
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {endDateValue ? (
+                    formatDateToDisplay(endDateValue)
+                  ) : (
+                    <span>Selecione a data</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
 
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={endDateValue}
-                onSelect={setEndDateValue}
-                captionLayout="dropdown"
-              />
-            </PopoverContent>
-          </Popover>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={endDateValue}
+                  onSelect={setEndDateValue}
+                  captionLayout="dropdown"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
-          <Button type="submit" className="w-full md:w-auto">Aplicar filtros</Button>
+          <Button type="submit" className="w-full md:w-auto">
+            Aplicar filtros
+          </Button>
         </form>
       </CardContent>
     </Card>

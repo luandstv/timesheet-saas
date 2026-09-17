@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ClockCard } from "@/components/shared/clock-card";
 import { TimeEntriesList } from "@/components/shared/time-entries-list";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { getWorkspaceContext } from "@/lib/workspace-context";
 import { formatMinutesToHours } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
@@ -45,10 +45,7 @@ function Progress({ value, label }: { value: number; label: string }) {
       aria-valuemax={100}
       className="h-2 overflow-hidden rounded-full bg-muted"
     >
-      <div
-        style={{ width: `${value}%` }}
-        className="h-full rounded-full bg-primary"
-      />
+      <div style={{ width: `${value}%` }} className="h-full rounded-full bg-primary" />
     </div>
   );
 }
@@ -70,23 +67,17 @@ type DashboardPageProps = {
   searchParams?: Promise<DashboardSearchParams>;
 };
 
-export default async function DashboardPage({
-  searchParams,
-}: DashboardPageProps) {
-  const user = await getAuthenticatedUser();
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+  const { user, workspace, member, memberships } = await getWorkspaceContext();
   const context = resolveDashboardQuery((await searchParams) ?? {}, DateTime.now());
-  const data = await loadDashboardData(user.id, context);
+  const data = await loadDashboardData(user.id, workspace.id, context);
   const model = buildDashboardModel(user, data, context);
   const { header, journey, metrics, activity } = model;
   const { weekStart, weekEnd } = context;
   const { firstName, greeting, dateLabel, periods } = header;
   const { entries, days } = activity;
   const { progress, targetMinutes: target } = journey;
-  const {
-    workedMinutes: weekWorkedMinutes,
-    weekProgress,
-    monthOvertime,
-  } = metrics;
+  const { workedMinutes: weekWorkedMinutes, weekProgress, monthOvertime } = metrics;
   const { reportHref, previousHref, nextHref } = activity;
   const selected = {
     workedMinutes: journey.workedMinutes,
@@ -113,8 +104,8 @@ export default async function DashboardPage({
               O dia está andando no ritmo certo, {firstName}.
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-              {dateLabel}. Registre o próximo movimento e deixe o restante da
-              jornada com o Jornix.
+              {dateLabel}. Registre o próximo movimento e deixe o restante da jornada
+              com o Jornix.
             </p>
           </div>
           <blockquote className="hidden w-44 shrink-0 pt-1 text-sm leading-6 text-muted-foreground 2xl:block">
@@ -149,6 +140,14 @@ export default async function DashboardPage({
 
       <section className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
         <ClockCard
+          workspaceId={workspace.id}
+          disabled={!member.active}
+          blockedMessage={
+            data.clockState.lastEntry?.type === "CLOCK_IN" &&
+            data.clockState.lastEntry.timesheet?.workspaceId !== workspace.id
+              ? `Ponto aberto em ${memberships.find((item) => item.workspaceId === data.clockState.lastEntry?.timesheet?.workspaceId)?.workspace.name ?? "outro espaço"}. Troque de espaço para encerrá-lo.`
+              : undefined
+          }
           {...journey.clock}
         />
         <Card>
@@ -157,9 +156,7 @@ export default async function DashboardPage({
               <ChartNoAxesCombined className="size-6" />
             </IconTile>
             <div className="min-w-0">
-              <CardTitle>
-                Jornada {journey.title}
-              </CardTitle>
+              <CardTitle>Jornada {journey.title}</CardTitle>
               <p className="mt-1 text-xs text-muted-foreground">
                 Total dos períodos apurados
               </p>
@@ -226,10 +223,7 @@ export default async function DashboardPage({
               <Clock3 className="size-5" />
             </IconTile>
             <CardTitle className="text-sm">Horas extras no mês</CardTitle>
-            <DetailsLink
-              href="/reports"
-              label="Ver detalhes das horas extras"
-            />
+            <DetailsLink href="/reports" label="Ver detalhes das horas extras" />
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold tracking-tight tabular-nums">
@@ -247,14 +241,9 @@ export default async function DashboardPage({
             </IconTile>
             <div>
               <CardTitle className="text-sm">Sobreaviso</CardTitle>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Planejamento mensal
-              </p>
+              <p className="mt-1 text-xs text-muted-foreground">Planejamento mensal</p>
             </div>
-            <DetailsLink
-              href="/on-call"
-              label="Ver planejamento de sobreaviso"
-            />
+            <DetailsLink href="/on-call" label="Ver planejamento de sobreaviso" />
           </CardHeader>
           <CardContent>
             {/* TODO(JORNIX-UI-01): integrar sobreaviso ao serviço real. Nunca somar este mock aos totais. */}
@@ -279,9 +268,7 @@ export default async function DashboardPage({
               <ChartNoAxesCombined className="size-6" />
             </IconTile>
             <div>
-              <CardTitle className="text-lg">
-                A jornada se desenha aqui
-              </CardTitle>
+              <CardTitle className="text-lg">A jornada se desenha aqui</CardTitle>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
                 Acompanhe seus registros, horas e evolução ao longo do tempo.
               </p>
@@ -291,7 +278,7 @@ export default async function DashboardPage({
             <div className="flex items-center rounded-lg border border-border bg-card text-xs">
               <span className="flex items-center gap-2 px-3 py-2.5">
                 <CalendarDays className="size-4 text-muted-foreground" />
-              {weekStart.toFormat("dd/MM")} – {weekEnd.toFormat("dd/MM/yyyy")}
+                {weekStart.toFormat("dd/MM")} – {weekEnd.toFormat("dd/MM/yyyy")}
               </span>
               {previousHref && (
                 <Link
@@ -337,9 +324,7 @@ export default async function DashboardPage({
                     isToday && "bg-primary/[0.04]",
                   )}
                 >
-                  <p className="text-xs capitalize text-muted-foreground">
-                    {label}
-                  </p>
+                  <p className="text-xs capitalize text-muted-foreground">{label}</p>
                   <div className="mt-4 flex h-20 items-end justify-center border-b border-border">
                     <div
                       className="w-7 rounded-t-md bg-primary/80"

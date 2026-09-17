@@ -29,10 +29,7 @@ export const workScheduleSchema = z.object({
 
 export const salarySchema = z.object({
   baseSalary: z.number().min(0, "Salário deve ser positivo"),
-  monthlyHours: z
-    .number()
-    .min(1, "Mínimo de 1 hora")
-    .max(744, "Máximo de 744 horas"),
+  monthlyHours: z.number().min(1, "Mínimo de 1 hora").max(744, "Máximo de 744 horas"),
 });
 
 export type WorkScheduleFormData = z.infer<typeof workScheduleSchema>;

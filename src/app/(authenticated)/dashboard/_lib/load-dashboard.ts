@@ -7,14 +7,15 @@ import type { DashboardData, DashboardQuery } from "./dashboard";
 
 export async function loadDashboardData(
   userId: string,
+  workspaceId: string,
   { startDate, endDate }: Pick<DashboardQuery, "startDate" | "endDate">,
 ): Promise<DashboardData> {
   const [entries, clockState, today, month, weeklyReport] = await Promise.all([
-    TimeEntryService.getTodayMovements(userId),
+    TimeEntryService.getTodayMovements(userId, workspaceId),
     TimeEntryService.getClockState(userId),
-    DashboardService.getTodaySummary(userId),
-    DashboardService.getMonthSummary(userId),
-    getReportData({ userId, startDate, endDate }),
+    DashboardService.getTodaySummary(userId, workspaceId),
+    DashboardService.getMonthSummary(userId, workspaceId),
+    getReportData({ userId, workspaceId, startDate, endDate }),
   ]);
 
   return {

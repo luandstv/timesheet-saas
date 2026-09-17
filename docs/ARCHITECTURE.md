@@ -38,6 +38,36 @@ Concentra regras de negócio:
 - `time-calculation.service.ts`: forma pares e calcula horas normais e extras.
 - `dashboard.service.ts`: resumos diário, semanal e mensal.
 - `report.service.ts`: filtros, linhas e totais dos relatórios.
+- `workspace.service.ts`: criação de espaços, convites, solicitações de entrada,
+  vínculos, gestores e auditoria.
+- `adjustment.service.ts`: solicitações por movimento, decisões, projeção e
+  fechamento/reabertura mensal.
+- `effective-time.service.ts`: leitura comum dos movimentos efetivos e
+  recálculo após uma decisão.
+
+### Espaço e autorização
+
+`workspace_members` é a fonte de autorização contextual. O papel global legado
+em `users.role` não é usado para permitir acesso a dados de uma empresa.
+`getWorkspaceContext` memoriza a autenticação apenas durante a requisição e
+seleciona o espaço pelo cookie `jornix-workspace`; cada serviço verifica o
+vínculo novamente antes de executar uma operação. O bloqueio transacional segue
+a ordem espaço → pessoa, porque o ponto aberto é global para a pessoa mesmo
+quando ela alterna de espaço.
+
+O salário e a jornada ficam em tabelas pessoais e só são consultados pelo
+próprio usuário. Timesheets, atividades, sobreaviso e ausências passam a ter
+`workspaceId`; a migração inicial atribui o histórico existente ao espaço
+pessoal criado para cada conta.
+
+### Projeção de movimentos
+
+`TimeEntry` é o movimento bruto e tem trigger de imutabilidade no PostgreSQL.
+`effective-entries.ts` aplica, em ordem, inclusões, correções e exclusões
+aprovadas; apenas correções de esquecimento marcadas como provisórias entram
+enquanto aguardam confirmação. Relógio, histórico e cálculo usam essa mesma
+projeção, enquanto o histórico de auditoria preserva original, proposta,
+motivo e decisor.
 
 O cálculo do timesheet é atualizado quando uma saída é registrada, pois nesse
 momento existe um par completo de entrada e saída.

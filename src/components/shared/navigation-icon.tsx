@@ -19,7 +19,10 @@ export function NavigationIcon({
   return (
     <>
       {pending ? (
-        <LoaderCircle aria-hidden="true" className={cn(className, "motion-safe:animate-spin")} />
+        <LoaderCircle
+          aria-hidden="true"
+          className={cn(className, "motion-safe:animate-spin")}
+        />
       ) : (
         <Icon aria-hidden="true" className={className} />
       )}

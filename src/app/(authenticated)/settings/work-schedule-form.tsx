@@ -60,9 +60,7 @@ export function WorkScheduleForm({ defaultValues }: WorkScheduleFormProps) {
             {...register("workStartHour", { valueAsNumber: true })}
           />
           {errors.workStartHour && (
-            <p className="text-sm text-destructive">
-              {errors.workStartHour.message}
-            </p>
+            <p className="text-sm text-destructive">{errors.workStartHour.message}</p>
           )}
         </div>
         <div className="space-y-2">
@@ -75,9 +73,7 @@ export function WorkScheduleForm({ defaultValues }: WorkScheduleFormProps) {
             {...register("workStartMinute", { valueAsNumber: true })}
           />
           {errors.workStartMinute && (
-            <p className="text-sm text-destructive">
-              {errors.workStartMinute.message}
-            </p>
+            <p className="text-sm text-destructive">{errors.workStartMinute.message}</p>
           )}
         </div>
       </div>
@@ -93,9 +89,7 @@ export function WorkScheduleForm({ defaultValues }: WorkScheduleFormProps) {
             {...register("workEndHour", { valueAsNumber: true })}
           />
           {errors.workEndHour && (
-            <p className="text-sm text-destructive">
-              {errors.workEndHour.message}
-            </p>
+            <p className="text-sm text-destructive">{errors.workEndHour.message}</p>
           )}
         </div>
 
@@ -109,9 +103,7 @@ export function WorkScheduleForm({ defaultValues }: WorkScheduleFormProps) {
             {...register("workEndMinute", { valueAsNumber: true })}
           />
           {errors.workEndMinute && (
-            <p className="text-sm text-destructive">
-              {errors.workEndMinute.message}
-            </p>
+            <p className="text-sm text-destructive">{errors.workEndMinute.message}</p>
           )}
         </div>
       </div>
@@ -127,9 +119,7 @@ export function WorkScheduleForm({ defaultValues }: WorkScheduleFormProps) {
             {...register("dailyHours", { valueAsNumber: true })}
           />
           {errors.dailyHours && (
-            <p className="text-sm text-destructive">
-              {errors.dailyHours.message}
-            </p>
+            <p className="text-sm text-destructive">{errors.dailyHours.message}</p>
           )}
         </div>
         <div className="space-y-2">
@@ -142,9 +132,7 @@ export function WorkScheduleForm({ defaultValues }: WorkScheduleFormProps) {
             {...register("weeklyHours", { valueAsNumber: true })}
           />
           {errors.weeklyHours && (
-            <p className="text-sm text-destructive">
-              {errors.weeklyHours.message}
-            </p>
+            <p className="text-sm text-destructive">{errors.weeklyHours.message}</p>
           )}
         </div>
       </div>

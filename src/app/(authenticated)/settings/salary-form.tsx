@@ -60,9 +60,7 @@ export function SalaryForm({ defaultValues }: SalaryFormProps) {
           {...register("baseSalary", { valueAsNumber: true })}
         />
         {errors.baseSalary && (
-          <p className="text-sm text-destructive">
-            {errors.baseSalary.message}
-          </p>
+          <p className="text-sm text-destructive">{errors.baseSalary.message}</p>
         )}
       </div>
 
@@ -77,9 +75,7 @@ export function SalaryForm({ defaultValues }: SalaryFormProps) {
           {...register("monthlyHours", { valueAsNumber: true })}
         />
         {errors.monthlyHours && (
-          <p className="text-sm text-destructive">
-            {errors.monthlyHours.message}
-          </p>
+          <p className="text-sm text-destructive">{errors.monthlyHours.message}</p>
         )}
         <p className="text-xs text-muted-foreground">
           Padrão CLT: 220h (44h/semana) ou 200 (40h/semana)

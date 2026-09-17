@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1750" height="900" viewBox="0 0 1750 900"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#1e3a5f"/></marker></defs><rect width="100%" height="100%" fill="#ffffff"/><text x="100" y="202" fill="#1e40af" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="22" text-anchor="start" font-weight="500"><tspan x="100" dy="0">Fluxo de registros de ponto</tspan></text>
+<text x="100" y="236" fill="#64748b" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="16" text-anchor="start" font-weight="500"><tspan x="100" dy="0">A mesma jornada suporta vários pares de entrada e saída no mesmo dia, inclusive sobreaviso.</tspan></text>
+<ellipse cx="210" cy="360" rx="110" ry="50" fill="#fed7aa" stroke="#c2410c" stroke-width="2"/>
+<text x="210" y="354.05" fill="#374151" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17" text-anchor="middle" font-weight="500"><tspan x="210" dy="0">Ação do usuário</tspan><tspan x="210" dy="21.25">Bater entrada/saída</tspan></text>
+<rect x="430" y="310" width="240" height="100" rx="18" fill="#fef3c7" stroke="#b45309" stroke-width="2"/>
+<text x="550" y="354.05" fill="#374151" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17" text-anchor="middle" font-weight="500"><tspan x="550" dy="0">Validação</tspan><tspan x="550" dy="21.25">usuário + workspace</tspan></text>
+<rect x="780" y="310" width="230" height="100" rx="18" fill="#3b82f6" stroke="#1e3a5f" stroke-width="2"/>
+<text x="895" y="354.05" fill="#ffffff" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17" text-anchor="middle" font-weight="500"><tspan x="895" dy="0">Registro persistido</tspan><tspan x="895" dy="21.25">TimeEntry</tspan></text>
+<rect x="1120" y="310" width="230" height="100" rx="18" fill="#a7f3d0" stroke="#047857" stroke-width="2"/>
+<text x="1235" y="354.05" fill="#047857" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17" text-anchor="middle" font-weight="500"><tspan x="1235" dy="0">Par efetivo</tspan><tspan x="1235" dy="21.25">entrada → saída</tspan></text>
+<polyline points="320,360 430,360" fill="none" stroke="#c2410c" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="670,360 780,360" fill="none" stroke="#b45309" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="1010,360 1120,360" fill="none" stroke="#047857" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="1120" y="503" fill="#1e40af" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="18" text-anchor="start" font-weight="500"><tspan x="1120" dy="0">Fan-out: N pares na mesma data</tspan></text>
+<rect x="900" y="550" width="210" height="90" rx="18" fill="#60a5fa" stroke="#1e3a5f" stroke-width="2"/>
+<text x="1005" y="589.4" fill="#1e3a5f" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="16" text-anchor="middle" font-weight="500"><tspan x="1005" dy="0">08:00 Entrada</tspan><tspan x="1005" dy="20">12:00 Saída</tspan></text>
+<rect x="1210" y="550" width="210" height="90" rx="18" fill="#60a5fa" stroke="#1e3a5f" stroke-width="2"/>
+<text x="1315" y="589.4" fill="#1e3a5f" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="16" text-anchor="middle" font-weight="500"><tspan x="1315" dy="0">13:00 Entrada</tspan><tspan x="1315" dy="20">17:00 Saída</tspan></text>
+<polyline points="1235,410 1005,550" fill="none" stroke="#047857" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="1235,410 1315,550" fill="none" stroke="#047857" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="100" y="520" width="420" height="210" rx="18" fill="#1e293b" stroke="#1e3a5f" stroke-width="2"/>
+<text x="118" y="553" fill="#22c55e" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="15" text-anchor="start" font-weight="500"><tspan x="118" dy="0">Regra civil</tspan><tspan x="118" dy="18.75">America/Sao_Paulo</tspan><tspan x="118" dy="18.75"></tspan><tspan x="118" dy="18.75">16/09 15:27:40 → 16/09 19:12:43</tspan></text>
+<rect x="670" y="720" width="300" height="100" rx="18" fill="#93c5fd" stroke="#1e3a5f" stroke-width="2"/>
+<text x="820" y="764.05" fill="#1e3a5f" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17" text-anchor="middle" font-weight="500"><tspan x="820" dy="0">Apuração</tspan><tspan x="820" dy="21.25">horas normais + extras</tspan></text>
+<polyline points="1010,640 820,720" fill="none" stroke="#047857" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="1320,640 970,720" fill="none" stroke="#047857" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="80" y="80" fill="#1e40af" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="30" text-anchor="start" font-weight="500"><tspan x="80" dy="0">Ciclo de uma jornada</tspan></text>
+<text x="80" y="113" fill="#64748b" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17" text-anchor="start" font-weight="500"><tspan x="80" dy="0">Cada batida fica preservada e a apuração trabalha sobre pares efetivos, sem limitar o dia a uma entrada e uma saída.</tspan></text></svg>

@@ -5,10 +5,7 @@ import { getAuthenticatedUser } from "@/lib/auth";
 import { dateOnlyStart } from "@/lib/date-only";
 import { TIMEZONE } from "@/lib/constants";
 import { DateTime } from "luxon";
-import type {
-  WorkScheduleFormData,
-  SalaryFormData,
-} from "@/schemas/settings.schema";
+import type { WorkScheduleFormData, SalaryFormData } from "@/schemas/settings.schema";
 
 export async function updateWorkSchedule(data: WorkScheduleFormData) {
   const user = await getAuthenticatedUser();
