@@ -21,13 +21,15 @@ export function ClockButton({ nextType, workspaceId }: ClockButtonProps) {
     try {
       const result = await clockIn(requestId, workspaceId);
 
-      if (!result.success) {
+      if (result.success) {
+        requestIdRef.current = null;
+      } else {
         console.error("clock-button:20", result.error);
       }
 
       // Uma resposta do servidor confirma que a chave foi processada. Em caso
-      // de exceção de rede, preservamos a chave para uma nova tentativa segura.
-      requestIdRef.current = null;
+      // de erro ou exceção de rede, preservamos a chave para uma nova tentativa
+      // segura e idempotente.
     } catch (error) {
       console.error("clock-button:20", error);
     } finally {

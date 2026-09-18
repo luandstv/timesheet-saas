@@ -13,6 +13,7 @@
     "lint": "eslint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "verify:postgres-lock": "node scripts/verify-postgres-lock.mjs",
     "test": "node --experimental-strip-types --experimental-loader ./tests/loader.mjs --test tests/*.test.mjs"
   },
   "dependencies": {

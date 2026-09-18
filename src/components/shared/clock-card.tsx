@@ -54,11 +54,13 @@ export function ClockCard({
     setError(null);
     try {
       const result = await clockIn(requestId, workspaceId);
-      if (!result.success) {
+      if (result.success) {
         requestIdRef.current = null;
-        setError(result.error ?? "Não foi possível registrar o ponto.");
       } else {
-        requestIdRef.current = null;
+        // Uma resposta de erro pode ser ambígua (por exemplo, a gravação
+        // terminou e a atualização da interface falhou). Preserve a chave
+        // para que um retry continue idempotente.
+        setError(result.error ?? "Não foi possível registrar o ponto.");
       }
       // A Server Action já envia a UI atualizada por revalidatePath. Um segundo
       // router.refresh iniciaria outra navegação após a gravação ter terminado.
