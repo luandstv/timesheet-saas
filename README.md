@@ -49,6 +49,8 @@ As pendências visuais e de produto estão detalhadas em
 - Tailwind CSS e componentes baseados em shadcn/ui.
 - Prisma 7 com PostgreSQL.
 - Supabase Auth.
+- Dados da aplicação acessados no servidor pelo Prisma, com RLS e grants
+  públicos revogados nas tabelas do schema `public`.
 - Luxon para datas, horários e fuso.
 - Node.js Test Runner para testes unitários determinísticos.
 
@@ -100,6 +102,18 @@ relatórios e no cálculo de horas extras. A migração
 `20260916190000_workspaces_adjustments_closures` faz o preenchimento inicial;
 valide o banco antes de aplicá-la em produção.
 
+## Arquitetura em uma visão
+
+O fluxo principal separa interface, regras de negócio e persistência. O
+browser usa o Supabase para autenticação; os dados da aplicação passam pelas
+Server Actions, serviços e Prisma no servidor.
+
+![Arquitetura do Jornix](docs/diagrams/architecture.svg)
+
+Veja a [arquitetura editável](docs/diagrams/architecture.excalidraw) e a
+[fronteira de segurança do Data API](docs/diagrams/data-api-rls.svg) para os
+detalhes técnicos.
+
 ## Configuração local
 
 ### Requisitos
@@ -139,6 +153,32 @@ O cliente Prisma é gerado em `generated/prisma`.
 Depois de revisar o SQL da migração e fazer o backup do ambiente, a aplicação
 em um banco já existente usa `pnpm prisma migrate deploy`. O build não aplica
 migrações automaticamente.
+
+### Segurança de dados
+
+O Supabase é usado no browser para autenticação. As consultas de usuários,
+espaços, jornadas, ajustes e fechamentos passam pelas Server Actions e pelos
+serviços do Next.js, usando Prisma no servidor. A aplicação não usa a chave
+`service_role` no cliente e não consulta os dados de negócio diretamente pelo
+endpoint REST `/rest/v1`.
+
+As migrações `20260918090000_lock_down_supabase_data_api` e
+`20260918110000_lock_down_prisma_migrations_rls` ativam RLS e removem os grants
+de `anon` e `authenticated` das 17 tabelas protegidas, incluindo a tabela
+interna `_prisma_migrations`. O acesso do Prisma pelo servidor continua
+funcionando.
+
+Para conferir o banco remoto, use a conexão `DIRECT_URL`:
+
+```bash
+node scripts/verify-rls.mjs
+```
+
+O resultado esperado informa `rls_enabled: true` e
+`anon_can_select: false`/`authenticated_can_select: false` para cada tabela.
+No Windows, o teste público que confirma a resposta `401` está em
+[`scripts/test-rls.ps1`](scripts/test-rls.ps1). Nunca execute esse teste com a
+chave `service_role`, pois ela ignora as proteções de RLS.
 
 ### Desenvolvimento
 
@@ -190,9 +230,13 @@ Prisma, mas não aplica migrações automaticamente.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): responsabilidades das camadas
   e fluxo dos principais dados.
 - [`docs/TESTING.md`](docs/TESTING.md): estratégia, comandos e cobertura atual.
+- [`docs/SECURITY-VALIDATION.md`](docs/SECURITY-VALIDATION.md): validação dos
+  avisos do Next.js e da proteção RLS do Supabase.
 - [`docs/UI-PENDING.md`](docs/UI-PENDING.md): pendências de produto e interface.
 - [`docs/WORKSPACES-AND-ADJUSTMENTS.md`](docs/WORKSPACES-AND-ADJUSTMENTS.md):
   regras de espaços, ajustes, permissões e fechamento.
+- [`docs/diagrams/README.md`](docs/diagrams/README.md): diagramas editáveis dos
+  fluxos de arquitetura, ponto, ajustes e fronteira do Data API.
 
 ## Próximos passos
 

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1650" height="1050" viewBox="0 0 1650 1050">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#1e3a5f"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="80" y="78" fill="#1e40af" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="30">Fronteira de dados do Jornix</text>
+  <text x="80" y="124" fill="#64748b" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17">RLS e grants fecham o caminho público; Prisma continua sendo o único caminho de dados da aplicação.</text>
+
+  <text x="100" y="215" fill="#1e40af" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="22">Acesso público via Supabase Data API</text>
+  <ellipse cx="225" cy="300" rx="125" ry="50" fill="#fed7aa" stroke="#c2410c" stroke-width="2"/>
+  <text x="225" y="293" text-anchor="middle" fill="#374151" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="16"><tspan x="225">Cliente/browser</tspan><tspan x="225" dy="22">chave publicável</tspan></text>
+  <rect x="470" y="235" width="250" height="130" rx="12" fill="#3b82f6" stroke="#1e3a5f" stroke-width="2"/>
+  <text x="595" y="293" text-anchor="middle" fill="#ffffff" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="17"><tspan x="595">PostgREST</tspan><tspan x="595" dy="24">/rest/v1</tspan></text>
+  <rect x="840" y="235" width="300" height="130" rx="12" fill="#fef3c7" stroke="#b45309" stroke-width="2"/>
+  <text x="990" y="288" text-anchor="middle" fill="#374151" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="16"><tspan x="990">Tabelas public</tspan><tspan x="990" dy="23">RLS ativo + grants</tspan><tspan x="990" dy="23">revogados</tspan></text>
+  <ellipse cx="1400" cy="300" rx="130" ry="50" fill="#fecaca" stroke="#b91c1c" stroke-width="2"/>
+  <text x="1400" y="293" text-anchor="middle" fill="#b91c1c" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="16"><tspan x="1400">401 / 42501</tspan><tspan x="1400" dy="22">permission denied</tspan></text>
+  <line x1="350" y1="300" x2="465" y2="300" stroke="#c2410c" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="720" y1="300" x2="835" y2="300" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="1140" y1="300" x2="1265" y2="300" stroke="#b91c1c" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="470" y="440" width="670" height="180" rx="12" fill="#1e293b" stroke="#1e3a5f" stroke-width="2"/>
+  <text x="495" y="480" fill="#22c55e" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="15"><tspan x="495">GET /rest/v1/_prisma_migrations?select=id&amp;limit=1</tspan><tspan x="495" dy="28">role: anon</tspan><tspan x="495" dy="28">→ 401 { code: "42501" }</tspan></text>
+
+  <text x="100" y="710" fill="#1e40af" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="22">Acesso do servidor — caminho usado pela aplicação</text>
+  <rect x="100" y="750" width="270" height="110" rx="12" fill="#93c5fd" stroke="#1e3a5f" stroke-width="2"/>
+  <text x="235" y="798" text-anchor="middle" fill="#1e3a5f" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="16"><tspan x="235">Next.js</tspan><tspan x="235" dy="23">Server Actions / services</tspan></text>
+  <rect x="500" y="750" width="270" height="110" rx="12" fill="#60a5fa" stroke="#1e3a5f" stroke-width="2"/>
+  <text x="635" y="798" text-anchor="middle" fill="#1e3a5f" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="16"><tspan x="635">Prisma 7</tspan><tspan x="635" dy="23">conexão postgres</tspan></text>
+  <rect x="900" y="750" width="270" height="110" rx="12" fill="#60a5fa" stroke="#1e3a5f" stroke-width="2"/>
+  <text x="1035" y="798" text-anchor="middle" fill="#1e3a5f" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="16"><tspan x="1035">PostgreSQL</tspan><tspan x="1035" dy="23">schema public</tspan></text>
+  <rect x="1300" y="750" width="250" height="110" rx="12" fill="#a7f3d0" stroke="#047857" stroke-width="2"/>
+  <text x="1425" y="798" text-anchor="middle" fill="#047857" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="16"><tspan x="1425">migrate deploy</tspan><tspan x="1425" dy="23">esquema versionado</tspan></text>
+  <line x1="370" y1="805" x2="495" y2="805" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="770" y1="805" x2="895" y2="805" stroke="#1e3a5f" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="1170" y1="805" x2="1295" y2="805" stroke="#047857" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="100" y="930" fill="#64748b" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="16">A chave pública continua disponível para autenticação; os dados da aplicação não são lidos diretamente pelo browser.</text>
+</svg>

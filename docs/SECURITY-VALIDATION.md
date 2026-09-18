@@ -1,14 +1,54 @@
-# Validação de segurança — AUD-001 e AUD-002
+# Validação de segurança — AUD-001, AUD-002 e AUD-012
 
-Data: 14/09/2026. Escopo: versão local do Next.js e condições dos dois
-avisos vinculados aos cartões. Esta análise não executou exploits nem verificou
-um ambiente de produção.
+Data: 14/09/2026, atualizada em 18/09/2026. Escopo: versão local do Next.js,
+proteção RLS do Supabase e condições dos três avisos vinculados aos cartões.
+Esta análise não executou exploits nem verificou um ambiente de produção.
 
 ## Resultado
 
 O pacote `next` já está na versão corrigida para os dois avisos neste checkout.
 O projeto também usa ESLint 10.10.0; a compatibilidade do plugin React está
 descrita ao final deste documento.
+
+## AUD-012 — RLS e exposição da Data API
+
+Data da validação: 18/09/2026.
+
+O Jornix usa Supabase Auth no cliente, mas acessa os dados da aplicação pelo
+Prisma no servidor. Por isso, as tabelas do schema `public` não precisam ficar
+disponíveis para `anon` ou `authenticated` através do endpoint REST do
+Supabase.
+
+As migrações abaixo fecharam esse caminho:
+
+- `20260918090000_lock_down_supabase_data_api` ativa RLS e revoga os grants de
+  `anon` e `authenticated` nas 16 tabelas de negócio, nas sequências públicas e
+  nos objetos futuros do Prisma.
+- `20260918110000_lock_down_prisma_migrations_rls` ativa RLS e revoga os
+  mesmos grants em `public._prisma_migrations`, que era o último alerta do
+  Database Advisor.
+
+O script `scripts/verify-rls.mjs` confirmou as 17 tabelas com
+`rls_enabled: true`, `anon_can_select: false` e
+`authenticated_can_select: false`. O teste público limitado a
+`/_prisma_migrations?select=id&limit=1` respondeu HTTP `401` com o código
+PostgreSQL `42501` (`permission denied for table _prisma_migrations`).
+
+Para repetir a validação:
+
+```bash
+pnpm prisma migrate status
+node scripts/verify-rls.mjs
+```
+
+No Windows PowerShell 5.1, execute
+`powershell -ExecutionPolicy Bypass -File .\scripts\test-rls.ps1`.
+O comando usa somente a chave pública do Supabase. A chave `service_role` não
+deve ser usada no browser nem neste teste, porque ela ignora RLS.
+
+Essa decisão segue as orientações do
+[Supabase sobre RLS](https://supabase.com/docs/guides/database/postgres/row-level-security)
+e sobre [segurança da Data API](https://supabase.com/docs/guides/api/securing-your-api).
 
 | Evidência                                            | Versão |
 | ---------------------------------------------------- | ------ |

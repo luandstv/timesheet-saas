@@ -609,7 +609,143 @@ def adjustment_approval() -> None:
     )
 
 
+def data_api_rls() -> None:
+    diagram = Diagram()
+    diagram.text(
+        "Acesso público via Supabase Data API",
+        100,
+        180,
+        900,
+        font_size=22,
+        color=COLORS["title"],
+    )
+    diagram.node(
+        "Cliente/browser\nchave publicável",
+        100,
+        250,
+        250,
+        100,
+        COLORS["start_fill"],
+        COLORS["start_stroke"],
+        kind="ellipse",
+        font_size=16,
+    )
+    diagram.node(
+        "PostgREST\n/rest/v1",
+        470,
+        235,
+        250,
+        130,
+        COLORS["primary_fill"],
+        COLORS["primary_stroke"],
+        font_size=17,
+    )
+    diagram.node(
+        "Tabelas public\nRLS ativo + grants revogados",
+        840,
+        235,
+        300,
+        130,
+        COLORS["decision_fill"],
+        COLORS["decision_stroke"],
+        text_color=COLORS["on_light"],
+        font_size=16,
+    )
+    diagram.node(
+        "401 / 42501\npermission denied",
+        1270,
+        250,
+        260,
+        100,
+        COLORS["error_fill"],
+        COLORS["error_stroke"],
+        kind="ellipse",
+        text_color=COLORS["error_stroke"],
+        font_size=16,
+    )
+    diagram.arrow(350, 300, [[0, 0], [120, 0]], COLORS["start_stroke"])
+    diagram.arrow(720, 300, [[0, 0], [120, 0]], COLORS["primary_stroke"])
+    diagram.arrow(1140, 300, [[0, 0], [130, 0]], COLORS["error_stroke"])
+    diagram.evidence(
+        'GET /rest/v1/_prisma_migrations?select=id&limit=1\n\nrole: anon\n→ 401 { code: "42501" }',
+        470,
+        440,
+        670,
+        180,
+    )
+
+    diagram.text(
+        "Acesso do servidor — caminho usado pela aplicação",
+        100,
+        690,
+        1000,
+        font_size=22,
+        color=COLORS["title"],
+    )
+    diagram.node(
+        "Next.js\nServer Actions / services",
+        100,
+        750,
+        270,
+        110,
+        COLORS["tertiary_fill"],
+        COLORS["primary_stroke"],
+        text_color=COLORS["primary_stroke"],
+        font_size=16,
+    )
+    diagram.node(
+        "Prisma 7\nconexão postgres",
+        500,
+        750,
+        270,
+        110,
+        COLORS["secondary_fill"],
+        COLORS["primary_stroke"],
+        text_color=COLORS["primary_stroke"],
+        font_size=16,
+    )
+    diagram.node(
+        "PostgreSQL\nschema public",
+        900,
+        750,
+        270,
+        110,
+        COLORS["secondary_fill"],
+        COLORS["primary_stroke"],
+        text_color=COLORS["primary_stroke"],
+        font_size=16,
+    )
+    diagram.node(
+        "migrate deploy\nesquema versionado",
+        1300,
+        750,
+        250,
+        110,
+        COLORS["success_fill"],
+        COLORS["success_stroke"],
+        text_color=COLORS["success_stroke"],
+        font_size=16,
+    )
+    diagram.arrow(370, 805, [[0, 0], [130, 0]], COLORS["primary_stroke"])
+    diagram.arrow(770, 805, [[0, 0], [130, 0]], COLORS["primary_stroke"])
+    diagram.arrow(1170, 805, [[0, 0], [130, 0]], COLORS["success_stroke"])
+    diagram.text(
+        "A chave pública continua disponível para autenticação; os dados da aplicação não são lidos diretamente pelo browser.",
+        100,
+        900,
+        1450,
+        font_size=16,
+        color=COLORS["detail"],
+    )
+    diagram.save(
+        "data-api-rls.excalidraw",
+        "Fronteira de dados do Jornix",
+        "RLS e grants fecham o caminho público; Prisma continua sendo o único caminho de dados da aplicação.",
+    )
+
+
 if __name__ == "__main__":
     architecture()
     time_entry_lifecycle()
     adjustment_approval()
+    data_api_rls()
