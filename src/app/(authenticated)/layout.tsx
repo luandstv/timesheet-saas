@@ -6,6 +6,7 @@ import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { HeaderTools } from "@/components/shared/header-tools";
 import { BrandMark } from "@/components/shared/brand-mark";
 import { AppFooter } from "@/components/shared/app-footer";
+import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,34 @@ export default async function AuthenticatedLayout({
   children: React.ReactNode;
 }) {
   const { user, workspace, member, memberships } = await getWorkspaceContext();
+  const canReviewTeam =
+    member.active &&
+    workspace.kind === "COMPANY" &&
+    (member.role === "OWNER" || member.role === "MANAGER");
+  const pendingReviewCount = canReviewTeam
+    ? await prisma.adjustmentRequest.count({
+        where: {
+          status: "PENDING",
+          timesheet: {
+            workspaceId: workspace.id,
+            ...(member.role === "MANAGER"
+              ? {
+                  user: {
+                    memberships: {
+                      some: {
+                        workspaceId: workspace.id,
+                        managerId: member.id,
+                        role: "COLLABORATOR",
+                        active: true,
+                      },
+                    },
+                  },
+                }
+              : {}),
+          },
+        },
+      })
+    : 0;
 
   return (
     <div className="flex min-h-dvh w-full overflow-x-clip bg-background">
@@ -33,7 +62,7 @@ export default async function AuthenticatedLayout({
               active: item.active,
             }))}
           />
-          <HeaderTools />
+          <HeaderTools pendingCount={pendingReviewCount} />
           <ThemeToggle />
           <UserNav name={user.name} email={user.email} />
         </header>

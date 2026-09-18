@@ -1,7 +1,8 @@
 "use client";
-import { useActionState } from "react";
+import { useActionState, useTransition } from "react";
+import { useRef } from "react";
 import { workspaceAction } from "@/app/(authenticated)/workspaces/actions";
-import { Button } from "@/components/ui/button";
+import { LoadingOverlay } from "./page-loading";
 import {
   Select,
   SelectContent,
@@ -18,15 +19,28 @@ export function WorkspaceSelector({
   spaces: { id: string; name: string; active: boolean }[];
 }) {
   const [state, action, pending] = useActionState(workspaceAction, {});
+  const [isSwitching, startTransition] = useTransition();
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const switchWorkspace = (workspaceId: string) => {
+    const form = formRef.current;
+    if (!form) return;
+    const formData = new FormData(form);
+    formData.set("workspaceId", workspaceId);
+    startTransition(() => action(formData));
+  };
+
+  const switching = pending || isSwitching;
+
   return (
     <div className="relative mr-auto flex min-w-0 items-center gap-2">
-      <form action={action} className="flex min-w-0 items-center gap-2">
+      <form ref={formRef} action={action} className="flex min-w-0 items-center">
         <input type="hidden" name="operation" value="switch" />
         <Select
           key={current}
-          name="workspaceId"
           defaultValue={current}
-          disabled={pending}
+          disabled={switching}
+          onValueChange={switchWorkspace}
         >
           <SelectTrigger
             size="sm"
@@ -44,10 +58,8 @@ export function WorkspaceSelector({
             ))}
           </SelectContent>
         </Select>
-        <Button type="submit" variant="ghost" size="sm" disabled={pending}>
-          {pending ? "…" : "Trocar"}
-        </Button>
       </form>
+      {switching && <LoadingOverlay message="Trocando espaço…" />}
       {state.ok === false && (
         <p
           role="alert"
