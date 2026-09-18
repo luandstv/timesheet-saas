@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import { appNavigation } from "./app-navigation";
 
-export function HeaderTools() {
+export function HeaderTools({ pendingCount = 0 }: { pendingCount?: number }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const searchTrigger = useRef<HTMLButtonElement>(null);
@@ -80,18 +80,46 @@ export function HeaderTools() {
       </Popover>
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon" aria-label="Notificações">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={
+              pendingCount > 0
+                ? `${pendingCount} solicitações pendentes`
+                : "Notificações"
+            }
+            className="relative"
+          >
             <Bell className="size-5" />
+            {pendingCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 inline-flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+                {pendingCount > 99 ? "99+" : pendingCount}
+              </span>
+            )}
           </Button>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-72 space-y-3 rounded-xl">
-          <p className="font-medium">Notificações</p>
-          <Badge variant="outline">Em breve · TODO</Badge>
-          {/* TODO(JORNIX-UI-02): conectar notificações reais; não simular mensagens não lidas. */}
-          <p className="text-sm leading-6 text-muted-foreground">
-            Os avisos da sua jornada aparecerão aqui quando este recurso estiver
-            disponível.
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-medium">Notificações</p>
+            {pendingCount > 0 && <Badge>{pendingCount}</Badge>}
+          </div>
+          {pendingCount > 0 ? (
+            <>
+              <p className="text-sm leading-6 text-muted-foreground">
+                Há solicitações de ajuste aguardando sua revisão.
+              </p>
+              <Link
+                href="/adjustments?tab=collaborators"
+                className="inline-flex text-sm font-medium text-accent-foreground underline underline-offset-4"
+              >
+                Abrir colaboradores
+              </Link>
+            </>
+          ) : (
+            <p className="text-sm leading-6 text-muted-foreground">
+              Nenhuma solicitação pendente no momento.
+            </p>
+          )}
         </PopoverContent>
       </Popover>
     </div>

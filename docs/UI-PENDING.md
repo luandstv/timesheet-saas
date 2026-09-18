@@ -14,10 +14,10 @@ Os valores demonstrativos não entram nos totais reais de trabalho.
 ## JORNIX-UI-02 — Notificações
 
 - [ ] Definir eventos, persistência e estado de leitura.
-- [ ] Integrar o painel de notificações do header.
-- [ ] Remover "Em breve · TODO" após a integração.
+- [x] Integrar o painel de notificações do header com solicitações de ajuste pendentes.
+- [ ] Adicionar notificações persistidas e estado de leitura.
 
-O painel não simula mensagens não lidas.
+O painel já mostra a quantidade real de solicitações pendentes que o usuário pode revisar.
 
 ## Elementos já ligados a dados reais
 

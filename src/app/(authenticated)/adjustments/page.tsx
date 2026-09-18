@@ -1,4 +1,5 @@
 import { DateTime } from "luxon";
+import { Building2, UserRound } from "lucide-react";
 import { getWorkspaceContext } from "@/lib/workspace-context";
 import { TIMEZONE } from "@/lib/constants";
 import { dateOnlyStart, formatDateOnly } from "@/lib/date-only";
@@ -13,10 +14,14 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ActionForm } from "@/components/shared/action-form";
 import { Field } from "@/components/shared/workspace-fields";
 import { AdjustmentsDateFilter } from "./_components/adjustments-date-filter";
+import { CollaboratorsPanel } from "./_components/collaborators-panel";
+import { SelectPersonLink } from "./_components/select-person-link";
+import { loadCollaboratorDirectory } from "./_lib/load-collaborators";
 import {
   AdjustmentsTabs,
   type AdjustmentTab,
@@ -68,6 +73,10 @@ export default async function AdjustmentsPage({
     endDate?: string;
     date?: string;
     tab?: string;
+    memberSearch?: string;
+    memberStatus?: string;
+    memberSort?: string;
+    memberPage?: string;
   }>;
 }) {
   const query = await searchParams;
@@ -150,13 +159,45 @@ export default async function AdjustmentsPage({
   const visibleSheets = sheets.filter(
     (sheet) => sheet.entries.length > 0 || sheet.requests.length > 0,
   );
+  const canManageCollaborators =
+    member.active &&
+    workspace.kind === "COMPANY" &&
+    (member.role === "OWNER" || member.role === "MANAGER");
   const requestedTab = query.tab as AdjustmentTab | undefined;
   const defaultTab: AdjustmentTab =
     requestedTab === "requests" ||
     requestedTab === "history" ||
-    (requestedTab === "closure" && review)
+    (requestedTab === "closure" && review) ||
+    (requestedTab === "collaborators" && canManageCollaborators)
       ? requestedTab
       : "movements";
+  const people = canManageCollaborators
+    ? await prisma.workspaceMember.findMany({
+        where: {
+          workspaceId: workspace.id,
+          ...(member.role === "OWNER"
+            ? { active: true }
+            : { managerId: member.id, active: true, role: "COLLABORATOR" }),
+        },
+        select: { userId: true, user: { select: { name: true, email: true } } },
+        orderBy: { user: { name: "asc" } },
+      })
+    : [];
+  const directory =
+    canManageCollaborators && defaultTab === "collaborators"
+      ? await loadCollaboratorDirectory({
+          db: prisma,
+          actor: member,
+          workspaceId: workspace.id,
+          // A lista completa é carregada uma vez; a busca e os filtros são
+          // aplicados no cliente para evitar uma consulta a cada tecla.
+          search: "",
+          status: member.role === "OWNER" ? "all" : "active",
+          sort: "priority",
+          page: 1,
+          includeAll: true,
+        })
+      : null;
   const defaultDate =
     query.date && datePattern.test(query.date)
       ? query.date
@@ -164,13 +205,69 @@ export default async function AdjustmentsPage({
   const hidden = { workspaceId: workspace.id, userId };
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="lg:col-span-2">
           <h1 className="text-2xl font-semibold">Ajustes e fechamento</h1>
+        </div>
+        <div
+          className={`rounded-2xl border border-primary/30 bg-card/70 px-4 py-3 shadow-sm ${
+            canManageCollaborators ? "" : "lg:col-span-2"
+          }`}
+        >
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            Espaço em análise
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <Building2 aria-hidden="true" className="size-5 text-primary" />
+            <span className="text-lg font-semibold">{workspace.name}</span>
+            <Badge
+              variant="outline"
+              className={
+                workspace.kind === "COMPANY"
+                  ? "h-7 rounded-full border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-200"
+                  : "h-7 rounded-full border-cyan-500/40 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-700 dark:border-cyan-400/40 dark:bg-cyan-400/10 dark:text-cyan-200"
+              }
+            >
+              {workspace.kind === "COMPANY" ? "Empresa" : "Pessoal"}
+            </Badge>
+          </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            {subject.name} · {workspace.name}. Horários de Brasília.
+            Registros de {subject.name} · Horários de Brasília.
           </p>
         </div>
+        {canManageCollaborators && (
+          <div className="flex h-full flex-col justify-between gap-4 rounded-2xl border border-border bg-card/70 px-4 py-3 shadow-sm">
+            <div>
+              <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                Pessoa em foco
+              </p>
+              <div className="mt-1 flex items-center gap-2">
+                <UserRound aria-hidden="true" className="size-5 text-primary" />
+                <span className="text-lg font-semibold">{subject.name}</span>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Selecione outra pessoa para consultar os registros.
+              </p>
+            </div>
+            <div>
+              <SelectPersonLink
+                href={`/adjustments?${new URLSearchParams({
+                  tab: "collaborators",
+                  startDate: filterStart.toFormat("yyyy-MM-dd"),
+                  endDate: filterEnd.toFormat("yyyy-MM-dd"),
+                }).toString()}`}
+                people={people.map((person) => ({
+                  userId: person.userId,
+                  name: person.user.name,
+                  email: person.user.email,
+                }))}
+                currentUserId={userId}
+                startDate={filterStart.toFormat("yyyy-MM-dd")}
+                endDate={filterEnd.toFormat("yyyy-MM-dd")}
+              />
+            </div>
+          </div>
+        )}
       </div>
       <AdjustmentsDateFilter
         userId={userId}
@@ -180,9 +277,11 @@ export default async function AdjustmentsPage({
         closed={Boolean(closure?.closed)}
       />
       <AdjustmentsTabs
+        key={defaultTab}
         defaultTab={defaultTab}
         pendingCount={pending.length}
         showClosure={review}
+        showCollaborators={canManageCollaborators}
       >
         <TabsContent value="movements" className="space-y-5">
           <Card>
@@ -532,6 +631,30 @@ export default async function AdjustmentsPage({
             </CardContent>
           </Card>
         </TabsContent>
+        {canManageCollaborators && directory && (
+          <TabsContent value="collaborators">
+            <CollaboratorsPanel
+              directory={directory}
+              currentUserId={userId}
+              startDate={filterStart.toFormat("yyyy-MM-dd")}
+              endDate={filterEnd.toFormat("yyyy-MM-dd")}
+              initialSearch={query.memberSearch?.trim() ?? ""}
+              initialStatus={
+                query.memberStatus === "inactive" || query.memberStatus === "all"
+                  ? query.memberStatus
+                  : "active"
+              }
+              initialSort={
+                query.memberSort === "name" ||
+                query.memberSort === "recent" ||
+                query.memberSort === "open"
+                  ? query.memberSort
+                  : "priority"
+              }
+              canViewInactive={member.role === "OWNER"}
+            />
+          </TabsContent>
+        )}
       </AdjustmentsTabs>
     </div>
   );

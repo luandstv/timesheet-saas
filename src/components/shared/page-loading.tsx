@@ -59,3 +59,25 @@ export function PageLoading({ title }: { title: string }) {
     </div>
   );
 }
+
+export function LoadingOverlay({
+  message = "Carregando informações…",
+}: {
+  message?: string;
+}) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-background/70 p-4 backdrop-blur-sm"
+    >
+      <div className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-sm font-medium text-foreground shadow-xl">
+        <LoaderCircle
+          aria-hidden="true"
+          className="size-4 motion-safe:animate-spin text-primary"
+        />
+        {message}
+      </div>
+    </div>
+  );
+}
