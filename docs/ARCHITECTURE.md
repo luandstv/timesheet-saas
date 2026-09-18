@@ -21,6 +21,38 @@ Browser
          └─ navegação e tema
 ```
 
+O browser fala diretamente com o Supabase apenas para autenticação. Os dados
+de negócio seguem o caminho `Server Actions → services → Prisma → PostgreSQL`.
+O caminho público do Data API (`/rest/v1`) permanece fechado para as tabelas
+do aplicativo.
+
+## Fronteira de dados e RLS
+
+As tabelas do schema `public` são protegidas em duas camadas: RLS fica ativo e
+os grants de `anon` e `authenticated` são removidos. Isso impede que uma chave
+pública consiga consultar dados só porque a tabela está no schema exposto. A
+tabela interna `_prisma_migrations` recebe a mesma proteção.
+
+As migrações responsáveis por essa fronteira são:
+
+- `20260918090000_lock_down_supabase_data_api`: protege as 16 tabelas de
+  negócio, sequências e objetos futuros criados pelo Prisma.
+- `20260918110000_lock_down_prisma_migrations_rls`: protege a tabela de
+  controle das migrações do Prisma.
+
+O Prisma continua acessando o banco pelo servidor com `DATABASE_URL` e
+`DIRECT_URL`; nenhuma dessas conexões ou credenciais deve chegar ao browser.
+O script `scripts/verify-rls.mjs` consulta apenas metadados e confirma que cada
+tabela tem RLS ativo e nenhum `SELECT` para os dois papéis públicos.
+
+O fluxo completo está em
+[`docs/diagrams/data-api-rls.excalidraw`](diagrams/data-api-rls.excalidraw).
+As regras de grants e RLS seguem a documentação do
+[Supabase sobre RLS](https://supabase.com/docs/guides/database/postgres/row-level-security)
+e de [segurança da Data API](https://supabase.com/docs/guides/api/securing-your-api).
+
+![Fronteira de dados do Jornix](diagrams/data-api-rls.svg)
+
 ## Responsabilidades
 
 ### `src/app`
