@@ -8,6 +8,7 @@ import { OnCallService } from "@/services/on-call.service";
 import { requireRead } from "@/services/workspace.service";
 import { OnCallCalendar } from "./_components/on-call-calendar";
 import { OnCallPersonSelector } from "./_components/on-call-person-selector";
+import { OnCallTeamOverview } from "./_components/on-call-team-overview";
 
 export default async function OnCallPage({
   searchParams,
@@ -66,10 +67,30 @@ export default async function OnCallPage({
     name: user.name,
     email: user.email,
   };
-  const days = await OnCallService.listMonth(subjectId, workspace.id, monthKey);
+  const teamPeople = [
+    { userId: user.id, name: user.name, email: user.email },
+    ...people.map((person) => ({
+      userId: person.userId,
+      name: person.user.name,
+      email: person.user.email,
+    })),
+  ].filter(
+    (person, index, options) =>
+      options.findIndex((candidate) => candidate.userId === person.userId) === index,
+  );
+  const [days, teamDays] = await Promise.all([
+    OnCallService.listMonth(subjectId, workspace.id, monthKey),
+    canViewTeam
+      ? OnCallService.listMonthForUsers(
+          teamPeople.map((person) => person.userId),
+          workspace.id,
+          monthKey,
+        )
+      : Promise.resolve([]),
+  ]);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -91,11 +112,14 @@ export default async function OnCallPage({
       </div>
 
       <OnCallCalendar
+        key={`${monthKey}-${subjectId}`}
         monthKey={monthKey}
         days={days}
         readOnly={subjectId !== user.id}
         personId={subjectId !== user.id ? subjectId : undefined}
       />
+
+      {canViewTeam && <OnCallTeamOverview days={teamDays} />}
 
       <p className="text-xs leading-5 text-muted-foreground">
         A disponibilidade é calculada por dia civil: 15 horas em dias úteis e 24 horas

@@ -224,8 +224,8 @@ export default async function AdjustmentsPage({
               variant="outline"
               className={
                 workspace.kind === "COMPANY"
-                  ? "h-7 rounded-full border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-200"
-                  : "h-7 rounded-full border-cyan-500/40 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-700 dark:border-cyan-400/40 dark:bg-cyan-400/10 dark:text-cyan-200"
+                  ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-200"
+                  : "border-cyan-500/40 bg-cyan-500/10 text-cyan-700 dark:border-cyan-400/40 dark:bg-cyan-400/10 dark:text-cyan-200"
               }
             >
               {workspace.kind === "COMPANY" ? "Empresa" : "Pessoal"}

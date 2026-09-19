@@ -26,6 +26,7 @@ import {
   type DashboardSearchParams,
 } from "./_lib/dashboard";
 import { loadDashboardData } from "./_lib/load-dashboard";
+import { DashboardPeriodNav } from "./_components/dashboard-period-nav";
 
 function IconTile({ children }: { children: ReactNode }) {
   return (
@@ -121,27 +122,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             resultados amanhã.”
           </blockquote>
         </div>
-        <nav
-          aria-label="Período do resumo"
-          className="mt-4 ml-auto flex w-full max-w-72 rounded-2xl border border-border bg-card/80 p-0.5"
-        >
-          {periods.map(({ value, label, active, href }) => (
-            <Link
-              key={value}
-              href={href}
-              scroll={false}
-              aria-current={active ? "page" : undefined}
-              className={cn(
-                "flex-1 rounded-xl px-4 py-2 text-center text-xs focus-visible:outline-2 focus-visible:outline-ring",
-                active
-                  ? "bg-primary font-semibold text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent",
-              )}
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
+        <DashboardPeriodNav periods={periods} />
       </section>
 
       <section className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">

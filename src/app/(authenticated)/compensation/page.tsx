@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { Calculator, CircleHelp, Clock3, Coins, MoonStar } from "lucide-react";
+import { CircleHelp, Clock3, Coins, MoonStar } from "lucide-react";
 
 import { getWorkspaceContext } from "@/lib/workspace-context";
 import { TIMEZONE } from "@/lib/constants";
@@ -7,7 +7,6 @@ import { formatMinutesToHours } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { getCompensationData } from "@/services/compensation.service";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -15,8 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { CompensationPeriodForm } from "./_components/compensation-period-form";
 
 function currency(value: number) {
   return new Intl.NumberFormat("pt-BR", {
@@ -67,7 +65,6 @@ export default async function CompensationPage({
         <Badge
           variant="outline"
           className={cn(
-            "h-7 rounded-full px-3 py-1 text-xs leading-4 font-semibold",
             calculation.provisional
               ? "border-primary/50 bg-primary/8 text-primary"
               : "border-emerald-500/40 bg-emerald-500/8 text-emerald-500",
@@ -79,22 +76,7 @@ export default async function CompensationPage({
 
       <Card>
         <CardContent className="p-5 sm:p-6">
-          <form method="get" className="flex flex-col gap-4 sm:flex-row sm:items-end">
-            <div className="grid gap-2">
-              <Label htmlFor="compensation-month">Período</Label>
-              <Input
-                id="compensation-month"
-                name="month"
-                type="month"
-                defaultValue={monthKey}
-                className="sm:w-52"
-              />
-            </div>
-            <Button type="submit">
-              <Calculator />
-              Atualizar cálculo
-            </Button>
-          </form>
+          <CompensationPeriodForm month={monthKey} />
         </CardContent>
       </Card>
 
@@ -169,12 +151,7 @@ export default async function CompensationPage({
                     {currency(calculation.variableValue + calculation.dsrValue)}
                   </p>
                 </div>
-                <Badge
-                  variant="secondary"
-                  className="h-7 rounded-full px-3 py-1 text-xs leading-4 font-semibold"
-                >
-                  Estimativa
-                </Badge>
+                <Badge variant="secondary">Estimativa</Badge>
               </div>
             </div>
           </CardContent>

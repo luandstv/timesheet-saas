@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { ReactNode } from "react";
 
-import { BrandMark } from "@/components/shared/brand-mark";
+import { BrandLogo } from "@/components/shared/brand-mark";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { Card } from "@/components/ui/card";
 
@@ -44,10 +44,9 @@ export function AuthShell({ children, tabs }: AuthShellProps) {
           <Link
             href="/login"
             aria-label="Jornix — início"
-            className="relative z-10 inline-flex w-fit items-center gap-2 rounded-md text-xl font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-ring"
+            className="relative z-10 inline-flex w-fit items-center rounded-md focus-visible:outline-2 focus-visible:outline-ring"
           >
-            <BrandMark />
-            <span>Jornix</span>
+            <BrandLogo darkSurface className="w-36 xl:w-40" />
           </Link>
 
           <div className="relative z-10 max-w-xl py-8">
@@ -80,12 +79,11 @@ export function AuthShell({ children, tabs }: AuthShellProps) {
               <Link
                 href="/login"
                 aria-label="Jornix — início"
-                className="inline-flex items-center gap-2 rounded-md text-lg font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-ring lg:hidden"
+                className="inline-flex items-center rounded-md focus-visible:outline-2 focus-visible:outline-ring lg:hidden"
               >
-                <BrandMark />
-                <span>Jornix</span>
+                <BrandLogo className="w-32" />
               </Link>
-              <div className="ml-auto rounded-full border border-border bg-card p-0.5">
+              <div className="ml-auto rounded-full border border-border bg-card">
                 <ThemeToggle />
               </div>
             </div>

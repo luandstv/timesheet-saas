@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { ClipboardCheck, Clock3, History, LockKeyhole, UsersRound } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export type AdjustmentTab =
@@ -92,9 +93,9 @@ export function AdjustmentsTabs({
           <ClipboardCheck aria-hidden="true" className="size-4" />
           <span>Solicitações</span>
           {pendingCount > 0 && (
-            <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground">
+            <Badge className="h-5 min-h-5 min-w-5 px-1.5 py-0.5 text-[11px] leading-3">
               {pendingCount}
-            </span>
+            </Badge>
           )}
         </TabsTrigger>
         {showClosure && (

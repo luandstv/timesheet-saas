@@ -15,6 +15,20 @@ export type OnCallDay = {
   totalOnCallMinutes: number;
 };
 
+export type OnCallTeamPerson = {
+  userId: string;
+  name: string;
+  email: string;
+  totalOnCallMinutes: number;
+};
+
+export type OnCallTeamDay = {
+  date: string;
+  isWeekend: boolean;
+  isHoliday: boolean;
+  people: OnCallTeamPerson[];
+};
+
 function parseDate(value: string) {
   const date = DateTime.fromISO(value, { zone: TIMEZONE });
   if (!date.isValid || date.toFormat("yyyy-MM-dd") !== value) {
@@ -57,6 +71,71 @@ export class OnCallService {
         totalOnCallMinutes: day.totalOnCallMinutes,
       };
     });
+  }
+
+  static async listMonthForUsers(
+    userIds: string[],
+    workspaceId: string,
+    monthKey: string,
+  ): Promise<OnCallTeamDay[]> {
+    const month = DateTime.fromISO(`${monthKey}-01`, { zone: TIMEZONE });
+    if (!month.isValid || month.toFormat("yyyy-MM") !== monthKey) {
+      throw new Error("Mês inválido.");
+    }
+
+    const uniqueUserIds = [...new Set(userIds)];
+    if (uniqueUserIds.length === 0) return [];
+
+    const start = dateOnlyStart(month);
+    const end = dateOnlyEnd(month.endOf("month"));
+    const [schedules, holidays] = await Promise.all([
+      prisma.onCallSchedule.findMany({
+        where: {
+          workspaceId,
+          userId: { in: uniqueUserIds },
+          date: { gte: start, lte: end },
+        },
+        orderBy: [{ date: "asc" }, { user: { name: "asc" } }],
+        select: {
+          date: true,
+          totalOnCallMinutes: true,
+          holidayOverride: true,
+          user: { select: { id: true, name: true, email: true } },
+        },
+      }),
+      prisma.holiday.findMany({
+        where: { date: { gte: start, lte: end } },
+        select: { date: true },
+      }),
+    ]);
+    const holidayDates = new Set(
+      holidays.map((holiday) => formatDateOnly(holiday.date)),
+    );
+    const grouped = new Map<string, OnCallTeamDay>();
+
+    for (const schedule of schedules) {
+      const date = formatDateOnly(schedule.date);
+      const details = describeOnCallDay(
+        DateTime.fromJSDate(schedule.date, { zone: "UTC" }),
+        schedule.holidayOverride,
+        holidayDates,
+      );
+      const current = grouped.get(date) ?? {
+        date,
+        isWeekend: details.isWeekend,
+        isHoliday: details.isHoliday,
+        people: [],
+      };
+      current.people.push({
+        userId: schedule.user.id,
+        name: schedule.user.name,
+        email: schedule.user.email,
+        totalOnCallMinutes: schedule.totalOnCallMinutes,
+      });
+      grouped.set(date, current);
+    }
+
+    return [...grouped.values()];
   }
 
   static async saveDay(

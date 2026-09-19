@@ -6,9 +6,8 @@ import { ReportSummary } from "./_components/report-sumary";
 import { ReportTable } from "./_components/report-table";
 import { ReportScopeNav } from "./_components/report-scope-nav";
 import { TeamReportTable } from "./_components/team-report-table";
-import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
 import prisma from "@/lib/prisma";
+import { CsvDownloadButton } from "./_components/csv-download-button";
 
 type ReportsPageProps = {
   searchParams?: Promise<{
@@ -58,12 +57,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
               Acompanhe os registros da sua equipe por período.
             </p>
           </div>
-          <Button asChild variant="outline">
-            <a href={exportHref} download>
-              <Download />
-              Baixar CSV
-            </a>
-          </Button>
+          <CsvDownloadButton href={exportHref} />
         </div>
         <ReportScopeNav
           scope="team"
@@ -72,7 +66,11 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
           canViewTeam={canViewTeam}
         />
         <ReportFilter startDate={startDate} endDate={endDate} scope="team" />
-        <TeamReportTable rows={teamReport.rows} />
+        <TeamReportTable
+          rows={teamReport.rows}
+          startDate={startDate}
+          endDate={endDate}
+        />
       </div>
     );
   }
@@ -93,12 +91,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
             Consulte os apontamentos consolidados por período
           </p>
         </div>
-        <Button asChild variant="outline">
-          <a href={exportHref} download>
-            <Download />
-            Baixar CSV
-          </a>
-        </Button>
+        <CsvDownloadButton href={exportHref} />
       </div>
 
       <ReportScopeNav
