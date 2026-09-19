@@ -4,6 +4,7 @@ import { Calculator, CircleHelp, Clock3, Coins, MoonStar } from "lucide-react";
 import { getWorkspaceContext } from "@/lib/workspace-context";
 import { TIMEZONE } from "@/lib/constants";
 import { formatMinutesToHours } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { getCompensationData } from "@/services/compensation.service";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,11 +66,12 @@ export default async function CompensationPage({
         </div>
         <Badge
           variant="outline"
-          className={
+          className={cn(
+            "h-7 rounded-full px-3 py-1 text-xs leading-4 font-semibold",
             calculation.provisional
-              ? "border-primary/40 text-primary"
-              : "border-emerald-500/40 text-emerald-500"
-          }
+              ? "border-primary/50 bg-primary/8 text-primary"
+              : "border-emerald-500/40 bg-emerald-500/8 text-emerald-500",
+          )}
         >
           {calculation.provisional ? "Prévia com pendências" : "Período conferido"}
         </Badge>
@@ -167,7 +169,12 @@ export default async function CompensationPage({
                     {currency(calculation.variableValue + calculation.dsrValue)}
                   </p>
                 </div>
-                <Badge variant="secondary">Estimativa</Badge>
+                <Badge
+                  variant="secondary"
+                  className="h-7 rounded-full px-3 py-1 text-xs leading-4 font-semibold"
+                >
+                  Estimativa
+                </Badge>
               </div>
             </div>
           </CardContent>
