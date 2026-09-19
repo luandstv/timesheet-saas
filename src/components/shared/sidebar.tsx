@@ -96,11 +96,11 @@ export function Sidebar({ name, email }: { name: string; email: string }) {
             <UserNav name={name} email={email} />
             {!collapsed && (
               <Link
-                href="/settings"
+                href="/profile"
                 className="hidden min-w-0 rounded text-sm focus-visible:outline-2 focus-visible:outline-ring lg:block"
               >
                 <span className="block truncate font-medium">{name}</span>
-                <span className="text-xs text-muted-foreground">Minha conta</span>
+                <span className="text-xs text-muted-foreground">Meu perfil</span>
               </Link>
             )}
           </div>
