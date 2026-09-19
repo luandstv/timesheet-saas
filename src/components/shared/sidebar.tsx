@@ -7,7 +7,7 @@ import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { UserNav } from "./user-nav";
-import { BrandMark } from "./brand-mark";
+import { BrandLogo, BrandMark } from "./brand-mark";
 import { HelpMenu } from "./header-tools";
 import { appNavigation } from "./app-navigation";
 import { NavigationIcon } from "./navigation-icon";
@@ -23,25 +23,29 @@ export function Sidebar({ name, email }: { name: string; email: string }) {
           collapsed ? "w-[76px] px-3" : "w-[76px] px-3 lg:w-[252px] lg:px-4",
         )}
       >
-        <div className="flex h-20 shrink-0 items-center justify-center gap-2 lg:justify-start">
+        <div className="relative flex h-20 shrink-0 items-center justify-center gap-2">
           <Link
             href="/dashboard"
             aria-label="Jornix — início"
-            className="flex items-center gap-2 rounded focus-visible:outline-2 focus-visible:outline-ring"
+            className="flex items-center justify-center rounded focus-visible:outline-2 focus-visible:outline-ring"
           >
-            <BrandMark />
-            {!collapsed && (
-              <span className="hidden text-2xl font-semibold tracking-tight lg:block">
-                Jornix
-              </span>
+            {collapsed ? (
+              <BrandMark className="h-9 w-9" />
+            ) : (
+              <>
+                <BrandMark className="h-9 w-9 lg:hidden" />
+                <BrandLogo className="hidden h-10 w-32 lg:block" />
+              </>
             )}
           </Link>
           <Button
             size="icon-sm"
             variant="outline"
             className={cn(
-              "ml-auto hidden shrink-0 rounded-lg lg:inline-flex",
-              collapsed && "absolute -right-4 top-6 z-10 bg-sidebar",
+              "hidden shrink-0 rounded-lg lg:inline-flex",
+              collapsed
+                ? "absolute -right-4 top-6 z-10 bg-sidebar"
+                : "absolute right-0",
             )}
             aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
             aria-expanded={!collapsed}

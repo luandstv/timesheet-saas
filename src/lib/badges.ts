@@ -14,11 +14,15 @@ const STATUS_LABELS: Record<TimesheetStatus, string> = {
 };
 
 export const STATUS_BADGE_STYLES: Record<TimesheetStatus, string> = {
-  OPEN: "bg-[#eeede9] text-[#52514e] dark:bg-[#252523] dark:text-[#c3c2b7]",
-  SUBMITTED: "bg-[#eceff6] text-[#1b6cc9] dark:bg-[#1e3c69] dark:text-[#5eabff]",
-  PENDING: "bg-[#fcf3eb] text-[#9e5b00] dark:bg-[#7b5819] dark:text-[#ffd34d]",
-  APPROVED: "bg-[#ecf2eb] text-[#007d00] dark:bg-[#185117] dark:text-[#51d14b]",
-  REJECTED: "bg-[#f6edec] text-[#c93435] dark:bg-[#672323] dark:text-[#ff7e77]",
+  OPEN: "border-border bg-muted text-muted-foreground dark:bg-muted/70",
+  SUBMITTED:
+    "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:border-blue-400/30 dark:bg-blue-400/15 dark:text-blue-300",
+  PENDING:
+    "border-amber-500/35 bg-amber-500/10 text-amber-700 dark:border-amber-400/35 dark:bg-amber-400/15 dark:text-amber-200",
+  APPROVED:
+    "border-emerald-500/35 bg-emerald-500/10 text-emerald-700 dark:border-emerald-400/35 dark:bg-emerald-400/15 dark:text-emerald-200",
+  REJECTED:
+    "border-destructive/30 bg-destructive/10 text-destructive dark:bg-destructive/15",
 };
 
 export function getStatusBadgeMeta(status: TimesheetStatus): StatusBadgeMeta {

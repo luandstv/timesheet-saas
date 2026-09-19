@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useRef, useState } from "react";
 import Image from "next/image";
+import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { LiveClock } from "./live-clock";
@@ -158,10 +159,13 @@ export function ClockCard({
             loading="eager"
             className="absolute inset-0 h-full w-full object-contain opacity-80"
           />
-          <span className="relative mx-auto mb-12 inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-primary/30 bg-accent px-2.5 py-2 text-[10px] font-medium text-accent-foreground">
+          <Badge
+            variant="outline"
+            className="relative mx-auto mb-12 border-primary/30 bg-accent text-accent-foreground"
+          >
             <MapPin className="size-3" />
             América/São Paulo
-          </span>
+          </Badge>
           <div className="relative flex items-start gap-2 rounded-xl border border-border bg-card/95 p-3">
             <CalendarDays className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
             <div className="min-w-0">

@@ -29,6 +29,7 @@ export type DashboardData = {
   week: ReportSummary;
   month: ReportSummary;
   weeklyRows: Pick<ReportRow, "date" | "totalWorkedMinutes">[];
+  onCallDays: { totalOnCallMinutes: number }[];
 };
 
 type DashboardUser = { name: string; dailyHours: number; weeklyHours: number };
@@ -151,6 +152,11 @@ export function buildDashboardModel(
         data.month.overtime75FhcnMinutes +
         data.month.overtime100FhcMinutes +
         data.month.overtime100FhcnMinutes,
+      onCallDays: data.onCallDays.length,
+      onCallMinutes: data.onCallDays.reduce(
+        (sum, day) => sum + day.totalOnCallMinutes,
+        0,
+      ),
     },
     activity: { ...buildWeekActivity(context, data.weeklyRows, dailyMinutes), entries },
   };

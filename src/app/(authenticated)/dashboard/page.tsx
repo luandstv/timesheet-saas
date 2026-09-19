@@ -26,6 +26,7 @@ import {
   type DashboardSearchParams,
 } from "./_lib/dashboard";
 import { loadDashboardData } from "./_lib/load-dashboard";
+import { DashboardPeriodNav } from "./_components/dashboard-period-nav";
 
 function IconTile({ children }: { children: ReactNode }) {
   return (
@@ -77,7 +78,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const { firstName, greeting, dateLabel, periods } = header;
   const { entries, days } = activity;
   const { progress, targetMinutes: target } = journey;
-  const { workedMinutes: weekWorkedMinutes, weekProgress, monthOvertime } = metrics;
+  const {
+    workedMinutes: weekWorkedMinutes,
+    weekProgress,
+    monthOvertime,
+    onCallDays,
+    onCallMinutes,
+  } = metrics;
   const { reportHref, previousHref, nextHref } = activity;
   const selected = {
     workedMinutes: journey.workedMinutes,
@@ -115,27 +122,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             resultados amanhã.”
           </blockquote>
         </div>
-        <nav
-          aria-label="Período do resumo"
-          className="mt-4 ml-auto flex w-full max-w-72 rounded-2xl border border-border bg-card/80 p-0.5"
-        >
-          {periods.map(({ value, label, active, href }) => (
-            <Link
-              key={value}
-              href={href}
-              scroll={false}
-              aria-current={active ? "page" : undefined}
-              className={cn(
-                "flex-1 rounded-xl px-4 py-2 text-center text-xs focus-visible:outline-2 focus-visible:outline-ring",
-                active
-                  ? "bg-primary font-semibold text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent",
-              )}
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
+        <DashboardPeriodNav periods={periods} />
       </section>
 
       <section className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
@@ -246,16 +233,17 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             <DetailsLink href="/on-call" label="Ver planejamento de sobreaviso" />
           </CardHeader>
           <CardContent>
-            {/* TODO(JORNIX-UI-01): integrar sobreaviso ao serviço real. Nunca somar este mock aos totais. */}
             <Badge
               variant="outline"
               className="border-primary/30 bg-accent text-accent-foreground"
             >
-              Mock temporário · TODO
+              Escala marcada
             </Badge>
-            <p className="mt-2 text-2xl font-bold tracking-tight">0 dias</p>
+            <p className="mt-2 text-2xl font-bold tracking-tight">
+              {onCallDays} {onCallDays === 1 ? "dia" : "dias"}
+            </p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              Dado de demonstração até a integração real
+              {formatMinutesToHours(onCallMinutes)} de disponibilidade neste mês
             </p>
           </CardContent>
         </Card>

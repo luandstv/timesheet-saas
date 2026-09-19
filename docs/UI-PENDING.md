@@ -4,12 +4,15 @@ Referência visual: dashboard grafite e âmbar fornecido pelo usuário.
 
 ## JORNIX-UI-01 — Sobreaviso
 
-- [ ] Implementar cadastro, consulta e cálculo dos períodos.
-- [ ] Substituir os mocks de 0 dias no dashboard e na página de Sobreaviso.
-- [ ] Remover os badges "Mock temporário · TODO" somente após integrar dados reais.
-- [ ] Validar totais por usuário e por mês.
+- [x] Implementar cadastro e consulta mensal dos dias de sobreaviso.
+- [x] Substituir os mocks do dashboard e da página de Sobreaviso por dados reais.
+- [x] Calcular a disponibilidade padrão por dia útil, fim de semana e feriado.
+- [x] Permitir gestores consultar a escala dos colaboradores autorizados.
+- [x] Exibir a prévia privada de remuneração com extras, sobreaviso e DSR.
+- [ ] Implementar períodos parciais, virada de dia e recorrência de escalas.
+- [ ] Validar a fórmula do DSR com a contabilidade.
 
-Os valores demonstrativos não entram nos totais reais de trabalho.
+Os valores da remuneração são uma estimativa pessoal e não substituem a folha oficial.
 
 ## JORNIX-UI-02 — Notificações
 

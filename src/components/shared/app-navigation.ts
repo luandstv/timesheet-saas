@@ -3,6 +3,7 @@ import {
   ChartNoAxesCombined,
   ClipboardCheck,
   Clock3,
+  Coins,
   LayoutDashboard,
   Settings2,
   UsersRound,
@@ -32,6 +33,12 @@ export const appNavigation = [
     shortTitle: "Relatórios",
     href: "/reports",
     icon: ChartNoAxesCombined,
+  },
+  {
+    title: "Minha remuneração",
+    shortTitle: "Valores",
+    href: "/compensation",
+    icon: Coins,
   },
   {
     title: "Ajustes e fechamento",

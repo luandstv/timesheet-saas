@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Jornix · prévia da marca</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: #f3f4f5;
+        --muted: #a1a8b2;
+        --canvas: #0e1215;
+        --panel: #161b1f;
+        --panel-2: #1c2329;
+        --line: #2b333b;
+        --amber: #ffb45e;
+        --amber-soft: #30271d;
+        --blue: #9bc1d8;
+        --radius: 24px;
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        min-width: 320px;
+        margin: 0;
+        background: var(--canvas);
+        color: var(--ink);
+      }
+
+      .preview-shell {
+        width: min(1320px, calc(100% - 48px));
+        margin: 0 auto;
+        padding: 44px 0 72px;
+      }
+
+      .preview-intro {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 28px;
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        color: var(--amber);
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+      h1 {
+        max-width: 720px;
+        margin-bottom: 10px;
+        font-size: clamp(32px, 5vw, 58px);
+        line-height: 0.98;
+        letter-spacing: -0.055em;
+      }
+      .intro-copy {
+        max-width: 600px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+      .asset-note {
+        min-width: 220px;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--panel);
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .asset-note strong {
+        color: var(--ink);
+      }
+
+      .screen-grid {
+        display: grid;
+        gap: 28px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .screen-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0 0 10px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .screen-label span:last-child {
+        color: var(--amber);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+      }
+      .screen {
+        min-height: 640px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--panel);
+        box-shadow: 0 22px 70px rgb(0 0 0 / 25%);
+      }
+
+      /* Home / login preview */
+      .home-screen {
+        display: grid;
+        grid-template-columns: 1.08fr 0.92fr;
+        background: #f5f5f4;
+        color: #202327;
+      }
+      .home-story {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 34px;
+        background:
+          radial-gradient(
+            circle at 82% 84%,
+            rgb(183 117 37 / 15%) 0 7%,
+            transparent 7.2% 18%,
+            rgb(183 117 37 / 9%) 18.2% 19%,
+            transparent 19.2%
+          ),
+          linear-gradient(138deg, #131a1e, #222b31);
+        color: #fff;
+      }
+      .home-logo {
+        width: min(260px, 70%);
+        height: auto;
+      }
+      .home-copy {
+        max-width: 390px;
+        margin: auto 0;
+      }
+      .home-copy .eyebrow {
+        color: var(--amber);
+      }
+      .home-copy h2 {
+        margin-bottom: 16px;
+        font-size: clamp(34px, 4vw, 54px);
+        line-height: 0.98;
+        letter-spacing: -0.06em;
+      }
+      .home-copy p {
+        color: rgb(255 255 255 / 75%);
+        line-height: 1.65;
+      }
+      .time-line {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: rgb(255 255 255 / 75%);
+        font-size: 11px;
+      }
+      .time-line i {
+        position: relative;
+        display: block;
+        flex: 1;
+        height: 1px;
+        background: rgb(255 255 255 / 30%);
+      }
+      .time-line i::before,
+      .time-line i::after {
+        position: absolute;
+        top: -4px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--amber);
+        content: "";
+      }
+      .time-line i::before {
+        left: 25%;
+      }
+      .time-line i::after {
+        right: 12%;
+      }
+      .home-auth {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+        background: #fafafa;
+      }
+      .auth-card {
+        width: min(100%, 310px);
+        padding: 24px;
+        border: 1px solid #e1e1df;
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 16px 40px rgb(32 35 39 / 8%);
+      }
+      .home-auth-logo {
+        display: block;
+        width: 148px;
+        height: auto;
+        margin: 0 auto 22px;
+      }
+      .auth-tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+        margin-bottom: 28px;
+        padding: 4px;
+        border-radius: 11px;
+        background: #eef0f1;
+        font-size: 12px;
+      }
+      .auth-tabs b {
+        padding: 10px;
+        border-radius: 8px;
+        text-align: center;
+        background: #202327;
+        color: #fff;
+      }
+      .auth-tabs span {
+        padding: 10px;
+        text-align: center;
+        color: #636a74;
+      }
+      .auth-card h3 {
+        margin-bottom: 7px;
+        font-size: 25px;
+        letter-spacing: -0.04em;
+      }
+      .auth-card > p {
+        margin-bottom: 22px;
+        color: #636a74;
+        font-size: 13px;
+      }
+      .field {
+        margin-bottom: 14px;
+      }
+      .field label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .field div {
+        height: 42px;
+        padding: 12px;
+        border: 1px solid #d6d9db;
+        border-radius: 10px;
+        color: #636a74;
+        font-size: 12px;
+      }
+      .primary-button {
+        width: 100%;
+        margin-top: 4px;
+        padding: 12px;
+        border: 0;
+        border-radius: 10px;
+        background: #b77525;
+        color: #fff;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .auth-foot {
+        margin-top: 18px;
+        color: #636a74;
+        font-size: 12px;
+        text-align: center;
+      }
+
+      /* Dashboard preview */
+      .dashboard-screen {
+        display: grid;
+        grid-template-columns: 190px minmax(0, 1fr);
+        background: var(--canvas);
+      }
+      .dashboard-sidebar {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 28px;
+        padding: 24px 14px;
+        border-right: 1px solid var(--line);
+        background: #101417;
+      }
+      .dashboard-brand {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 0;
+        padding: 0 5px;
+      }
+      .dashboard-brand img:first-child {
+        width: 29px;
+        height: 29px;
+        object-fit: contain;
+      }
+      .dashboard-brand img:last-child {
+        width: 98px;
+        height: auto;
+      }
+      .workspace {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 11px;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        color: var(--ink);
+        font-size: 11px;
+      }
+      .workspace small {
+        color: var(--muted);
+      }
+      .nav {
+        display: grid;
+        gap: 5px;
+      }
+      .nav a {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 10px 11px;
+        border-radius: 10px;
+        color: var(--muted);
+        font-size: 11px;
+        text-decoration: none;
+      }
+      .nav a.active {
+        background: var(--amber-soft);
+        color: var(--amber);
+      }
+      .nav a span {
+        width: 15px;
+        height: 15px;
+        border: 1.5px solid currentColor;
+        border-radius: 4px;
+        opacity: 0.85;
+      }
+      .account {
+        margin-top: auto;
+        padding: 11px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .account strong {
+        display: block;
+        margin-bottom: 3px;
+        color: var(--ink);
+      }
+      .dashboard-main {
+        min-width: 0;
+        padding: 24px 28px 32px;
+      }
+      .dashboard-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 36px;
+      }
+      .dashboard-top strong {
+        font-size: 13px;
+      }
+      .dashboard-top small {
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .search {
+        padding: 9px 12px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .avatar {
+        display: grid;
+        width: 32px;
+        height: 32px;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--amber);
+        color: #291b0a;
+        font-size: 11px;
+        font-weight: 800;
+      }
+      .dashboard-main h2 {
+        margin-bottom: 7px;
+        font-size: clamp(28px, 4vw, 42px);
+        line-height: 1;
+        letter-spacing: -0.05em;
+      }
+      .dashboard-main > header p {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .periods {
+        display: flex;
+        gap: 5px;
+        margin: 24px 0;
+        padding: 4px;
+        border: 1px solid var(--line);
+        border-radius: 13px;
+        background: var(--panel);
+      }
+      .periods span {
+        flex: 1;
+        padding: 9px 12px;
+        border-radius: 9px;
+        color: var(--muted);
+        font-size: 11px;
+        text-align: center;
+      }
+      .periods span.active {
+        background: var(--amber-soft);
+        color: var(--amber);
+      }
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .metric,
+      .journey {
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--panel);
+      }
+      .metric small,
+      .journey small {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 10px;
+      }
+      .metric strong {
+        font-size: 23px;
+        letter-spacing: -0.04em;
+      }
+      .metric em {
+        display: block;
+        margin-top: 5px;
+        color: var(--blue);
+        font-size: 10px;
+        font-style: normal;
+      }
+      .journey {
+        margin-top: 10px;
+      }
+      .journey-row {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 18px;
+      }
+      .journey strong {
+        font-size: 27px;
+        letter-spacing: -0.05em;
+      }
+      .journey span {
+        color: var(--amber);
+        font-size: 11px;
+      }
+      .progress {
+        height: 7px;
+        margin-top: 16px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #282f36;
+      }
+      .progress i {
+        display: block;
+        width: 68%;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--amber);
+      }
+      .activity {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .activity .metric {
+        min-height: 116px;
+      }
+      .activity .metric strong {
+        display: block;
+        margin-top: 12px;
+        font-size: 18px;
+      }
+
+      @media (max-width: 980px) {
+        .screen-grid {
+          grid-template-columns: 1fr;
+        }
+        .screen {
+          min-height: auto;
+        }
+      }
+      @media (max-width: 620px) {
+        .preview-shell {
+          width: min(100% - 24px, 560px);
+          padding-top: 24px;
+        }
+        .preview-intro {
+          display: block;
+        }
+        .asset-note {
+          margin-top: 16px;
+        }
+        .home-screen {
+          grid-template-columns: 1fr;
+        }
+        .home-story {
+          min-height: 410px;
+          padding: 24px;
+        }
+        .home-auth {
+          padding: 18px;
+        }
+        .dashboard-screen {
+          grid-template-columns: 68px minmax(0, 1fr);
+        }
+        .dashboard-sidebar {
+          align-items: center;
+          padding: 18px 8px;
+        }
+        .dashboard-brand img:last-child,
+        .workspace,
+        .nav a {
+          display: none;
+        }
+        .nav {
+          width: 100%;
+        }
+        .nav a {
+          justify-content: center;
+          padding: 11px 0;
+        }
+        .nav a.active {
+          display: flex;
+        }
+        .account {
+          display: none;
+        }
+        .dashboard-main {
+          padding: 18px 14px 24px;
+        }
+        .dashboard-top small,
+        .search {
+          display: none;
+        }
+        .metric-grid {
+          grid-template-columns: 1fr;
+        }
+        .activity {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="preview-shell">
+      <div class="preview-intro">
+        <div>
+          <p class="eyebrow">Prévia da marca · Jornix</p>
+          <h1>Uma assinatura visual que acompanha cada jornada.</h1>
+          <p class="intro-copy">
+            Esta prévia é isolada do produto. Ela mostra como usar a logo completa em
+            telas amplas e separar ícone e lettering em espaços menores.
+          </p>
+        </div>
+        <div class="asset-note">
+          <strong>Assets usados</strong><br />
+          Logo clara no dark mode<br />
+          Logo escura no light mode<br />
+          Ícone + lettering no dashboard<br />
+          Troca automática no mobile
+        </div>
+      </div>
+
+      <div class="screen-grid">
+        <section>
+          <div class="screen-label">
+            <span>Home / acesso</span><span>logo completa</span>
+          </div>
+          <div class="screen home-screen">
+            <div class="home-story">
+              <img
+                class="home-logo"
+                src="../../public/jornix/jornix-logo-custom-dark.png"
+                alt="Jornix"
+              />
+              <div class="home-copy">
+                <p class="eyebrow">Seu tempo, com clareza</p>
+                <h2>Comece o dia no ritmo certo.</h2>
+                <p>
+                  Registre seus movimentos, acompanhe sua jornada e mantenha o foco no
+                  que importa.
+                </p>
+                <div class="time-line"><span>08:00</span><i></i><span>17:00</span></div>
+              </div>
+              <small>Controle de jornada · América/São Paulo</small>
+            </div>
+            <div class="home-auth">
+              <div class="auth-card">
+                <img
+                  class="home-auth-logo"
+                  src="../../public/jornix/jornix-logo-custom-light.png"
+                  alt="Jornix"
+                />
+                <div class="auth-tabs"><b>Entrar</b><span>Criar conta</span></div>
+                <h3>Bom ter você por aqui.</h3>
+                <p>Entre para continuar sua jornada.</p>
+                <div class="field">
+                  <label>E-mail</label>
+                  <div>michel@telo.com</div>
+                </div>
+                <div class="field">
+                  <label>Senha</label>
+                  <div>••••••••</div>
+                </div>
+                <button class="primary-button" type="button">Entrar</button>
+                <p class="auth-foot">
+                  Ainda não tem conta? <strong>Criar conta</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <div class="screen-label">
+            <span>Dashboard</span><span>assets separados</span>
+          </div>
+          <div class="screen dashboard-screen">
+            <aside class="dashboard-sidebar">
+              <div class="dashboard-brand">
+                <img src="../../public/jornix/jornix-icon.png" alt="" />
+                <img src="../../public/jornix/jornix-lettering-dark.png" alt="Jornix" />
+              </div>
+              <div class="workspace"><span>Meu espaço</span><small>⌄</small></div>
+              <nav class="nav" aria-label="Prévia da navegação">
+                <a class="active" href="#"><span></span>Dashboard</a>
+                <a href="#"><span></span>Registros de ponto</a>
+                <a href="#"><span></span>Sobreaviso</a>
+                <a href="#"><span></span>Relatórios</a>
+                <a href="#"><span></span>Configurações</a>
+              </nav>
+              <div class="account"><strong>michel telo</strong>Minha conta</div>
+            </aside>
+            <div class="dashboard-main">
+              <div class="dashboard-top">
+                <div>
+                  <strong>Jornix</strong><br /><small>Seu espaço de trabalho</small>
+                </div>
+                <div class="top-actions">
+                  <div class="search">⌕ Buscar páginas…</div>
+                  <div class="avatar">MT</div>
+                </div>
+              </div>
+              <header>
+                <p class="eyebrow">Quarta-feira, 19 de setembro</p>
+                <h2>O dia está andando no ritmo certo.</h2>
+                <p>
+                  Registre o próximo movimento e deixe o restante da jornada com o
+                  Jornix.
+                </p>
+              </header>
+              <div class="periods">
+                <span>Hoje</span><span class="active">Esta semana</span
+                ><span>Este mês</span>
+              </div>
+              <div class="metric-grid">
+                <div class="metric">
+                  <small>Horas trabalhadas</small><strong>32h 40m</strong
+                  ><em>+8% nesta semana</em>
+                </div>
+                <div class="metric">
+                  <small>Horas extras</small><strong>02h 15m</strong><em>Até agora</em>
+                </div>
+                <div class="metric">
+                  <small>Sobreaviso</small><strong>3 dias</strong
+                  ><em>36h disponíveis</em>
+                </div>
+              </div>
+              <div class="journey">
+                <small>Progresso da semana</small>
+                <div class="journey-row">
+                  <strong>32h 40m</strong><span>68% da meta</span>
+                </div>
+                <div class="progress"><i></i></div>
+              </div>
+              <div class="activity">
+                <div class="metric">
+                  <small>Últimos registros</small><strong>Entrada · 08:04</strong
+                  ><em>Hoje · Horários de Brasília</em>
+                </div>
+                <div class="metric">
+                  <small>Próximo passo</small><strong>Encerrar jornada</strong
+                  ><em>Controle disponível</em>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

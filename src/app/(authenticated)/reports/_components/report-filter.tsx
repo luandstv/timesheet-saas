@@ -1,7 +1,7 @@
 "use client";
 
 import { DateTime } from "luxon";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, LoaderCircle } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { TIMEZONE } from "@/lib/constants";
@@ -11,7 +11,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useState } from "react";
+import { LoadingOverlay } from "@/components/shared/page-loading";
+import { useState, useTransition } from "react";
 import type { FormEvent } from "react";
 import {
   formatDateToDisplay,
@@ -21,15 +22,21 @@ import {
 type ReportFilterProps = {
   startDate: string;
   endDate: string;
+  scope?: "mine" | "team";
 };
 
 function formatDateToQueryValue(date: Date) {
   return DateTime.fromJSDate(date, { zone: TIMEZONE }).toFormat("yyyy-MM-dd");
 }
 
-export function ReportFilter({ startDate, endDate }: ReportFilterProps) {
+export function ReportFilter({
+  startDate,
+  endDate,
+  scope = "mine",
+}: ReportFilterProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
 
   const [startDateValue, setStartDateValue] = useState<Date | undefined>(
     parseQueryDateToJSDate(startDate),
@@ -49,8 +56,11 @@ export function ReportFilter({ startDate, endDate }: ReportFilterProps) {
 
     params.set("startDate", formatDateToQueryValue(startDateValue));
     params.set("endDate", formatDateToQueryValue(endDateValue));
+    if (scope === "team") params.set("scope", scope);
 
-    router.push(`${pathname}?${params.toString()}`);
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`);
+    });
   }
 
   return (
@@ -126,11 +136,15 @@ export function ReportFilter({ startDate, endDate }: ReportFilterProps) {
             </Popover>
           </div>
 
-          <Button type="submit" className="w-full md:w-auto">
-            Aplicar filtros
+          <Button type="submit" className="w-full md:w-auto" disabled={isPending}>
+            {isPending && (
+              <LoaderCircle className="motion-safe:animate-spin" aria-hidden="true" />
+            )}
+            {isPending ? "Atualizando…" : "Aplicar filtros"}
           </Button>
         </form>
       </CardContent>
+      {isPending && <LoadingOverlay message="Atualizando relatório…" />}
     </Card>
   );
 }

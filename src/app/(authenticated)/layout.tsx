@@ -4,7 +4,7 @@ import { Sidebar } from "@/components/shared/sidebar";
 import { UserNav } from "@/components/shared/user-nav";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { HeaderTools } from "@/components/shared/header-tools";
-import { BrandMark } from "@/components/shared/brand-mark";
+import { BrandLogo } from "@/components/shared/brand-mark";
 import { AppFooter } from "@/components/shared/app-footer";
 import prisma from "@/lib/prisma";
 
@@ -52,7 +52,7 @@ export default async function AuthenticatedLayout({
       <div className="flex min-h-dvh min-w-0 flex-1 flex-col pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
         <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border bg-card/40 px-4 sm:gap-4 sm:px-6 lg:px-8">
           <div className="md:hidden">
-            <BrandMark />
+            <BrandLogo className="w-28" />
           </div>
           <WorkspaceSelector
             current={workspace.id}

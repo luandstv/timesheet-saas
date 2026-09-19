@@ -323,6 +323,7 @@ model onCallSchedule {
   workspaceId        String   @map("workspace_id") @db.Uuid
   date               DateTime @db.Date
   totalOnCallMinutes Int      @default(0) @map("total_on_call_minutes")
+  holidayOverride    Boolean? @map("holiday_override")
   createdAt          DateTime @default(now()) @map("created_at")
 
   user      User      @relation(fields: [userId], references: [id])

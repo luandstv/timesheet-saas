@@ -2,10 +2,16 @@
 
 import { DateTime } from "luxon";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
-import { CalendarCheck2, CalendarClock, CalendarIcon } from "lucide-react";
+import { useState, useTransition, type FormEvent } from "react";
+import {
+  CalendarCheck2,
+  CalendarClock,
+  CalendarIcon,
+  LoaderCircle,
+} from "lucide-react";
 
 import { TIMEZONE } from "@/lib/constants";
+import { LoadingOverlay } from "@/components/shared/page-loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -45,6 +51,7 @@ export function AdjustmentsDateFilter({
 }: AdjustmentsDateFilterProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
   const [startDateValue, setStartDateValue] = useState(() => parseDate(startDate));
   const [endDateValue, setEndDateValue] = useState(() => parseDate(endDate));
   const StatusIcon = closed ? CalendarCheck2 : CalendarClock;
@@ -67,7 +74,9 @@ export function AdjustmentsDateFilter({
     params.set("endDate", formatDate(endDateValue));
     params.set("month", formatDate(startDateValue).slice(0, 7));
     params.set("tab", params.get("tab") ?? tab);
-    router.push(`${pathname}?${params.toString()}`);
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`);
+    });
   }
 
   return (
@@ -127,18 +136,19 @@ export function AdjustmentsDateFilter({
             </Popover>
           </div>
 
-          <Button type="submit" className="w-full md:w-auto">
-            Consultar período
+          <Button type="submit" className="w-full md:w-auto" disabled={isPending}>
+            {isPending && (
+              <LoaderCircle className="motion-safe:animate-spin" aria-hidden="true" />
+            )}
+            {isPending ? "Atualizando…" : "Consultar período"}
           </Button>
-          <Badge
-            variant="outline"
-            className={`h-8 gap-1.5 rounded-full px-3 text-xs font-semibold ${statusClassName}`}
-          >
+          <Badge variant="outline" className={statusClassName}>
             <StatusIcon aria-hidden="true" />
             <span>{closed ? "Mês fechado" : "Mês aberto"}</span>
           </Badge>
         </form>
       </CardContent>
+      {isPending && <LoadingOverlay message="Atualizando ajustes…" />}
     </Card>
   );
 }
