@@ -189,7 +189,7 @@ export function OnCallCalendar({
           {!readOnly && (
             <Button
               type="button"
-              variant={isSelecting ? "secondary" : "outline"}
+              variant={isSelecting ? "outline" : "default"}
               size="default"
               aria-pressed={isSelecting}
               onClick={toggleSelectionMode}
