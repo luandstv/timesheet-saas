@@ -190,10 +190,15 @@ export function OnCallCalendar({
             <Button
               type="button"
               variant={isSelecting ? "secondary" : "outline"}
-              size="sm"
+              size="default"
               aria-pressed={isSelecting}
               onClick={toggleSelectionMode}
-              className="w-fit"
+              className={cn(
+                "min-h-11 w-full rounded-[11px] px-4 font-semibold shadow-sm sm:w-fit",
+                isSelecting
+                  ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/15"
+                  : "border-primary/45 bg-primary text-primary-foreground hover:bg-primary/85",
+              )}
             >
               {isSelecting ? <X /> : <ListChecks />}
               {isSelecting ? "Cancelar seleção" : "Selecionar vários dias"}
