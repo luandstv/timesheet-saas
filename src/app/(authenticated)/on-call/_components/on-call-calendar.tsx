@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { DateTime } from "luxon";
+import Link from "next/link";
 import { CalendarDays, Check, ListChecks, LoaderCircle, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -9,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { formatMinutesToHours } from "@/lib/format";
 import { TIMEZONE } from "@/lib/constants";
 import type { OnCallDay } from "@/services/on-call.service";
+import type { OnCallTeamDay } from "@/services/on-call.service";
 import type { OnCallHolidayMode } from "@/lib/on-call";
 import { removeOnCallDay, saveOnCallDay, saveOnCallDays } from "../actions";
 import { Badge } from "@/components/ui/badge";
@@ -61,11 +63,13 @@ function buildCalendarDays(monthKey: string) {
 export function OnCallCalendar({
   monthKey,
   days,
+  teamDays = [],
   readOnly = false,
   personId,
 }: {
   monthKey: string;
   days: OnCallDay[];
+  teamDays?: OnCallTeamDay[];
   readOnly?: boolean;
   personId?: string;
 }) {
@@ -80,8 +84,13 @@ export function OnCallCalendar({
   const [isSelecting, setIsSelecting] = useState(false);
   const [batchDates, setBatchDates] = useState<string[]>([]);
   const dayMap = useMemo(() => new Map(days.map((day) => [day.date, day])), [days]);
+  const teamDayMap = useMemo(
+    () => new Map(teamDays.map((day) => [day.date, day])),
+    [teamDays],
+  );
   const calendarDays = useMemo(() => buildCalendarDays(monthKey), [monthKey]);
   const selected = dayMap.get(selectedDate);
+  const selectedTeamDay = teamDayMap.get(selectedDate);
   const activeMonth = DateTime.fromISO(`${monthKey}-01`, { zone: "America/Sao_Paulo" });
   const currentMonth = DateTime.now().setZone(TIMEZONE).startOf("month");
   const yearOptions = useMemo(() => {
@@ -287,6 +296,7 @@ export function OnCallCalendar({
               {calendarDays.map((date) => {
                 const key = dateKey(date);
                 const day = dayMap.get(key);
+                const teamDay = teamDayMap.get(key);
                 const outside = date.month !== activeMonth.month;
                 const isSelected = key === selectedDate;
                 const isBatchSelected = batchDates.includes(key);
@@ -299,11 +309,11 @@ export function OnCallCalendar({
                     }
                     disabled={isSelecting && outside}
                     aria-label={`${date.toFormat("dd/MM/yyyy")}${day ? ", sobreaviso marcado" : ", sem sobreaviso"}`}
-                    title={
+                    title={`${date.toFormat("dd/MM/yyyy")} — ${
                       day
-                        ? `${date.toFormat("dd/MM/yyyy")} — ${formatMinutesToHours(day.totalOnCallMinutes)} de disponibilidade — ${day.isHoliday ? "Feriado" : day.isWeekend ? "Fim de semana" : "Dia útil"}`
-                        : `${date.toFormat("dd/MM/yyyy")} — sem sobreaviso marcado`
-                    }
+                        ? `${formatMinutesToHours(day.totalOnCallMinutes)} de sua disponibilidade`
+                        : "sem sua escala"
+                    }${teamDay ? ` — ${teamDay.people.length} ${teamDay.people.length === 1 ? "pessoa" : "pessoas"} na escala do espaço` : ""}`}
                     aria-pressed={isSelecting ? isBatchSelected : isSelected}
                     className={cn(
                       "group flex min-h-20 min-w-0 flex-col items-start rounded-xl border p-2 text-left transition-colors focus-visible:border-primary focus-visible:ring-3 focus-visible:ring-primary/20 sm:min-h-24",
@@ -337,6 +347,24 @@ export function OnCallCalendar({
                             {day.isHoliday ? "Feriado" : "Fim de semana"}
                           </span>
                         )}
+                      </span>
+                    )}
+                    {teamDay && (
+                      <span className="flex w-full min-w-0 flex-col gap-1 pt-1">
+                        <span className="truncate rounded-md bg-accent/70 px-1.5 py-1 text-[10px] font-semibold leading-4 text-accent-foreground">
+                          {teamDay.people.length}{" "}
+                          {teamDay.people.length === 1
+                            ? "pessoa na equipe"
+                            : "pessoas na equipe"}
+                        </span>
+                        <span className="truncate text-[10px] text-muted-foreground">
+                          {teamDay.people
+                            .slice(0, 2)
+                            .map((person) => person.name)
+                            .join(", ")}
+                          {teamDay.people.length > 2 &&
+                            ` +${teamDay.people.length - 2}`}
+                        </span>
                       </span>
                     )}
                   </button>
@@ -430,6 +458,50 @@ export function OnCallCalendar({
               <p className="rounded-xl border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
                 Este dia ainda não está marcado na sua escala.
               </p>
+            )}
+
+            {selectedTeamDay && (
+              <div className="rounded-xl border border-border/70 bg-muted/25 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-medium">Escala do espaço</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {selectedTeamDay.people.length}{" "}
+                      {selectedTeamDay.people.length === 1
+                        ? "pessoa escalada"
+                        : "pessoas escaladas"}
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="shrink-0">
+                    {selectedTeamDay.isHoliday
+                      ? "Feriado"
+                      : selectedTeamDay.isWeekend
+                        ? "Fim de semana"
+                        : "Dia útil"}
+                  </Badge>
+                </div>
+                <div className="mt-3 max-h-52 space-y-2 overflow-y-auto pr-1">
+                  {selectedTeamDay.people.map((person) => (
+                    <Link
+                      key={person.userId}
+                      href={`/on-call/profile/${encodeURIComponent(person.userId)}?month=${monthKey}`}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-background/45 px-3 py-2 transition-colors hover:border-primary/50 hover:bg-accent/40"
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-medium">
+                          {person.name}
+                        </span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {person.email}
+                        </span>
+                      </span>
+                      <span className="shrink-0 text-xs font-medium text-primary">
+                        {formatMinutesToHours(person.totalOnCallMinutes)}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
             )}
 
             {!isSelecting &&

@@ -115,6 +115,7 @@ export default async function OnCallPage({
         key={`${monthKey}-${subjectId}`}
         monthKey={monthKey}
         days={days}
+        teamDays={teamDays}
         readOnly={subjectId !== user.id}
         personId={subjectId !== user.id ? subjectId : undefined}
       />
