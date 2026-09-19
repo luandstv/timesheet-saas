@@ -23,7 +23,12 @@ export function Sidebar({ name, email }: { name: string; email: string }) {
           collapsed ? "w-[76px] px-3" : "w-[76px] px-3 lg:w-[252px] lg:px-4",
         )}
       >
-        <div className="relative flex h-20 shrink-0 items-center justify-center gap-2">
+        <div
+          className={cn(
+            "relative flex h-20 shrink-0 items-center gap-2",
+            collapsed ? "justify-center" : "justify-center lg:justify-start lg:pl-3",
+          )}
+        >
           <Link
             href="/dashboard"
             aria-label="Jornix — início"
