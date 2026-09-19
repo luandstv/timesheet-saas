@@ -77,7 +77,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const { firstName, greeting, dateLabel, periods } = header;
   const { entries, days } = activity;
   const { progress, targetMinutes: target } = journey;
-  const { workedMinutes: weekWorkedMinutes, weekProgress, monthOvertime } = metrics;
+  const {
+    workedMinutes: weekWorkedMinutes,
+    weekProgress,
+    monthOvertime,
+    onCallDays,
+    onCallMinutes,
+  } = metrics;
   const { reportHref, previousHref, nextHref } = activity;
   const selected = {
     workedMinutes: journey.workedMinutes,
@@ -246,16 +252,17 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             <DetailsLink href="/on-call" label="Ver planejamento de sobreaviso" />
           </CardHeader>
           <CardContent>
-            {/* TODO(JORNIX-UI-01): integrar sobreaviso ao serviço real. Nunca somar este mock aos totais. */}
             <Badge
               variant="outline"
               className="border-primary/30 bg-accent text-accent-foreground"
             >
-              Mock temporário · TODO
+              Escala marcada
             </Badge>
-            <p className="mt-2 text-2xl font-bold tracking-tight">0 dias</p>
+            <p className="mt-2 text-2xl font-bold tracking-tight">
+              {onCallDays} {onCallDays === 1 ? "dia" : "dias"}
+            </p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              Dado de demonstração até a integração real
+              {formatMinutesToHours(onCallMinutes)} de disponibilidade neste mês
             </p>
           </CardContent>
         </Card>

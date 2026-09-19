@@ -17,10 +17,15 @@ acompanhamento de horas trabalhadas. O produto usa o horário civil de
 - Em dias úteis, as primeiras 2h extras são 75% e o excedente é 100%; fins de
   semana e feriados são apurados integralmente como 100%.
 - Relatórios por intervalo com resumo e detalhamento diário.
+- Relatórios por pessoa e equipe, com filtros por dia e exportação CSV compatível
+  com Excel.
 - Configuração de jornada, carga semanal e dados salariais.
+- Calendário de sobreaviso com regra padrão de 15h em dias úteis e 24h em fins de
+  semana/feriados, incluindo exceção manual de feriado.
+- Estimativa privada de remuneração com horas extras, sobreaviso e DSR, sempre
+  identificada como prévia enquanto houver pendências.
 - Tema claro e escuro.
 - Layout responsivo com navegação lateral no desktop e inferior no mobile.
-- Página inicial de sobreaviso preparada para a integração do domínio.
 - Espaços pessoais e empresas independentes na mesma conta, com seleção de
   espaço e permissões por vínculo.
 - Convites por email, solicitação por código da empresa e definição do gestor
@@ -33,7 +38,12 @@ acompanhamento de horas trabalhadas. O produto usa o horário civil de
 
 ### Pendências conhecidas
 
-- O sobreaviso ainda usa dados demonstrativos e não entra nos totais reais.
+- Períodos parciais, virada de dia e recorrência de escalas ainda serão tratados
+  em uma entrega futura.
+- A fórmula do DSR precisa passar por validação contábil e parametrização legal
+  antes de ser usada como folha oficial.
+- Exportação PDF e envio por email ainda não fazem parte do primeiro formato de
+  exportação (CSV).
 - O painel de notificações ainda está reservado para uma próxima integração.
 - O workflow de CI está preparado em `.github/workflows/ci.yml` e a conexão
   GitHub → Vercel está confirmada. Falta enviar o workflow e validar a primeira
@@ -64,7 +74,8 @@ As pendências visuais e de produto estão detalhadas em
 | `/time-entries` | Consulta e registro de ponto                        |
 | `/reports`      | Relatórios consolidados por período                 |
 | `/settings`     | Jornada, carga horária e salário                    |
-| `/on-call`      | Área visual preparada para sobreaviso               |
+| `/on-call`      | Calendário de disponibilidade de sobreaviso         |
+| `/compensation` | Estimativa privada de remuneração do período        |
 | `/workspaces`   | Espaços, equipe, convites e permissões              |
 | `/adjustments`  | Ajustes de movimentos, decisões e fechamento mensal |
 
@@ -240,8 +251,11 @@ Prisma, mas não aplica migrações automaticamente.
 
 ## Próximos passos
 
-- Implementar o domínio de sobreaviso e substituir os mocks.
+- Implementar períodos parciais, virada de dia e modelos recorrentes de escala.
 - Adicionar notificações persistidas.
+- Validar a regra do DSR com a contabilidade antes de transformar a estimativa em
+  cálculo oficial.
+- Evoluir exportações para PDF e envio por email.
 - Criar testes de componentes e fluxos E2E.
 - Configurar CI/CD com lint, TypeScript, testes e build.
 - Evoluir permissões para os perfis administrador, gestor e colaborador.

@@ -21,13 +21,18 @@ import {
 type ReportFilterProps = {
   startDate: string;
   endDate: string;
+  scope?: "mine" | "team";
 };
 
 function formatDateToQueryValue(date: Date) {
   return DateTime.fromJSDate(date, { zone: TIMEZONE }).toFormat("yyyy-MM-dd");
 }
 
-export function ReportFilter({ startDate, endDate }: ReportFilterProps) {
+export function ReportFilter({
+  startDate,
+  endDate,
+  scope = "mine",
+}: ReportFilterProps) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -49,6 +54,7 @@ export function ReportFilter({ startDate, endDate }: ReportFilterProps) {
 
     params.set("startDate", formatDateToQueryValue(startDateValue));
     params.set("endDate", formatDateToQueryValue(endDateValue));
+    if (scope === "team") params.set("scope", scope);
 
     router.push(`${pathname}?${params.toString()}`);
   }
