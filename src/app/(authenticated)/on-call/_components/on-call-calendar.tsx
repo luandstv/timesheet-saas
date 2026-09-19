@@ -134,7 +134,12 @@ export function OnCallCalendar({
     startTransition(async () => {
       const result = await saveOnCallDays({ dates: batchDates, holidayMode });
       setMessage(result.message);
-      if (result.ok) router.refresh();
+      if (result.ok) {
+        setBatchDates([]);
+        setIsSelecting(false);
+        setHolidayMode("auto");
+        router.refresh();
+      }
     });
   }
 
@@ -314,7 +319,7 @@ export function OnCallCalendar({
                   htmlFor="on-call-batch-holiday-mode"
                   className="text-sm font-medium"
                 >
-                  Tipo aplicado aos dias
+                  Regra aplicada aos dias
                 </label>
                 <Select
                   value={holidayMode}
@@ -324,9 +329,9 @@ export function OnCallCalendar({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="auto">Automático pelo calendário</SelectItem>
-                    <SelectItem value="holiday">Marcar como feriado</SelectItem>
-                    <SelectItem value="workday">Marcar como dia útil</SelectItem>
+                    <SelectItem value="auto">Usar calendário automático</SelectItem>
+                    <SelectItem value="holiday">Considerar feriado (24h)</SelectItem>
+                    <SelectItem value="workday">Considerar dia útil (15h)</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-xs leading-5 text-muted-foreground">
@@ -369,60 +374,65 @@ export function OnCallCalendar({
             </p>
           )}
 
-          {readOnly ? (
-            <div className="rounded-xl border border-border/70 bg-muted/30 px-4 py-3 text-sm leading-5 text-muted-foreground">
-              Você está consultando a escala de outra pessoa. Valores de salário e
-              remuneração continuam privados para cada usuário.
-            </div>
-          ) : (
-            <>
-              <div className="space-y-2">
-                <label htmlFor="on-call-holiday-mode" className="text-sm font-medium">
-                  Tipo do dia
-                </label>
-                <Select
-                  value={holidayMode}
-                  onValueChange={(value) => setHolidayMode(value as OnCallHolidayMode)}
-                >
-                  <SelectTrigger id="on-call-holiday-mode">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="auto">Automático pelo calendário</SelectItem>
-                    <SelectItem value="holiday">Marcar como feriado</SelectItem>
-                    <SelectItem value="workday">Marcar como dia útil</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs leading-5 text-muted-foreground">
-                  Dias úteis geram 15h. Fins de semana e feriados geram 24h por padrão.
-                </p>
+          {!isSelecting &&
+            (readOnly ? (
+              <div className="rounded-xl border border-border/70 bg-muted/30 px-4 py-3 text-sm leading-5 text-muted-foreground">
+                Você está consultando a escala de outra pessoa. Valores de salário e
+                remuneração continuam privados para cada usuário.
               </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <label htmlFor="on-call-holiday-mode" className="text-sm font-medium">
+                    Regra do dia
+                  </label>
+                  <Select
+                    value={holidayMode}
+                    onValueChange={(value) =>
+                      setHolidayMode(value as OnCallHolidayMode)
+                    }
+                  >
+                    <SelectTrigger id="on-call-holiday-mode">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="auto">Usar calendário automático</SelectItem>
+                      <SelectItem value="holiday">Considerar feriado (24h)</SelectItem>
+                      <SelectItem value="workday">Considerar dia útil (15h)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    O calendário aplica 15h em dias úteis e 24h em fins de semana ou
+                    feriados. Use uma opção manual quando a regra da empresa for
+                    diferente.
+                  </p>
+                </div>
 
-              <div className="flex flex-col gap-2 sm:flex-row xl:flex-col">
-                <Button
-                  type="button"
-                  onClick={save}
-                  disabled={isPending}
-                  className="min-h-11 flex-1 rounded-[11px] px-4 text-sm font-semibold leading-5 shadow-sm"
-                >
-                  <Check />
-                  {isPending ? "Salvando…" : selected ? "Atualizar dia" : "Marcar dia"}
-                </Button>
-                {selected && (
+                <div className="flex flex-col gap-2 sm:flex-row xl:flex-col">
                   <Button
                     type="button"
-                    variant="outline"
-                    onClick={remove}
+                    onClick={save}
                     disabled={isPending}
-                    className="text-destructive hover:text-destructive"
+                    className="min-h-11 flex-1 rounded-[11px] px-4 text-sm font-semibold leading-5 shadow-sm"
                   >
-                    <Trash2 />
-                    Remover
+                    <Check />
+                    {isPending ? "Salvando…" : "Salvar dia"}
                   </Button>
-                )}
-              </div>
-            </>
-          )}
+                  {selected && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={remove}
+                      disabled={isPending}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 />
+                      Remover
+                    </Button>
+                  )}
+                </div>
+              </>
+            ))}
 
           {message && (
             <p role="status" className="text-sm text-muted-foreground">
