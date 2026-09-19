@@ -2,14 +2,22 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { DateTime } from "luxon";
-import { ArrowLeft, ArrowRight, CalendarDays, Check, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CalendarDays,
+  Check,
+  ListChecks,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { formatMinutesToHours } from "@/lib/format";
 import type { OnCallDay } from "@/services/on-call.service";
 import type { OnCallHolidayMode } from "@/lib/on-call";
-import { saveOnCallDay, removeOnCallDay } from "../actions";
+import { removeOnCallDay, saveOnCallDay, saveOnCallDays } from "../actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,6 +67,8 @@ export function OnCallCalendar({
   );
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [batchDates, setBatchDates] = useState<string[]>([]);
   const dayMap = useMemo(() => new Map(days.map((day) => [day.date, day])), [days]);
   const calendarDays = useMemo(() => buildCalendarDays(monthKey), [monthKey]);
   const selected = dayMap.get(selectedDate);
@@ -81,6 +91,25 @@ export function OnCallCalendar({
     setMessage(null);
   }
 
+  function toggleSelectionMode() {
+    setIsSelecting((current) => !current);
+    setBatchDates([]);
+    setHolidayMode("auto");
+    setMessage(null);
+  }
+
+  function toggleBatchDate(date: DateTime) {
+    if (date.month !== activeMonth.month || date.year !== activeMonth.year) return;
+    const key = dateKey(date);
+    setSelectedDate(key);
+    setBatchDates((current) =>
+      current.includes(key)
+        ? current.filter((item) => item !== key)
+        : [...current, key].sort(),
+    );
+    setMessage(null);
+  }
+
   function save() {
     setMessage(null);
     startTransition(async () => {
@@ -94,6 +123,16 @@ export function OnCallCalendar({
     setMessage(null);
     startTransition(async () => {
       const result = await removeOnCallDay(selectedDate);
+      setMessage(result.message);
+      if (result.ok) router.refresh();
+    });
+  }
+
+  function saveBatch() {
+    if (batchDates.length === 0) return;
+    setMessage(null);
+    startTransition(async () => {
+      const result = await saveOnCallDays({ dates: batchDates, holidayMode });
       setMessage(result.message);
       if (result.ok) router.refresh();
     });
@@ -147,6 +186,25 @@ export function OnCallCalendar({
               </Button>
             </div>
           </div>
+          {!readOnly && (
+            <Button
+              type="button"
+              variant={isSelecting ? "secondary" : "outline"}
+              size="sm"
+              aria-pressed={isSelecting}
+              onClick={toggleSelectionMode}
+              className="w-fit"
+            >
+              {isSelecting ? <X /> : <ListChecks />}
+              {isSelecting ? "Cancelar seleção" : "Selecionar vários dias"}
+            </Button>
+          )}
+          {isSelecting && (
+            <p className="rounded-xl border border-primary/25 bg-primary/8 px-3 py-2 text-sm text-muted-foreground">
+              Clique nos dias deste mês para preparar a escala e confirme tudo de uma
+              vez.
+            </p>
+          )}
           <div className="grid gap-2 sm:grid-cols-3">
             <SummaryTile label="Dias marcados" value={String(days.length)} />
             <SummaryTile
@@ -170,24 +228,38 @@ export function OnCallCalendar({
               const day = dayMap.get(key);
               const outside = date.month !== activeMonth.month;
               const isSelected = key === selectedDate;
+              const isBatchSelected = batchDates.includes(key);
               return (
                 <button
                   key={key}
                   type="button"
-                  onClick={() => chooseDate(date)}
+                  onClick={() =>
+                    isSelecting ? toggleBatchDate(date) : chooseDate(date)
+                  }
+                  disabled={isSelecting && outside}
                   aria-label={`${date.toFormat("dd/MM/yyyy")}${day ? ", sobreaviso marcado" : ", sem sobreaviso"}`}
+                  aria-pressed={isSelecting ? isBatchSelected : isSelected}
                   className={cn(
                     "group flex min-h-20 min-w-0 flex-col items-start rounded-xl border p-2 text-left transition-colors focus-visible:border-primary focus-visible:ring-3 focus-visible:ring-primary/20 sm:min-h-24",
                     outside
                       ? "border-transparent bg-muted/20 text-muted-foreground/50"
                       : "border-border/70 bg-background/40 hover:border-primary/50 hover:bg-accent/40",
                     isSelected && "border-primary bg-primary/10 shadow-sm",
+                    isBatchSelected &&
+                      "border-primary bg-primary/20 shadow-[0_0_0_2px_color-mix(in_oklab,var(--primary)_20%,transparent)]",
                   )}
                 >
-                  <span
-                    className={cn("text-xs font-semibold", outside && "opacity-60")}
-                  >
-                    {date.day}
+                  <span className="flex w-full items-center justify-between gap-1">
+                    <span
+                      className={cn("text-xs font-semibold", outside && "opacity-60")}
+                    >
+                      {date.day}
+                    </span>
+                    {isBatchSelected && (
+                      <span className="flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                        <Check className="size-3" />
+                      </span>
+                    )}
                   </span>
                   {day && (
                     <span className="mt-auto flex w-full min-w-0 flex-col gap-1 pt-2">
@@ -221,7 +293,53 @@ export function OnCallCalendar({
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          {selected ? (
+          {isSelecting ? (
+            <div className="space-y-4">
+              <div className="rounded-xl border border-primary/30 bg-primary/8 p-4">
+                <p className="font-medium">Seleção em lote</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {batchDates.length === 0
+                    ? "Nenhum dia selecionado ainda."
+                    : `${batchDates.length} ${batchDates.length === 1 ? "dia pronto" : "dias prontos"} para confirmação.`}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="on-call-batch-holiday-mode"
+                  className="text-sm font-medium"
+                >
+                  Tipo aplicado aos dias
+                </label>
+                <Select
+                  value={holidayMode}
+                  onValueChange={(value) => setHolidayMode(value as OnCallHolidayMode)}
+                >
+                  <SelectTrigger id="on-call-batch-holiday-mode">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">Automático pelo calendário</SelectItem>
+                    <SelectItem value="holiday">Marcar como feriado</SelectItem>
+                    <SelectItem value="workday">Marcar como dia útil</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs leading-5 text-muted-foreground">
+                  O tipo escolhido será aplicado a todos os dias selecionados.
+                </p>
+              </div>
+
+              <Button
+                type="button"
+                onClick={saveBatch}
+                disabled={isPending || batchDates.length === 0}
+                className="min-h-11 w-full rounded-[11px] px-4 text-sm font-semibold leading-5 shadow-sm"
+              >
+                <Check />
+                {isPending ? "Salvando…" : `Confirmar ${batchDates.length || "dias"}`}
+              </Button>
+            </div>
+          ) : selected ? (
             <div className="rounded-xl border border-primary/30 bg-primary/8 p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>

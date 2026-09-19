@@ -100,6 +100,66 @@ export class OnCallService {
     });
   }
 
+  static async saveDays(
+    actorId: string,
+    workspaceId: string,
+    input: { dates: string[]; holidayMode: OnCallHolidayMode },
+  ) {
+    const uniqueDates = [...new Set(input.dates)];
+    if (uniqueDates.length === 0) throw new Error("Escolha pelo menos um dia.");
+    if (uniqueDates.length > 42) throw new Error("Escolha no máximo 42 dias por vez.");
+
+    const parsedDates = uniqueDates
+      .map(parseDate)
+      .sort((a, b) => a.toMillis() - b.toMillis());
+    const [firstDate, lastDate] = [parsedDates[0], parsedDates.at(-1)!];
+    const holidays = await prisma.holiday.findMany({
+      where: {
+        date: {
+          gte: dateOnlyStart(firstDate),
+          lte: dateOnlyEnd(lastDate),
+        },
+      },
+      select: { date: true },
+    });
+    const holidayDates = new Set(
+      holidays.map((holiday) => formatDateOnly(holiday.date)),
+    );
+    const holidayOverride =
+      input.holidayMode === "auto" ? null : input.holidayMode === "holiday";
+
+    return prisma.$transaction(async (tx) => {
+      await requireMember(tx, workspaceId, actorId, true);
+      const saved = [];
+      for (const date of parsedDates) {
+        const details = describeOnCallDay(date, holidayOverride, holidayDates);
+        saved.push(
+          await tx.onCallSchedule.upsert({
+            where: {
+              workspaceId_userId_date: {
+                workspaceId,
+                userId: actorId,
+                date: dateOnlyStart(date),
+              },
+            },
+            create: {
+              workspaceId,
+              userId: actorId,
+              date: dateOnlyStart(date),
+              totalOnCallMinutes: details.totalOnCallMinutes,
+              holidayOverride,
+            },
+            update: {
+              totalOnCallMinutes: details.totalOnCallMinutes,
+              holidayOverride,
+            },
+          }),
+        );
+      }
+      return saved;
+    });
+  }
+
   static async removeDay(actorId: string, workspaceId: string, dateValue: string) {
     const date = parseDate(dateValue);
     await requireMember(prisma, workspaceId, actorId, true);

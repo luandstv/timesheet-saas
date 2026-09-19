@@ -11,6 +11,14 @@ const inputSchema = z.object({
   holidayMode: z.enum(["auto", "holiday", "workday"]),
 });
 
+const batchInputSchema = z.object({
+  dates: z
+    .array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/))
+    .min(1)
+    .max(42),
+  holidayMode: z.enum(["auto", "holiday", "workday"]),
+});
+
 export type OnCallActionResult = {
   ok: boolean;
   message: string;
@@ -31,6 +39,29 @@ export async function saveOnCallDay(input: unknown): Promise<OnCallActionResult>
       ok: false,
       message:
         error instanceof Error ? error.message : "Não foi possível salvar o dia.",
+    };
+  }
+}
+
+export async function saveOnCallDays(input: unknown): Promise<OnCallActionResult> {
+  const parsed = batchInputSchema.safeParse(input);
+  if (!parsed.success)
+    return { ok: false, message: "Escolha dias válidos para salvar." };
+
+  try {
+    const { user, workspace } = await getWorkspaceContext();
+    const saved = await OnCallService.saveDays(user.id, workspace.id, parsed.data);
+    revalidatePath("/on-call");
+    revalidatePath("/reports");
+    return {
+      ok: true,
+      message: `${saved.length} ${saved.length === 1 ? "dia salvo" : "dias salvos"} na escala.`,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      message:
+        error instanceof Error ? error.message : "Não foi possível salvar os dias.",
     };
   }
 }
