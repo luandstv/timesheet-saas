@@ -185,6 +185,13 @@ export async function workspaceAction(
         path: "/",
         maxAge: 31536000,
       });
+    if (
+      input.operation === "request" ||
+      input.operation === "decide" ||
+      input.operation === "month"
+    ) {
+      revalidatePath("/adjustments");
+    }
     revalidatePath("/", "layout");
     return {
       ok: true,

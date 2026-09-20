@@ -443,9 +443,6 @@ export default async function AdjustmentsPage({
                         </SelectContent>
                       </Select>
                     </Field>
-                    <Field label="Horário (Brasília)">
-                      <Input name="timestamp" type="datetime-local" step="1" required />
-                    </Field>
                   </div>
                   <Field label="Justificativa">
                     <Input
@@ -480,6 +477,7 @@ export default async function AdjustmentsPage({
                   disabled={
                     pending.length === 0 || (!review && !(own && member.active))
                   }
+                  refreshOnSuccess
                   label={review ? "Registrar decisão" : "Cancelar selecionados"}
                   hidden={{
                     operation: "decide",
