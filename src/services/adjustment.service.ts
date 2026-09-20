@@ -236,6 +236,36 @@ export class AdjustmentService {
         );
         for (const id of new Set(requests.map((request) => request.timeSheetId)))
           await recalculate(tx, id, userId);
+
+        if (actorId !== userId && decision !== "CANCELLED") {
+          const firstDate = formatDateOnly(requests[0].timesheet.date);
+          const requestLabel = requests.length === 1 ? "solicitação" : "solicitações";
+          const decisionLabel = decision === "APPROVED" ? "aprovada" : "rejeitada";
+          const decisionLabelPlural =
+            decision === "APPROVED" ? "aprovadas" : "rejeitadas";
+          const title =
+            decision === "APPROVED" ? "Ajuste aprovado" : "Ajuste rejeitado";
+          const month = firstDate.slice(0, 7);
+          const href = `/adjustments?${new URLSearchParams({
+            userId,
+            month,
+            tab: "requests",
+          }).toString()}`;
+
+          await tx.userNotification.create({
+            data: {
+              userId,
+              workspaceId,
+              type: `ADJUSTMENT_${decision}`,
+              title,
+              message:
+                requests.length === 1
+                  ? `Sua solicitação de ajuste de ${firstDate.split("-").reverse().join("/")} foi ${decisionLabel} pelo gestor.`
+                  : `${requests.length} ${requestLabel} de ajuste foram ${decisionLabelPlural} pelo gestor.`,
+              href,
+            },
+          });
+        }
       },
       { maxWait: 10000, timeout: 60000 },
     );
