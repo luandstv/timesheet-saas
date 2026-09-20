@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { Search, UsersRound } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState, useTransition } from "react";
+import { LoaderCircle, Search, UsersRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LoadingOverlay } from "@/components/shared/page-loading";
 import {
   Popover,
   PopoverContent,
@@ -35,8 +37,10 @@ export function SelectPersonLink({
   startDate: string;
   endDate: string;
 }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [isPending, startTransition] = useTransition();
   const filteredPeople = useMemo(() => {
     const normalized = search.trim().toLocaleLowerCase("pt-BR");
     if (!normalized) return people;
@@ -47,85 +51,109 @@ export function SelectPersonLink({
     );
   }, [people, search]);
 
+  function selectPerson(personHref: string) {
+    if (isPending) return;
+    setOpen(false);
+    startTransition(() => router.push(personHref));
+  }
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" aria-expanded={open}>
-          <UsersRound aria-hidden="true" className="size-4" />
-          Selecionar pessoa
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className="w-[min(22rem,calc(100vw-2rem))] gap-3 p-3"
-      >
-        <PopoverHeader>
-          <PopoverTitle>Selecionar pessoa</PopoverTitle>
-          <PopoverDescription>
-            Abra os registros de um colaborador neste mesmo período.
-          </PopoverDescription>
-        </PopoverHeader>
-        <label className="relative block">
-          <span className="sr-only">Buscar por nome ou email</span>
-          <Search
-            aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
-            autoFocus
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar por nome ou email"
-            className="h-10 pl-9"
-          />
-        </label>
-        <div className="max-h-64 space-y-1 overflow-y-auto" role="listbox">
-          {filteredPeople.map((person) => {
-            const selected = person.userId === currentUserId;
-            const personHref = `/adjustments?${new URLSearchParams({
-              userId: person.userId,
-              startDate,
-              endDate,
-              tab: "movements",
-            }).toString()}`;
-            return (
-              <Link
-                key={person.userId}
-                href={personHref}
-                onClick={() => setOpen(false)}
-                className="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring"
-                role="option"
-                aria-selected={selected}
-              >
-                <span className="min-w-0">
-                  <span className="block truncate font-medium">{person.name}</span>
-                  <span className="block truncate text-xs text-muted-foreground">
-                    {person.email}
-                  </span>
-                </span>
-                {selected && <Badge variant="outline">Você</Badge>}
-              </Link>
-            );
-          })}
-          {filteredPeople.length === 0 && (
-            <p className="px-3 py-4 text-center text-sm text-muted-foreground">
-              Nenhuma pessoa encontrada.
-            </p>
-          )}
-        </div>
-        <Link
-          href={href}
-          onClick={() => setOpen(false)}
-          className="flex items-center gap-2 border-t border-border pt-3 text-sm font-medium text-accent-foreground underline-offset-4 hover:underline"
+    <>
+      <Popover open={open && !isPending} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size="sm" aria-expanded={open} disabled={isPending}>
+            {isPending ? (
+              <LoaderCircle
+                aria-hidden="true"
+                className="size-4 motion-safe:animate-spin"
+              />
+            ) : (
+              <UsersRound aria-hidden="true" className="size-4" />
+            )}
+            {isPending ? "Carregando registros…" : "Selecionar pessoa"}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          className="w-[min(22rem,calc(100vw-2rem))] gap-3 p-3"
         >
-          <NavigationIcon
-            icon={UsersRound}
-            label="lista completa de colaboradores"
-            className="size-4"
-          />
-          Ver lista completa e filtros
-        </Link>
-      </PopoverContent>
-    </Popover>
+          <PopoverHeader>
+            <PopoverTitle>Selecionar pessoa</PopoverTitle>
+            <PopoverDescription>
+              Abra os registros de um colaborador neste mesmo período.
+            </PopoverDescription>
+          </PopoverHeader>
+          <label className="relative block">
+            <span className="sr-only">Buscar por nome ou email</span>
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              autoFocus
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Buscar por nome ou email"
+              className="h-10 pl-9"
+            />
+          </label>
+          <div className="max-h-64 space-y-1 overflow-y-auto" role="listbox">
+            {filteredPeople.map((person) => {
+              const selected = person.userId === currentUserId;
+              const personHref = `/adjustments?${new URLSearchParams({
+                userId: person.userId,
+                startDate,
+                endDate,
+                tab: "movements",
+              }).toString()}`;
+              return (
+                <Link
+                  key={person.userId}
+                  href={personHref}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    selectPerson(personHref);
+                  }}
+                  aria-disabled={isPending}
+                  className="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring aria-disabled:pointer-events-none aria-disabled:opacity-60"
+                  role="option"
+                  aria-selected={selected}
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate font-medium">{person.name}</span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {person.email}
+                    </span>
+                  </span>
+                  {selected && <Badge variant="outline">Você</Badge>}
+                </Link>
+              );
+            })}
+            {filteredPeople.length === 0 && (
+              <p className="px-3 py-4 text-center text-sm text-muted-foreground">
+                Nenhuma pessoa encontrada.
+              </p>
+            )}
+          </div>
+          <Link
+            href={href}
+            onClick={(event) => {
+              event.preventDefault();
+              selectPerson(href);
+            }}
+            aria-disabled={isPending}
+            className="flex items-center gap-2 border-t border-border pt-3 text-sm font-medium text-accent-foreground underline-offset-4 hover:underline aria-disabled:pointer-events-none aria-disabled:opacity-60"
+          >
+            <NavigationIcon
+              icon={UsersRound}
+              label="lista completa de colaboradores"
+              className="size-4"
+            />
+            Ver lista completa e filtros
+          </Link>
+        </PopoverContent>
+      </Popover>
+      {isPending && <LoadingOverlay message="Carregando registros…" />}
+    </>
   );
 }
