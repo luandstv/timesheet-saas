@@ -308,94 +308,98 @@ export default async function AdjustmentsPage({
                     )}
                   </h2>
                   <div className="space-y-2">
-                    {effectiveEntries(sheet.entries, sheet.requests).map((entry) => (
-                      <div
-                        key={entry.id}
-                        className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-muted/40 p-3 text-sm"
-                      >
-                        <div>
-                          <p>
-                            {entry.type === "CLOCK_IN" ? "Entrada" : "Saída"} ·{" "}
-                            {time(entry.timestamp)}
-                          </p>
-                          {entry.provisional && (
-                            <p className="mt-1 text-xs text-accent-foreground">
-                              Ajuste provisório — aguardando confirmação
+                    {effectiveEntries(sheet.entries, sheet.requests)
+                      .sort((a, b) => +b.timestamp - +a.timestamp)
+                      .map((entry) => (
+                        <div
+                          key={entry.id}
+                          className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-muted/40 p-3 text-sm"
+                        >
+                          <div>
+                            <p>
+                              {entry.type === "CLOCK_IN" ? "Entrada" : "Saída"} ·{" "}
+                              {time(entry.timestamp)}
                             </p>
+                            {entry.provisional && (
+                              <p className="mt-1 text-xs text-accent-foreground">
+                                Ajuste provisório — aguardando confirmação
+                              </p>
+                            )}
+                          </div>
+                          {own && member.active && !closure?.closed && (
+                            <details className="w-full">
+                              <summary className="cursor-pointer text-xs text-accent-foreground">
+                                Solicitar correção deste registro
+                              </summary>
+                              <div className="mt-4 max-w-lg">
+                                <ActionForm
+                                  label="Enviar solicitação"
+                                  hidden={{
+                                    operation: "request",
+                                    workspaceId: workspace.id,
+                                    date: formatDateOnly(sheet.date),
+                                    targetEventId: entry.id,
+                                    entryType: entry.type,
+                                  }}
+                                >
+                                  <Field label="O que deseja alterar?">
+                                    <Select name="type" defaultValue="MODIFICATION">
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="MODIFICATION">
+                                          Corrigir horário
+                                        </SelectItem>
+                                        <SelectItem value="DELETION">
+                                          Desconsiderar registro
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </Field>
+                                  <Field label="Horário correto (Brasília)">
+                                    <DateTimePicker
+                                      id={`adjustment-${entry.id}-timestamp`}
+                                      name="timestamp"
+                                      defaultValue={DateTime.fromJSDate(entry.timestamp)
+                                        .setZone(TIMEZONE)
+                                        .toFormat("yyyy-MM-dd'T'HH:mm:ss")}
+                                      required
+                                    />
+                                  </Field>
+                                  <Field label="Justificativa">
+                                    <Input
+                                      name="reason"
+                                      required
+                                      minLength={10}
+                                      maxLength={2000}
+                                      placeholder="Explique o que aconteceu"
+                                    />
+                                  </Field>
+                                  <label className="flex items-center gap-2 text-sm">
+                                    <Checkbox name="forgotten" value="true" />
+                                    Esqueci de registrar no horário correto
+                                  </label>
+                                </ActionForm>
+                              </div>
+                            </details>
                           )}
                         </div>
-                        {own && member.active && !closure?.closed && (
-                          <details className="w-full">
-                            <summary className="cursor-pointer text-xs text-accent-foreground">
-                              Solicitar correção deste registro
-                            </summary>
-                            <div className="mt-4 max-w-lg">
-                              <ActionForm
-                                label="Enviar solicitação"
-                                hidden={{
-                                  operation: "request",
-                                  workspaceId: workspace.id,
-                                  date: formatDateOnly(sheet.date),
-                                  targetEventId: entry.id,
-                                  entryType: entry.type,
-                                }}
-                              >
-                                <Field label="O que deseja alterar?">
-                                  <Select name="type" defaultValue="MODIFICATION">
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="MODIFICATION">
-                                        Corrigir horário
-                                      </SelectItem>
-                                      <SelectItem value="DELETION">
-                                        Desconsiderar registro
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </Field>
-                                <Field label="Horário correto (Brasília)">
-                                  <DateTimePicker
-                                    id={`adjustment-${entry.id}-timestamp`}
-                                    name="timestamp"
-                                    defaultValue={DateTime.fromJSDate(entry.timestamp)
-                                      .setZone(TIMEZONE)
-                                      .toFormat("yyyy-MM-dd'T'HH:mm:ss")}
-                                    required
-                                  />
-                                </Field>
-                                <Field label="Justificativa">
-                                  <Input
-                                    name="reason"
-                                    required
-                                    minLength={10}
-                                    maxLength={2000}
-                                    placeholder="Explique o que aconteceu"
-                                  />
-                                </Field>
-                                <label className="flex items-center gap-2 text-sm">
-                                  <Checkbox name="forgotten" value="true" />
-                                  Esqueci de registrar no horário correto
-                                </label>
-                              </ActionForm>
-                            </div>
-                          </details>
-                        )}
-                      </div>
-                    ))}
+                      ))}
                   </div>
                   <details className="mt-4">
                     <summary className="cursor-pointer text-xs text-muted-foreground">
                       Ver registros originais
                     </summary>
                     <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
-                      {sheet.entries.map((entry) => (
-                        <li key={entry.id}>
-                          {entry.type === "CLOCK_IN" ? "Entrada" : "Saída"} ·{" "}
-                          {time(entry.timestamp)}
-                        </li>
-                      ))}
+                      {[...sheet.entries]
+                        .sort((a, b) => +b.timestamp - +a.timestamp)
+                        .map((entry) => (
+                          <li key={entry.id}>
+                            {entry.type === "CLOCK_IN" ? "Entrada" : "Saída"} ·{" "}
+                            {time(entry.timestamp)}
+                          </li>
+                        ))}
                     </ul>
                   </details>
                 </div>
