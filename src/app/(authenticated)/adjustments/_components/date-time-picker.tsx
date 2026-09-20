@@ -85,7 +85,7 @@ export function DateTimePicker({
           <Calendar
             className="!w-[248px]"
             classNames={{
-              months: "w-full",
+              months: "w-full !max-w-full",
               month: "w-full",
               month_grid: "w-full table-fixed",
             }}
