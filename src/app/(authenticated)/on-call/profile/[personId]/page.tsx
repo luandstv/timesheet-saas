@@ -7,6 +7,7 @@ import { canReadMember } from "@/lib/workspace-policy";
 import { getWorkspaceContext } from "@/lib/workspace-context";
 import { OnCallService } from "@/services/on-call.service";
 import prisma from "@/lib/prisma";
+import { resolveAvatarUrl } from "@/lib/avatar";
 
 export default async function OnCallPersonProfilePage({
   params,
@@ -37,6 +38,7 @@ export default async function OnCallPersonProfilePage({
           id: true,
           name: true,
           email: true,
+          avatarPath: true,
           dailyHours: true,
           weeklyHours: true,
           workStartHour: true,
@@ -54,12 +56,22 @@ export default async function OnCallPersonProfilePage({
   if (!canReadMember(member, subject)) notFound();
 
   const onCallDays = await OnCallService.listMonth(personId, workspace.id, monthKey);
+  const avatarUrl = await resolveAvatarUrl(subject.user.avatarPath);
   const backHref = `/on-call?${new URLSearchParams({ month: monthKey }).toString()}`;
 
   return (
     <PersonProfile
       profile={{
-        ...subject.user,
+        id: subject.user.id,
+        name: subject.user.name,
+        email: subject.user.email,
+        avatarUrl,
+        dailyHours: subject.user.dailyHours,
+        weeklyHours: subject.user.weeklyHours,
+        workStartHour: subject.user.workStartHour,
+        workStartMinute: subject.user.workStartMinute,
+        workEndHour: subject.user.workEndHour,
+        workEndMinute: subject.user.workEndMinute,
         role: subject.role,
         managerName: subject.manager?.user.name ?? null,
         workspaceName: workspace.name,

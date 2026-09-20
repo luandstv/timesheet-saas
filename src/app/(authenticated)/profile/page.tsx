@@ -2,6 +2,7 @@ import { resolveOnCallMonth } from "@/lib/on-call-month";
 import { getWorkspaceContext } from "@/lib/workspace-context";
 import { OnCallService } from "@/services/on-call.service";
 import prisma from "@/lib/prisma";
+import { resolveAvatarUrl } from "@/lib/avatar";
 import { PersonProfile } from "@/components/shared/person-profile";
 
 export default async function ProfilePage({
@@ -20,6 +21,7 @@ export default async function ProfilePage({
           id: true,
           name: true,
           email: true,
+          avatarPath: true,
           dailyHours: true,
           weeklyHours: true,
           workStartHour: true,
@@ -35,11 +37,21 @@ export default async function ProfilePage({
   if (!membership) return null;
 
   const onCallDays = await OnCallService.listMonth(user.id, workspace.id, monthKey);
+  const avatarUrl = await resolveAvatarUrl(membership.user.avatarPath);
 
   return (
     <PersonProfile
       profile={{
-        ...membership.user,
+        id: membership.user.id,
+        name: membership.user.name,
+        email: membership.user.email,
+        avatarUrl,
+        dailyHours: membership.user.dailyHours,
+        weeklyHours: membership.user.weeklyHours,
+        workStartHour: membership.user.workStartHour,
+        workStartMinute: membership.user.workStartMinute,
+        workEndHour: membership.user.workEndHour,
+        workEndMinute: membership.user.workEndMinute,
         role: membership.role,
         managerName: membership.manager?.user.name ?? null,
         workspaceName: workspace.name,

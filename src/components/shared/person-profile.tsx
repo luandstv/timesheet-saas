@@ -3,17 +3,20 @@ import { ArrowLeft, CalendarDays, Clock3, Mail, UserRound } from "lucide-react";
 import { DateTime } from "luxon";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMinutesToHours } from "@/lib/format";
 import { TIMEZONE } from "@/lib/constants";
 import type { OnCallDay } from "@/services/on-call.service";
+import { ProfileAvatarForm } from "@/app/(authenticated)/profile/_components/profile-avatar-form";
 
 export type PersonProfileData = {
   id: string;
   name: string;
   email: string;
+  avatarUrl: string | null;
   role: "OWNER" | "MANAGER" | "COLLABORATOR";
   dailyHours: number;
   weeklyHours: number;
@@ -88,11 +91,22 @@ export function PersonProfile({
       </Button>
 
       <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:p-7">
-        <Avatar size="lg" className="size-16 bg-primary/15 text-primary">
-          <AvatarFallback className="bg-primary/15 text-lg font-semibold text-primary">
-            {initials(profile.name)}
-          </AvatarFallback>
-        </Avatar>
+        {isOwn ? (
+          <ProfileAvatarForm
+            userId={profile.id}
+            name={profile.name}
+            avatarUrl={profile.avatarUrl}
+          />
+        ) : (
+          <Avatar size="lg" className="size-16 bg-primary/15 text-primary">
+            {profile.avatarUrl && (
+              <AvatarImage src={profile.avatarUrl} alt={`Foto de ${profile.name}`} />
+            )}
+            <AvatarFallback className="bg-primary/15 text-lg font-semibold text-primary">
+              {initials(profile.name)}
+            </AvatarFallback>
+          </Avatar>
+        )}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-semibold tracking-tight">{profile.name}</h1>
