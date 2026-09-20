@@ -10,19 +10,42 @@ import {
   type ActionResult,
 } from "@/app/(authenticated)/workspaces/actions";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
 
   return (
-    <Button type="submit" variant="outline" size="sm" disabled={pending}>
-      {pending ? (
-        <LoaderCircle className="size-4 motion-safe:animate-spin" aria-hidden="true" />
-      ) : (
-        <Trash2 className="size-4" aria-hidden="true" />
-      )}
-      {pending ? "Limpando…" : "Limpar notificações"}
-    </Button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="submit"
+            variant="outline"
+            size="icon-sm"
+            disabled={pending}
+            aria-label={pending ? "Limpando notificações" : "Limpar notificações"}
+          >
+            {pending ? (
+              <LoaderCircle
+                className="size-4 motion-safe:animate-spin"
+                aria-hidden="true"
+              />
+            ) : (
+              <Trash2 className="size-4" aria-hidden="true" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" sideOffset={6}>
+          {pending ? "Limpando notificações…" : "Limpar notificações"}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
