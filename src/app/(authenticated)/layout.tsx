@@ -44,6 +44,18 @@ export default async function AuthenticatedLayout({
         },
       })
     : 0;
+  const notifications = await prisma.userNotification.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+    select: {
+      id: true,
+      title: true,
+      message: true,
+      href: true,
+      createdAt: true,
+    },
+  });
 
   return (
     <div className="flex min-h-dvh w-full overflow-x-clip bg-background">
@@ -62,7 +74,13 @@ export default async function AuthenticatedLayout({
               active: item.active,
             }))}
           />
-          <HeaderTools pendingCount={pendingReviewCount} />
+          <HeaderTools
+            pendingCount={pendingReviewCount}
+            notifications={notifications.map((notification) => ({
+              ...notification,
+              createdAt: notification.createdAt.toISOString(),
+            }))}
+          />
           <ThemeToggle />
           <UserNav name={user.name} email={user.email} />
         </header>

@@ -23,7 +23,12 @@ export function Sidebar({ name, email }: { name: string; email: string }) {
           collapsed ? "w-[76px] px-3" : "w-[76px] px-3 lg:w-[252px] lg:px-4",
         )}
       >
-        <div className="relative flex h-20 shrink-0 items-center justify-center gap-2">
+        <div
+          className={cn(
+            "relative flex h-20 shrink-0 items-center gap-2",
+            collapsed ? "justify-center" : "justify-center lg:justify-start lg:pl-3",
+          )}
+        >
           <Link
             href="/dashboard"
             aria-label="Jornix — início"
@@ -96,11 +101,11 @@ export function Sidebar({ name, email }: { name: string; email: string }) {
             <UserNav name={name} email={email} />
             {!collapsed && (
               <Link
-                href="/settings"
+                href="/profile"
                 className="hidden min-w-0 rounded text-sm focus-visible:outline-2 focus-visible:outline-ring lg:block"
               >
                 <span className="block truncate font-medium">{name}</span>
-                <span className="text-xs text-muted-foreground">Minha conta</span>
+                <span className="text-xs text-muted-foreground">Meu perfil</span>
               </Link>
             )}
           </div>

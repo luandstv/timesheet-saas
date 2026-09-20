@@ -1,17 +1,35 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Bell, CircleHelp, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { appNavigation } from "./app-navigation";
+import { ClearNotificationsButton } from "./clear-notifications-button";
 
-export function HeaderTools({ pendingCount = 0 }: { pendingCount?: number }) {
+type HeaderNotification = {
+  id: string;
+  title: string;
+  message: string;
+  href: string | null;
+  createdAt: string;
+};
+
+export function HeaderTools({
+  pendingCount = 0,
+  notifications = [],
+}: {
+  pendingCount?: number;
+  notifications?: HeaderNotification[];
+}) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [optimisticallyClearedIds, setOptimisticallyClearedIds] = useState<Set<string>>(
+    () => new Set(),
+  );
   const searchTrigger = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -33,6 +51,28 @@ export function HeaderTools({ pendingCount = 0 }: { pendingCount?: number }) {
   const results = appNavigation.filter((item) =>
     normalize(item.title).includes(normalize(query)),
   );
+  const visibleNotifications = notifications.filter(
+    (notification) => !optimisticallyClearedIds.has(notification.id),
+  );
+  const handleClearStart = useCallback(() => {
+    setOptimisticallyClearedIds((current) => {
+      const next = new Set(current);
+      notifications.forEach((notification) => next.add(notification.id));
+      return next;
+    });
+  }, [notifications]);
+  const handleClearError = useCallback(() => {
+    setOptimisticallyClearedIds(new Set());
+  }, []);
+
+  const notificationCount = pendingCount + visibleNotifications.length;
+  const formatNotificationDate = (value: string) =>
+    new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(value));
 
   return (
     <div className="ml-auto flex items-center gap-2 sm:gap-4">
@@ -84,16 +124,16 @@ export function HeaderTools({ pendingCount = 0 }: { pendingCount?: number }) {
             variant="ghost"
             size="icon"
             aria-label={
-              pendingCount > 0
-                ? `${pendingCount} solicitações pendentes`
+              notificationCount > 0
+                ? `${notificationCount} notificações`
                 : "Notificações"
             }
             className="relative"
           >
             <Bell className="size-5" />
-            {pendingCount > 0 && (
+            {notificationCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 inline-flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
-                {pendingCount > 99 ? "99+" : pendingCount}
+                {notificationCount > 99 ? "99+" : notificationCount}
               </span>
             )}
           </Button>
@@ -101,7 +141,15 @@ export function HeaderTools({ pendingCount = 0 }: { pendingCount?: number }) {
         <PopoverContent align="end" className="w-72 space-y-3 rounded-xl">
           <div className="flex items-center justify-between gap-3">
             <p className="font-medium">Notificações</p>
-            {pendingCount > 0 && <Badge>{pendingCount}</Badge>}
+            <div className="flex items-center gap-2">
+              {notificationCount > 0 && <Badge>{notificationCount}</Badge>}
+              {visibleNotifications.length > 0 && (
+                <ClearNotificationsButton
+                  onClearStart={handleClearStart}
+                  onClearError={handleClearError}
+                />
+              )}
+            </div>
           </div>
           {pendingCount > 0 ? (
             <>
@@ -109,17 +157,51 @@ export function HeaderTools({ pendingCount = 0 }: { pendingCount?: number }) {
                 Há solicitações de ajuste aguardando sua revisão.
               </p>
               <Link
-                href="/adjustments?tab=collaborators"
+                href="/adjustments?tab=requests"
                 className="inline-flex text-sm font-medium text-accent-foreground underline underline-offset-4"
               >
-                Abrir colaboradores
+                Abrir solicitações
               </Link>
             </>
-          ) : (
+          ) : null}
+          {visibleNotifications.length > 0 ? (
+            <div className="max-h-64 space-y-2 overflow-y-auto border-t border-border pt-3">
+              {visibleNotifications.map((notification) => {
+                const content = (
+                  <div className="rounded-xl border border-border/70 bg-muted/30 p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-sm font-medium">{notification.title}</p>
+                      <time
+                        dateTime={notification.createdAt}
+                        className="shrink-0 text-[11px] text-muted-foreground"
+                      >
+                        {formatNotificationDate(notification.createdAt)}
+                      </time>
+                    </div>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                      {notification.message}
+                    </p>
+                  </div>
+                );
+                return notification.href ? (
+                  <Link
+                    key={notification.id}
+                    href={notification.href}
+                    onClick={() => setOpen(false)}
+                    className="block rounded-xl focus-visible:outline-2 focus-visible:outline-ring"
+                  >
+                    {content}
+                  </Link>
+                ) : (
+                  <div key={notification.id}>{content}</div>
+                );
+              })}
+            </div>
+          ) : pendingCount === 0 ? (
             <p className="text-sm leading-6 text-muted-foreground">
               Nenhuma solicitação pendente no momento.
             </p>
-          )}
+          ) : null}
         </PopoverContent>
       </Popover>
     </div>

@@ -115,11 +115,12 @@ export default async function OnCallPage({
         key={`${monthKey}-${subjectId}`}
         monthKey={monthKey}
         days={days}
+        teamDays={teamDays}
         readOnly={subjectId !== user.id}
         personId={subjectId !== user.id ? subjectId : undefined}
       />
 
-      {canViewTeam && <OnCallTeamOverview days={teamDays} />}
+      {canViewTeam && <OnCallTeamOverview days={teamDays} monthKey={monthKey} />}
 
       <p className="text-xs leading-5 text-muted-foreground">
         A disponibilidade é calculada por dia civil: 15 horas em dias úteis e 24 horas

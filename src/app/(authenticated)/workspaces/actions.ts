@@ -22,6 +22,7 @@ const role = z.enum(["MANAGER", "COLLABORATOR"]);
 const checkbox = z.preprocess((v) => v === "on" || v === "true", z.boolean());
 const schema = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("switch"), workspaceId: id }),
+  z.object({ operation: z.literal("clearNotifications") }),
   z.object({ operation: z.literal("create"), name: z.string().trim().min(2).max(80) }),
   z.object({
     operation: z.literal("policy"),
@@ -109,6 +110,9 @@ export async function workspaceAction(
         await requireMember(prisma, input.workspaceId, user.id);
         select = input.workspaceId;
         break;
+      case "clearNotifications":
+        await prisma.userNotification.deleteMany({ where: { userId: user.id } });
+        break;
       case "create":
         select = (await WorkspaceService.createCompany(user.id, input.name)).id;
         break;
@@ -185,6 +189,13 @@ export async function workspaceAction(
         path: "/",
         maxAge: 31536000,
       });
+    if (
+      input.operation === "request" ||
+      input.operation === "decide" ||
+      input.operation === "month"
+    ) {
+      revalidatePath("/adjustments");
+    }
     revalidatePath("/", "layout");
     return {
       ok: true,

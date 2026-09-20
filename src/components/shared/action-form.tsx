@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, type ReactNode } from "react";
+import { useActionState, useEffect, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 import { workspaceAction } from "@/app/(authenticated)/workspaces/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ export function ActionForm({
   label,
   hidden,
   disabled,
+  refreshOnSuccess = false,
   className = "space-y-4",
 }: {
   children?: ReactNode;
@@ -27,8 +29,15 @@ export function ActionForm({
   hidden: Record<string, string>;
   className?: string;
   disabled?: boolean;
+  refreshOnSuccess?: boolean;
 }) {
+  const router = useRouter();
   const [state, action] = useActionState(workspaceAction, {});
+
+  useEffect(() => {
+    if (refreshOnSuccess && state.ok === true) router.refresh();
+  }, [refreshOnSuccess, router, state]);
+
   return (
     <form action={action} className={className}>
       {Object.entries(hidden).map(([name, value]) => (

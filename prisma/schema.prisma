@@ -42,6 +42,7 @@ model Workspace {
   activities       Activity[]
   onCallDays       onCallSchedule[]
   absences         Absences[]
+  notifications    UserNotification[]
 
   @@map("workspaces")
 }
@@ -143,6 +144,25 @@ model WorkspaceAudit {
   @@map("workspace_audit")
 }
 
+model UserNotification {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  workspaceId String    @map("workspace_id") @db.Uuid
+  type        String
+  title       String
+  message     String
+  href        String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  readAt      DateTime? @map("read_at")
+
+  user      User      @relation(fields: [userId], references: [id])
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt, createdAt])
+  @@map("user_notifications")
+}
+
 enum Role {
   ADMIN
   COLLABORATOR
@@ -235,6 +255,7 @@ model User {
   absences         Absences[]            @relation("absences")
   approvedabsences Absences[]            @relation("approved_absences")
   memberships      WorkspaceMember[]
+  notifications    UserNotification[]
 
   @@map("users")
 }

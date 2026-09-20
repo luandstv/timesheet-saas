@@ -71,6 +71,7 @@ As pendências visuais e de produto estão detalhadas em
 | `/login`        | Entrada na aplicação                                |
 | `/register`     | Criação de conta                                    |
 | `/dashboard`    | Resumo da jornada e registros recentes              |
+| `/profile`      | Perfil próprio e resumo de sobreaviso               |
 | `/time-entries` | Consulta e registro de ponto                        |
 | `/reports`      | Relatórios consolidados por período                 |
 | `/settings`     | Jornada, carga horária e salário                    |
@@ -209,7 +210,13 @@ pnpm lint      # ESLint
 pnpm format    # formata código e documentação com Prettier
 pnpm format:check # verifica formatação sem alterar arquivos
 pnpm test      # testes unitários
+pnpm seed:on-call-demo # cria colaboradores e escalas de demonstração
 ```
+
+O seed de demonstração localiza o usuário `Michel Telo` no espaço empresarial,
+cria ou atualiza dez colaboradores com nomes pessoais de teste e marca uma
+escala variada no mês atual. Ele pode ser executado novamente sem duplicar
+usuários, vínculos ou dias de sobreaviso.
 
 Os testes unitários cobrem cálculo de jornada, horas extras, datas brasileiras,
 formatação, validação de relatórios e autenticação. O detalhamento está em

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { DateTime } from "luxon";
 import { CalendarDays, UsersRound } from "lucide-react";
 
@@ -25,7 +26,13 @@ function formatDayLong(date: string) {
     .replace(/^./, (value) => value.toUpperCase());
 }
 
-export function OnCallTeamOverview({ days }: { days: OnCallTeamDay[] }) {
+export function OnCallTeamOverview({
+  days,
+  monthKey,
+}: {
+  days: OnCallTeamDay[];
+  monthKey: string;
+}) {
   const [selectedDate, setSelectedDate] = useState(days[0]?.date ?? "");
   const selectedDay = days.find((day) => day.date === selectedDate) ?? days[0];
   const peopleCount = useMemo(
@@ -76,20 +83,22 @@ export function OnCallTeamOverview({ days }: { days: OnCallTeamDay[] }) {
             const names = day.people.map((person) => person.name).join(", ");
             const isSelected = day.date === selectedDay?.date;
             return (
-              <button
+              <div
                 key={day.date}
-                type="button"
-                onClick={() => setSelectedDate(day.date)}
-                aria-pressed={isSelected}
-                title={`${formatDayLong(day.date)} — ${names}`}
                 className={cn(
-                  "rounded-xl border p-3 text-left transition-colors hover:border-primary/50 hover:bg-accent/40 focus-visible:border-primary focus-visible:ring-3 focus-visible:ring-primary/20",
+                  "rounded-xl border text-left transition-colors",
                   isSelected
                     ? "border-primary bg-primary/10 shadow-sm"
                     : "border-border/70 bg-background/40",
                 )}
               >
-                <div className="flex items-start justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedDate(day.date)}
+                  aria-pressed={isSelected}
+                  title={`${formatDayLong(day.date)} — ${names}`}
+                  className="flex w-full items-start justify-between gap-3 rounded-t-xl p-3 text-left hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/20"
+                >
                   <span className="font-medium">{formatDay(day.date)}</span>
                   <Badge
                     variant="outline"
@@ -105,15 +114,17 @@ export function OnCallTeamOverview({ days }: { days: OnCallTeamDay[] }) {
                         ? "Fim de semana"
                         : "Dia útil"}
                   </Badge>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-1.5">
+                </button>
+                <div className="flex flex-wrap gap-1.5 px-3 pb-3">
                   {day.people.slice(0, 3).map((person) => (
-                    <span
+                    <Link
                       key={person.userId}
+                      href={`/on-call/profile/${encodeURIComponent(person.userId)}?month=${monthKey}`}
+                      onClick={(event) => event.stopPropagation()}
                       className="max-w-full truncate rounded-md bg-primary/12 px-2 py-1 text-xs font-medium text-primary"
                     >
                       {person.name}
-                    </span>
+                    </Link>
                   ))}
                   {day.people.length > 3 && (
                     <span className="rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground">
@@ -121,7 +132,7 @@ export function OnCallTeamOverview({ days }: { days: OnCallTeamDay[] }) {
                     </span>
                   )}
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
@@ -145,8 +156,9 @@ export function OnCallTeamOverview({ days }: { days: OnCallTeamDay[] }) {
             </div>
             <div className="mt-4 space-y-2">
               {selectedDay.people.map((person) => (
-                <div
+                <Link
                   key={person.userId}
+                  href={`/on-call/profile/${encodeURIComponent(person.userId)}?month=${monthKey}`}
                   className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-background/45 px-3 py-2.5"
                 >
                   <div className="min-w-0">
@@ -158,7 +170,7 @@ export function OnCallTeamOverview({ days }: { days: OnCallTeamDay[] }) {
                   <Badge variant="outline" className="shrink-0 text-xs">
                     {formatMinutesToHours(person.totalOnCallMinutes)}
                   </Badge>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
