@@ -62,12 +62,6 @@ export function DateTimePicker({
     : undefined;
   const timestamp = dateValue && timeValue ? `${dateValue}T${timeValue}` : "";
 
-  function handleNow() {
-    const now = DateTime.now().setZone(TIMEZONE);
-    setDateValue(now.toFormat("yyyy-MM-dd"));
-    setTimeValue(now.toFormat("HH:mm:ss"));
-  }
-
   return (
     <div className={cn("space-y-2", className)}>
       <input type="hidden" name={name} value={timestamp} />
@@ -118,28 +112,23 @@ export function DateTimePicker({
               .toJSDate()}
           />
           <div className="border-t border-border/70 bg-muted/20 p-3">
-            <div className="flex items-end gap-2">
-              <div className="min-w-0 flex-1 space-y-2">
-                <label
-                  htmlFor={`${triggerId}-time`}
-                  className="flex items-center gap-2 text-xs font-medium text-muted-foreground"
-                >
-                  <Clock3 className="size-3.5" aria-hidden="true" />
-                  Horário de Brasília
-                </label>
-                <Input
-                  id={`${triggerId}-time`}
-                  type="time"
-                  step="1"
-                  value={timeValue}
-                  onChange={(event) => setTimeValue(event.target.value)}
-                  disabled={!dateValue}
-                  aria-label="Horário de Brasília"
-                />
-              </div>
-              <Button type="button" variant="ghost" size="sm" onClick={handleNow}>
-                Agora
-              </Button>
+            <div className="space-y-2">
+              <label
+                htmlFor={`${triggerId}-time`}
+                className="flex items-center gap-2 text-xs font-medium text-muted-foreground"
+              >
+                <Clock3 className="size-3.5" aria-hidden="true" />
+                Horário de Brasília
+              </label>
+              <Input
+                id={`${triggerId}-time`}
+                type="time"
+                step="1"
+                value={timeValue}
+                onChange={(event) => setTimeValue(event.target.value)}
+                disabled={!dateValue}
+                aria-label="Horário de Brasília"
+              />
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
               Escolha a data e o horário antes de enviar a solicitação.
