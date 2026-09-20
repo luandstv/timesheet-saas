@@ -1,5 +1,13 @@
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, Clock3, Mail, Phone, UserRound } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  Clock3,
+  ContactRound,
+  Mail,
+  Phone,
+  UserRound,
+} from "lucide-react";
 import { DateTime } from "luxon";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -147,7 +155,6 @@ export function PersonProfile({
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <ProfileLine label="Função" value={roleLabel(profile.role)} />
-            <ProfileLine label="Telefone" value={profile.phone ?? "Não informado"} />
             <ProfileLine
               label="Gestor responsável"
               value={profile.managerName ?? "Sem gestor definido"}
@@ -158,6 +165,29 @@ export function PersonProfile({
         </Card>
 
         <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ContactRound className="size-4 text-primary" aria-hidden="true" />
+              Contatos
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <ContactLine
+              icon={<Mail className="size-4" aria-hidden="true" />}
+              label="E-mail"
+              value={profile.email}
+              href={`mailto:${profile.email}`}
+            />
+            <ContactLine
+              icon={<Phone className="size-4" aria-hidden="true" />}
+              label="Telefone"
+              value={profile.phone ?? "Não informado"}
+              href={profile.phone ? `tel:${profile.phone}` : undefined}
+            />
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Clock3 className="size-4 text-primary" aria-hidden="true" />
@@ -240,5 +270,38 @@ function ProfileLine({ label, value }: { label: string; value: string }) {
       <span className="text-muted-foreground">{label}</span>
       <span className="text-right font-medium">{value}</span>
     </div>
+  );
+}
+
+function ContactLine({
+  icon,
+  label,
+  value,
+  href,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  href?: string;
+}) {
+  const content = (
+    <>
+      <span className="flex items-center gap-2 text-muted-foreground">
+        {icon}
+        {label}
+      </span>
+      <span className="max-w-[70%] truncate text-right font-medium">{value}</span>
+    </>
+  );
+
+  return href ? (
+    <a
+      href={href}
+      className="flex items-center justify-between gap-4 rounded-lg border border-transparent py-1 transition-colors hover:border-border hover:bg-muted/40"
+    >
+      {content}
+    </a>
+  ) : (
+    <div className="flex items-center justify-between gap-4 py-1">{content}</div>
   );
 }
