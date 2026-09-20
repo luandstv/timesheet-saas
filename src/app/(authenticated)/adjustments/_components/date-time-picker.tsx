@@ -89,6 +89,12 @@ export function DateTimePicker({
         </PopoverTrigger>
         <PopoverContent className="w-auto overflow-hidden p-0" align="start">
           <Calendar
+            className="!w-[248px]"
+            classNames={{
+              months: "w-full",
+              month: "w-full",
+              month_grid: "w-full table-fixed",
+            }}
             mode="single"
             selected={selectedDate}
             onSelect={(date) => {
