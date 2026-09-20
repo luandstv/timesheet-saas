@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, Clock3, Mail, UserRound } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock3, Mail, Phone, UserRound } from "lucide-react";
 import { DateTime } from "luxon";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -16,6 +16,7 @@ export type PersonProfileData = {
   id: string;
   name: string;
   email: string;
+  phone: string | null;
   avatarUrl: string | null;
   role: "OWNER" | "MANAGER" | "COLLABORATOR";
   dailyHours: number;
@@ -118,6 +119,12 @@ export function PersonProfile({
             <Mail className="size-4 shrink-0" aria-hidden="true" />
             {profile.email}
           </p>
+          {profile.phone && (
+            <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+              <Phone className="size-4 shrink-0" aria-hidden="true" />
+              {profile.phone}
+            </p>
+          )}
           <p className="mt-1 text-sm text-muted-foreground">{profile.workspaceName}</p>
         </div>
         {isOwn && (
@@ -140,6 +147,7 @@ export function PersonProfile({
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <ProfileLine label="Função" value={roleLabel(profile.role)} />
+            <ProfileLine label="Telefone" value={profile.phone ?? "Não informado"} />
             <ProfileLine
               label="Gestor responsável"
               value={profile.managerName ?? "Sem gestor definido"}
