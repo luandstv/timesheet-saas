@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { ActionForm } from "@/components/shared/action-form";
 import { Field } from "@/components/shared/workspace-fields";
 import { AdjustmentsDateFilter } from "./_components/adjustments-date-filter";
+import { DateTimePicker } from "./_components/date-time-picker";
 import { CollaboratorsPanel } from "./_components/collaborators-panel";
 import { SelectPersonLink } from "./_components/select-person-link";
 import { loadCollaboratorDirectory } from "./_lib/load-collaborators";
@@ -355,13 +356,13 @@ export default async function AdjustmentsPage({
                                   </Select>
                                 </Field>
                                 <Field label="Horário correto (Brasília)">
-                                  <Input
-                                    type="datetime-local"
+                                  <DateTimePicker
+                                    id={`adjustment-${entry.id}-timestamp`}
                                     name="timestamp"
-                                    step="1"
                                     defaultValue={DateTime.fromJSDate(entry.timestamp)
                                       .setZone(TIMEZONE)
                                       .toFormat("yyyy-MM-dd'T'HH:mm:ss")}
+                                    required
                                   />
                                 </Field>
                                 <Field label="Justificativa">
@@ -421,12 +422,13 @@ export default async function AdjustmentsPage({
                     forgotten: "true",
                   }}
                 >
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <Field label="Data da jornada">
-                      <Input
-                        name="date"
-                        type="date"
-                        defaultValue={defaultDate}
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field label="Data e hora da jornada (Brasília)">
+                      <DateTimePicker
+                        id="forgotten-entry-timestamp"
+                        name="timestamp"
+                        dateName="date"
+                        defaultDate={defaultDate}
                         required
                       />
                     </Field>
