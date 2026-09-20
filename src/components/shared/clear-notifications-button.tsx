@@ -49,16 +49,23 @@ function SubmitButton() {
   );
 }
 
-export function ClearNotificationsButton() {
+export function ClearNotificationsButton({
+  onClearStart,
+  onClearError,
+}: {
+  onClearStart?: () => void;
+  onClearError?: () => void;
+}) {
   const router = useRouter();
   const [state, action] = useActionState<ActionResult, FormData>(workspaceAction, {});
 
   useEffect(() => {
     if (state.ok === true) router.refresh();
-  }, [router, state]);
+    if (state.ok === false) onClearError?.();
+  }, [onClearError, router, state]);
 
   return (
-    <form action={action} className="shrink-0">
+    <form action={action} onSubmit={onClearStart} className="shrink-0">
       <input type="hidden" name="operation" value="clearNotifications" />
       <SubmitButton />
       {state.ok === false && (

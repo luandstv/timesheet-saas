@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Bell, CircleHelp, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,9 @@ export function HeaderTools({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [optimisticallyClearedIds, setOptimisticallyClearedIds] = useState<Set<string>>(
+    () => new Set(),
+  );
   const searchTrigger = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -48,7 +51,21 @@ export function HeaderTools({
   const results = appNavigation.filter((item) =>
     normalize(item.title).includes(normalize(query)),
   );
-  const notificationCount = pendingCount + notifications.length;
+  const visibleNotifications = notifications.filter(
+    (notification) => !optimisticallyClearedIds.has(notification.id),
+  );
+  const handleClearStart = useCallback(() => {
+    setOptimisticallyClearedIds((current) => {
+      const next = new Set(current);
+      notifications.forEach((notification) => next.add(notification.id));
+      return next;
+    });
+  }, [notifications]);
+  const handleClearError = useCallback(() => {
+    setOptimisticallyClearedIds(new Set());
+  }, []);
+
+  const notificationCount = pendingCount + visibleNotifications.length;
   const formatNotificationDate = (value: string) =>
     new Intl.DateTimeFormat("pt-BR", {
       day: "2-digit",
@@ -126,7 +143,12 @@ export function HeaderTools({
             <p className="font-medium">Notificações</p>
             <div className="flex items-center gap-2">
               {notificationCount > 0 && <Badge>{notificationCount}</Badge>}
-              {notifications.length > 0 && <ClearNotificationsButton />}
+              {visibleNotifications.length > 0 && (
+                <ClearNotificationsButton
+                  onClearStart={handleClearStart}
+                  onClearError={handleClearError}
+                />
+              )}
             </div>
           </div>
           {pendingCount > 0 ? (
@@ -142,9 +164,9 @@ export function HeaderTools({
               </Link>
             </>
           ) : null}
-          {notifications.length > 0 ? (
+          {visibleNotifications.length > 0 ? (
             <div className="max-h-64 space-y-2 overflow-y-auto border-t border-border pt-3">
-              {notifications.map((notification) => {
+              {visibleNotifications.map((notification) => {
                 const content = (
                   <div className="rounded-xl border border-border/70 bg-muted/30 p-3">
                     <div className="flex items-start justify-between gap-3">
