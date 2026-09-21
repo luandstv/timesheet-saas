@@ -97,6 +97,15 @@ export function ReportTable({ rows }: ReportTableProps) {
         header: "Horas extras 100% FHCN",
         cell: ({ row }) => formatMinutesToCompact(row.original.overtime100FhcnMinutes),
       },
+      {
+        accessorKey: "activityMinutes",
+        header: "Acionamentos",
+        cell: ({ row }) => (
+          <span title={`${row.original.activityCount} registro(s)`}>
+            {formatMinutesToCompact(row.original.activityMinutes)}
+          </span>
+        ),
+      },
     ],
     [],
   );

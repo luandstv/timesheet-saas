@@ -15,6 +15,7 @@ export class DashboardService {
           date: today,
         },
       },
+      include: { activities: { select: { durationMinutes: true } } },
     });
 
     return {
@@ -24,6 +25,11 @@ export class DashboardService {
       overtime75FhcnMinutes: timeSheet?.overtime75FhcnMinutes ?? 0,
       overtime100FhcMinutes: timeSheet?.overtime100FhcMinutes ?? 0,
       overtime100FhcnMinutes: timeSheet?.overtime100FhcnMinutes ?? 0,
+      activityMinutes:
+        timeSheet?.activities.reduce(
+          (sum, activity) => sum + activity.durationMinutes,
+          0,
+        ) ?? 0,
     };
   }
 
@@ -43,6 +49,7 @@ export class DashboardService {
           lte: endOfWeek,
         },
       },
+      include: { activities: { select: { durationMinutes: true } } },
     });
 
     return {
@@ -65,6 +72,15 @@ export class DashboardService {
       ),
       overtime100FhcnMinutes: timeSheets.reduce(
         (sum, ts) => sum + ts.overtime100FhcnMinutes,
+        0,
+      ),
+      activityMinutes: timeSheets.reduce(
+        (sum, timeSheet) =>
+          sum +
+          timeSheet.activities.reduce(
+            (total, activity) => total + activity.durationMinutes,
+            0,
+          ),
         0,
       ),
     };
@@ -85,6 +101,7 @@ export class DashboardService {
           lte: endOfMonth,
         },
       },
+      include: { activities: { select: { durationMinutes: true } } },
     });
 
     return {
@@ -107,6 +124,15 @@ export class DashboardService {
       ),
       overtime100FhcnMinutes: timeSheets.reduce(
         (sum, ts) => sum + ts.overtime100FhcnMinutes,
+        0,
+      ),
+      activityMinutes: timeSheets.reduce(
+        (sum, timeSheet) =>
+          sum +
+          timeSheet.activities.reduce(
+            (total, activity) => total + activity.durationMinutes,
+            0,
+          ),
         0,
       ),
     };

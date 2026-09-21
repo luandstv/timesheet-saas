@@ -32,6 +32,10 @@ export function ReportSummary({ summary }: ReportSummaryProps) {
       label: "Extra 100% FHCN",
       value: summary.overtime100FhcnMinutes,
     },
+    {
+      label: "Acionamentos registrados",
+      value: summary.activityMinutes,
+    },
   ];
 
   return (
