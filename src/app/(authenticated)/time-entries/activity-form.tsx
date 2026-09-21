@@ -136,9 +136,12 @@ export function ActivityForm({
             </p>
           )}
           {success && !error && (
-            <p className="inline-flex items-center gap-2 font-medium text-emerald-400">
+            <p
+              className="inline-flex items-center gap-2 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-2 font-medium text-emerald-700 dark:text-emerald-300"
+              role="status"
+            >
               <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
-              Atividade registrada.
+              Atividade registrada com sucesso.
             </p>
           )}
         </div>
