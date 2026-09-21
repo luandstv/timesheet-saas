@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getAuthenticatedUser } from "@/lib/auth";
 import { TimeEntryService } from "@/services/time-entry.service";
 import { ActivityService } from "@/services/activity.service";
+import type { Activity } from "./activity-types";
 
 const activitySchema = z.object({
   description: z.string().trim().min(3).max(500),
@@ -46,6 +47,7 @@ export async function clockIn(requestId: string, workspaceId: string) {
 export type ActivityActionResult = {
   success: boolean;
   error?: string;
+  activity?: Activity;
 };
 
 export async function createActivity(input: unknown): Promise<ActivityActionResult> {
@@ -61,11 +63,8 @@ export async function createActivity(input: unknown): Promise<ActivityActionResu
     const user = await getAuthenticatedUser();
     const { getWorkspaceContext } = await import("@/lib/workspace-context");
     const { workspace } = await getWorkspaceContext();
-    await ActivityService.create(user.id, workspace.id, parsed.data);
-    revalidatePath("/time-entries");
-    revalidatePath("/dashboard");
-    revalidatePath("/reports");
-    return { success: true };
+    const activity = await ActivityService.create(user.id, workspace.id, parsed.data);
+    return { success: true, activity };
   } catch (error) {
     return {
       success: false,
@@ -87,9 +86,6 @@ export async function removeActivity(
     const { getWorkspaceContext } = await import("@/lib/workspace-context");
     const { workspace } = await getWorkspaceContext();
     await ActivityService.remove(user.id, workspace.id, activityId);
-    revalidatePath("/time-entries");
-    revalidatePath("/dashboard");
-    revalidatePath("/reports");
     return { success: true };
   } catch (error) {
     return {
@@ -117,16 +113,13 @@ export async function updateActivity(input: unknown): Promise<ActivityActionResu
     const user = await getAuthenticatedUser();
     const { getWorkspaceContext } = await import("@/lib/workspace-context");
     const { workspace } = await getWorkspaceContext();
-    await ActivityService.update(
+    const activity = await ActivityService.update(
       user.id,
       workspace.id,
       parsed.data.activityId,
       parsed.data,
     );
-    revalidatePath("/time-entries");
-    revalidatePath("/dashboard");
-    revalidatePath("/reports");
-    return { success: true };
+    return { success: true, activity };
   } catch (error) {
     return {
       success: false,

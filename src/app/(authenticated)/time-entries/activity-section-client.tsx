@@ -1,12 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ActivityDateFilter } from "./activity-date-filter";
 import { ActivityForm } from "./activity-form";
-import { ActivityList, type Activity } from "./activity-list";
+import { ActivityList } from "./activity-list";
+import type { Activity } from "./activity-types";
 
 function ActivityListSkeleton() {
   return (
@@ -31,15 +31,34 @@ export function ActivitySectionClient({
   dateValue: string;
   dateLabel: string;
 }) {
-  const router = useRouter();
-  const [refreshing, startTransition] = useTransition();
+  const [localActivities, setLocalActivities] = useState<Activity[]>(activities);
   const [navigating, setNavigating] = useState(false);
 
-  function refreshActivities() {
-    startTransition(() => router.refresh());
+  function activityDateValue(activity: Activity) {
+    return new Intl.DateTimeFormat("sv-SE", {
+      timeZone: "America/Sao_Paulo",
+    }).format(activity.startTime);
   }
 
-  const loading = refreshing || navigating;
+  function handleActivitySaved(activity: Activity) {
+    if (activityDateValue(activity) !== dateValue) return;
+    setLocalActivities((current) => [
+      activity,
+      ...current.filter((item) => item.id !== activity.id),
+    ]);
+  }
+
+  function handleActivityUpdated(activity: Activity) {
+    setLocalActivities((current) =>
+      activityDateValue(activity) === dateValue
+        ? current.map((item) => (item.id === activity.id ? activity : item))
+        : current.filter((item) => item.id !== activity.id),
+    );
+  }
+
+  function handleActivityRemoved(activityId: string) {
+    setLocalActivities((current) => current.filter((item) => item.id !== activityId));
+  }
 
   return (
     <Card>
@@ -62,15 +81,19 @@ export function ActivitySectionClient({
         <ActivityForm
           key={dateValue}
           initialDate={dateValue}
-          onSaved={refreshActivities}
+          onSaved={handleActivitySaved}
         />
         <p className="text-sm font-medium text-muted-foreground">
           Registros de {dateLabel}
         </p>
-        {loading ? (
+        {navigating ? (
           <ActivityListSkeleton />
         ) : (
-          <ActivityList activities={activities} onChanged={refreshActivities} />
+          <ActivityList
+            activities={localActivities}
+            onUpdated={handleActivityUpdated}
+            onRemoved={handleActivityRemoved}
+          />
         )}
       </CardContent>
     </Card>

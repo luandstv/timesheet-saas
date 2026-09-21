@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { createActivity } from "./actions";
+import type { Activity } from "./activity-types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { TimePicker } from "@/components/ui/time-picker";
 
 function localDateValue(date: Date) {
   const offset = date.getTimezoneOffset() * 60000;
@@ -19,7 +21,7 @@ export function ActivityForm({
   onSaved,
 }: {
   initialDate: string;
-  onSaved?: () => void;
+  onSaved?: (activity: Activity) => void;
 }) {
   const router = useRouter();
   const now = new Date();
@@ -52,7 +54,7 @@ export function ActivityForm({
       setStartTime("");
       setEndTime("");
       setSuccess(true);
-      onSaved?.();
+      if (result.activity) onSaved?.(result.activity);
       if (!onSaved) router.refresh();
     } else {
       setError(result.error ?? "Não foi possível salvar a atividade.");
@@ -102,21 +104,23 @@ export function ActivityForm({
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="activity-start">Início (opcional)</Label>
-          <Input
+          <TimePicker
             id="activity-start"
-            type="time"
             value={startTime}
-            onChange={(event) => setStartTime(event.target.value)}
+            onChange={setStartTime}
+            placeholder="Definir início"
+            aria-label="Início da atividade"
             disabled={pending}
           />
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="activity-end">Fim (opcional)</Label>
-          <Input
+          <TimePicker
             id="activity-end"
-            type="time"
             value={endTime}
-            onChange={(event) => setEndTime(event.target.value)}
+            onChange={setEndTime}
+            placeholder="Definir fim"
+            aria-label="Fim da atividade"
             disabled={pending}
           />
         </div>

@@ -4,28 +4,12 @@ import { AlertCircle, LoaderCircle, Pencil, Save, Trash2, X } from "lucide-react
 import { useState } from "react";
 
 import { updateActivity, removeActivity } from "./actions";
+import type { Activity, ActivityDraft } from "./activity-types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { TimePicker } from "@/components/ui/time-picker";
 import { formatMinutesToHours } from "@/lib/format";
-
-export type Activity = {
-  id: string;
-  description: string;
-  incidentCode: string | null;
-  startTime: Date;
-  endTime: Date | null;
-  durationMinutes: number;
-  period: string | null;
-};
-
-type ActivityDraft = {
-  description: string;
-  incidentCode: string;
-  activityDate: string;
-  startTime: string;
-  endTime: string;
-};
 
 function dateValue(date: Date) {
   return date.toISOString().slice(0, 10);
@@ -60,10 +44,12 @@ function draftFor(activity: Activity): ActivityDraft {
 
 export function ActivityList({
   activities,
-  onChanged,
+  onUpdated,
+  onRemoved,
 }: {
   activities: Activity[];
-  onChanged?: () => void;
+  onUpdated?: (activity: Activity) => void;
+  onRemoved?: (activityId: string) => void;
 }) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -92,7 +78,7 @@ export function ActivityList({
     if (result.success) {
       setEditingId(null);
       setDraft(null);
-      onChanged?.();
+      if (result.activity) onUpdated?.(result.activity);
     } else {
       setError(result.error ?? "Não foi possível atualizar a atividade.");
     }
@@ -105,7 +91,7 @@ export function ActivityList({
     setError(null);
     const result = await removeActivity(id);
     if (result.success) {
-      onChanged?.();
+      onRemoved?.(id);
     } else {
       setError(result.error ?? "Não foi possível remover a atividade.");
     }
@@ -176,13 +162,12 @@ export function ActivityList({
                     <Label htmlFor={`activity-edit-start-${activity.id}`}>
                       Início (opcional)
                     </Label>
-                    <Input
+                    <TimePicker
                       id={`activity-edit-start-${activity.id}`}
-                      type="time"
                       value={draft.startTime}
-                      onChange={(event) =>
-                        setDraft({ ...draft, startTime: event.target.value })
-                      }
+                      onChange={(value) => setDraft({ ...draft, startTime: value })}
+                      placeholder="Definir início"
+                      aria-label="Início da atividade"
                       disabled={pendingId !== null}
                     />
                   </div>
@@ -190,13 +175,12 @@ export function ActivityList({
                     <Label htmlFor={`activity-edit-end-${activity.id}`}>
                       Fim (opcional)
                     </Label>
-                    <Input
+                    <TimePicker
                       id={`activity-edit-end-${activity.id}`}
-                      type="time"
                       value={draft.endTime}
-                      onChange={(event) =>
-                        setDraft({ ...draft, endTime: event.target.value })
-                      }
+                      onChange={(value) => setDraft({ ...draft, endTime: value })}
+                      placeholder="Definir fim"
+                      aria-label="Fim da atividade"
                       disabled={pendingId !== null}
                     />
                   </div>
