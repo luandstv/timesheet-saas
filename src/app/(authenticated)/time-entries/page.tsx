@@ -9,13 +9,17 @@ import { DashboardService } from "@/services/dashboard.service";
 import { TimeEntryService } from "@/services/time-entry.service";
 import { DateTime } from "luxon";
 import { Badge } from "@/components/ui/badge";
+import { ActivityForm } from "./activity-form";
+import { ActivityList } from "./activity-list";
+import { ActivityService } from "@/services/activity.service";
 
 export default async function TimeEntriesPage() {
   const { user, workspace, member, memberships } = await getWorkspaceContext();
-  const [entries, clockState, todaySummary] = await Promise.all([
+  const [entries, clockState, todaySummary, activities] = await Promise.all([
     TimeEntryService.getTodayMovements(user.id, workspace.id),
     TimeEntryService.getClockState(user.id),
     DashboardService.getTodaySummary(user.id, workspace.id),
+    ActivityService.listDay(user.id, workspace.id, DateTime.now().setZone(TIMEZONE)),
   ]);
   const now = DateTime.now().setZone(TIMEZONE);
   const clock = buildClockPresentation(clockState, now);
@@ -116,6 +120,20 @@ export default async function TimeEntriesPage() {
         </CardHeader>
         <CardContent>
           <TimeEntriesList entries={entries} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Atividades e acionamentos</CardTitle>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Registre o que foi feito durante uma extra ou um acionamento para facilitar
+            a conferência posterior.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <ActivityForm />
+          <ActivityList activities={activities} />
         </CardContent>
       </Card>
     </div>
