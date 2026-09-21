@@ -82,6 +82,7 @@ export default async function AuthenticatedLayout({
             notifications={notifications.map((notification) => ({
               ...notification,
               createdAt: notification.createdAt.toISOString(),
+              readAt: notification.readAt?.toISOString() ?? null,
             }))}
           />
           <ThemeToggle />

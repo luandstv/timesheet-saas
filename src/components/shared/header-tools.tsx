@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import { appNavigation } from "./app-navigation";
 import { ClearNotificationsButton } from "./clear-notifications-button";
+import { MarkNotificationReadButton } from "./mark-notification-read-button";
 
 type HeaderNotification = {
   id: string;
@@ -16,6 +17,7 @@ type HeaderNotification = {
   message: string;
   href: string | null;
   createdAt: string;
+  readAt: string | null;
 };
 
 export function HeaderTools({
@@ -54,6 +56,9 @@ export function HeaderTools({
   const visibleNotifications = notifications.filter(
     (notification) => !optimisticallyClearedIds.has(notification.id),
   );
+  const unreadNotifications = visibleNotifications.filter(
+    (notification) => !notification.readAt,
+  );
   const handleClearStart = useCallback(() => {
     setOptimisticallyClearedIds((current) => {
       const next = new Set(current);
@@ -65,7 +70,7 @@ export function HeaderTools({
     setOptimisticallyClearedIds(new Set());
   }, []);
 
-  const notificationCount = pendingCount + visibleNotifications.length;
+  const notificationCount = pendingCount + unreadNotifications.length;
   const formatNotificationDate = (value: string) =>
     new Intl.DateTimeFormat("pt-BR", {
       day: "2-digit",
@@ -168,9 +173,23 @@ export function HeaderTools({
             <div className="max-h-64 space-y-2 overflow-y-auto border-t border-border pt-3">
               {visibleNotifications.map((notification) => {
                 const content = (
-                  <div className="rounded-xl border border-border/70 bg-muted/30 p-3">
+                  <div
+                    className={`rounded-xl border bg-muted/30 p-3 ${
+                      notification.readAt
+                        ? "border-border/70"
+                        : "border-primary/30 bg-primary/5"
+                    }`}
+                  >
                     <div className="flex items-start justify-between gap-3">
-                      <p className="text-sm font-medium">{notification.title}</p>
+                      <p className="flex items-center gap-2 text-sm font-medium">
+                        {!notification.readAt && (
+                          <span
+                            className="size-1.5 rounded-full bg-primary"
+                            aria-label="Não lida"
+                          />
+                        )}
+                        {notification.title}
+                      </p>
                       <time
                         dateTime={notification.createdAt}
                         className="shrink-0 text-[11px] text-muted-foreground"
@@ -183,17 +202,23 @@ export function HeaderTools({
                     </p>
                   </div>
                 );
-                return notification.href ? (
-                  <Link
-                    key={notification.id}
-                    href={notification.href}
-                    onClick={() => setOpen(false)}
-                    className="block rounded-xl focus-visible:outline-2 focus-visible:outline-ring"
-                  >
-                    {content}
-                  </Link>
-                ) : (
-                  <div key={notification.id}>{content}</div>
+                return (
+                  <div key={notification.id} className="group relative">
+                    {notification.href ? (
+                      <Link
+                        href={notification.href}
+                        onClick={() => setOpen(false)}
+                        className="block rounded-xl focus-visible:outline-2 focus-visible:outline-ring"
+                      >
+                        {content}
+                      </Link>
+                    ) : (
+                      content
+                    )}
+                    {!notification.readAt && (
+                      <MarkNotificationReadButton notificationId={notification.id} />
+                    )}
+                  </div>
                 );
               })}
             </div>
