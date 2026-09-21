@@ -330,12 +330,14 @@ model Activity {
   startTime       DateTime  @map("start_time")
   endTime         DateTime? @map("end_time")
   durationMinutes Int       @default(0) @map("duration_minutes")
-  period          Period
+  period          Period?
   createdAt       DateTime  @default(now()) @map("created_at")
 
   user      User       @relation(fields: [userId], references: [id])
   workspace Workspace  @relation(fields: [workspaceId], references: [id])
   timesheet Timesheet? @relation(fields: [timeSheetId], references: [id])
+
+  @@index([workspaceId, userId, startTime])
 
   @@map("activities")
 }

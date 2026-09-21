@@ -12,16 +12,35 @@ import { Badge } from "@/components/ui/badge";
 import { ActivityForm } from "./activity-form";
 import { ActivityList } from "./activity-list";
 import { ActivityService } from "@/services/activity.service";
+import { ActivityDateFilter } from "./activity-date-filter";
 
-export default async function TimeEntriesPage() {
+type TimeEntriesPageProps = {
+  searchParams?: Promise<{ activityDate?: string }>;
+};
+
+export default async function TimeEntriesPage({ searchParams }: TimeEntriesPageProps) {
   const { user, workspace, member, memberships } = await getWorkspaceContext();
+  const now = DateTime.now().setZone(TIMEZONE);
+  const query = (await searchParams) ?? {};
+  const requestedActivityDate = query.activityDate;
+  const parsedActivityDate = requestedActivityDate
+    ? DateTime.fromISO(requestedActivityDate, { zone: TIMEZONE })
+    : null;
+  const selectedActivityDate =
+    parsedActivityDate?.isValid &&
+    parsedActivityDate <= now.startOf("day") &&
+    /^\d{4}-\d{2}-\d{2}$/.test(requestedActivityDate ?? "")
+      ? parsedActivityDate
+      : now.startOf("day");
+  const activityDateValue = selectedActivityDate.toFormat("yyyy-MM-dd");
+  const activityDateLabel = selectedActivityDate.toFormat("dd/MM/yyyy");
+
   const [entries, clockState, todaySummary, activities] = await Promise.all([
     TimeEntryService.getTodayMovements(user.id, workspace.id),
     TimeEntryService.getClockState(user.id),
     DashboardService.getTodaySummary(user.id, workspace.id),
-    ActivityService.listDay(user.id, workspace.id, DateTime.now().setZone(TIMEZONE)),
+    ActivityService.listDay(user.id, workspace.id, selectedActivityDate),
   ]);
-  const now = DateTime.now().setZone(TIMEZONE);
   const clock = buildClockPresentation(clockState, now);
   const fullDateString = now.toFormat("cccc, dd 'de' LLLL 'de' yyyy", {
     locale: "pt-BR",
@@ -125,14 +144,22 @@ export default async function TimeEntriesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Atividades e acionamentos</CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Registre o que foi feito durante uma extra ou um acionamento para facilitar
-            a conferência posterior.
-          </p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <CardTitle className="text-lg">Atividades e acionamentos</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Registre várias atividades por dia, com horário opcional, para facilitar
+                a conferência posterior.
+              </p>
+            </div>
+            <ActivityDateFilter value={activityDateValue} />
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <ActivityForm />
+          <ActivityForm key={activityDateValue} initialDate={activityDateValue} />
+          <p className="text-sm font-medium text-muted-foreground">
+            Registros de {activityDateLabel}
+          </p>
           <ActivityList activities={activities} />
         </CardContent>
       </Card>

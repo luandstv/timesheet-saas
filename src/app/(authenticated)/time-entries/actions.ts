@@ -9,8 +9,9 @@ import { ActivityService } from "@/services/activity.service";
 const activitySchema = z.object({
   description: z.string().trim().min(3).max(500),
   incidentCode: z.string().trim().max(80).optional().or(z.literal("")),
-  startTime: z.string().min(1),
-  endTime: z.string().min(1),
+  activityDate: z.string().min(1),
+  startTime: z.string().optional().or(z.literal("")),
+  endTime: z.string().optional().or(z.literal("")),
 });
 
 const requestIdSchema = z.string().uuid();
@@ -49,7 +50,10 @@ export type ActivityActionResult = {
 export async function createActivity(input: unknown): Promise<ActivityActionResult> {
   const parsed = activitySchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: "Confira a descrição e os horários da atividade." };
+    return {
+      success: false,
+      error: "Confira a descrição, a data e os horários da atividade.",
+    };
   }
 
   try {

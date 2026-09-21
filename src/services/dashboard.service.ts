@@ -2,21 +2,80 @@ import { DateTime } from "luxon";
 import { TIMEZONE } from "@/lib/constants";
 import { dateOnlyEnd, dateOnlyStart } from "@/lib/date-only";
 
+function activityRange(start: DateTime | Date, end: DateTime | Date) {
+  const startDate =
+    start instanceof Date
+      ? DateTime.fromJSDate(start, { zone: TIMEZONE })
+      : start.setZone(TIMEZONE);
+  const endDate =
+    end instanceof Date
+      ? DateTime.fromJSDate(end, { zone: TIMEZONE })
+      : end.setZone(TIMEZONE);
+  return {
+    gte: startDate.startOf("day").toJSDate(),
+    lt: endDate.plus({ days: 1 }).startOf("day").toJSDate(),
+  };
+}
+
+function sumActivityMinutes(activities: { durationMinutes: number }[]) {
+  return activities.reduce((sum, activity) => sum + activity.durationMinutes, 0);
+}
+
+function countAbsenceDays(
+  absences: { startDate: Date; endDate: Date }[],
+  start: DateTime,
+  end: DateTime,
+) {
+  const first = start.toFormat("yyyy-MM-dd");
+  const last = end.toFormat("yyyy-MM-dd");
+  const dates = new Set<string>();
+  for (const absence of absences) {
+    let cursor = DateTime.fromJSDate(absence.startDate, { zone: "UTC" });
+    const absenceEnd = DateTime.fromJSDate(absence.endDate, { zone: "UTC" });
+    while (cursor <= absenceEnd) {
+      const key = cursor.toFormat("yyyy-MM-dd");
+      if (key >= first && key <= last) dates.add(key);
+      cursor = cursor.plus({ days: 1 });
+    }
+  }
+  return dates.size;
+}
+
 export class DashboardService {
   static async getTodaySummary(userId: string, workspaceId: string = userId) {
     const prisma = (await import("@/lib/prisma")).default;
-    const today = dateOnlyStart(DateTime.now().setZone(TIMEZONE));
+    const todayLocal = DateTime.now().setZone(TIMEZONE).startOf("day");
+    const today = dateOnlyStart(todayLocal);
 
-    const timeSheet = await prisma.timesheet.findUnique({
-      where: {
-        userId_workspaceId_date: {
+    const [timeSheet, activities, absences] = await Promise.all([
+      prisma.timesheet.findUnique({
+        where: {
+          userId_workspaceId_date: {
+            userId,
+            workspaceId,
+            date: today,
+          },
+        },
+      }),
+      prisma.activity.findMany({
+        where: {
           userId,
           workspaceId,
-          date: today,
+          startTime: activityRange(todayLocal, todayLocal),
         },
-      },
-      include: { activities: { select: { durationMinutes: true } } },
-    });
+        select: { durationMinutes: true },
+      }),
+      prisma.absences.findMany({
+        where: {
+          userId,
+          workspaceId,
+          status: "APPROVED",
+          startDate: { lte: today },
+          endDate: { gte: today },
+        },
+        select: { startDate: true, endDate: true },
+      }),
+    ]);
 
     return {
       totalWorkedMinutes: timeSheet?.totalWorkedMinutes ?? 0,
@@ -25,11 +84,8 @@ export class DashboardService {
       overtime75FhcnMinutes: timeSheet?.overtime75FhcnMinutes ?? 0,
       overtime100FhcMinutes: timeSheet?.overtime100FhcMinutes ?? 0,
       overtime100FhcnMinutes: timeSheet?.overtime100FhcnMinutes ?? 0,
-      activityMinutes:
-        timeSheet?.activities.reduce(
-          (sum, activity) => sum + activity.durationMinutes,
-          0,
-        ) ?? 0,
+      activityMinutes: sumActivityMinutes(activities),
+      absenceDays: absences.length > 0 ? 1 : 0,
     };
   }
 
@@ -37,20 +93,41 @@ export class DashboardService {
     const prisma = (await import("@/lib/prisma")).default;
     // Mantemos o mesmo intervalo usado pelo gráfico: domingo a sábado.
     const now = DateTime.now().setZone(TIMEZONE).setLocale("en-US");
-    const startOfWeek = dateOnlyStart(now.startOf("week"));
-    const endOfWeek = dateOnlyEnd(now.endOf("week"));
+    const startOfWeekLocal = now.startOf("week");
+    const endOfWeekLocal = now.endOf("week");
+    const startOfWeek = dateOnlyStart(startOfWeekLocal);
+    const endOfWeek = dateOnlyEnd(endOfWeekLocal);
 
-    const timeSheets = await prisma.timesheet.findMany({
-      where: {
-        userId,
-        workspaceId,
-        date: {
-          gte: startOfWeek,
-          lte: endOfWeek,
+    const [timeSheets, activities, absences] = await Promise.all([
+      prisma.timesheet.findMany({
+        where: {
+          userId,
+          workspaceId,
+          date: {
+            gte: startOfWeek,
+            lte: endOfWeek,
+          },
         },
-      },
-      include: { activities: { select: { durationMinutes: true } } },
-    });
+      }),
+      prisma.activity.findMany({
+        where: {
+          userId,
+          workspaceId,
+          startTime: activityRange(startOfWeekLocal, endOfWeekLocal),
+        },
+        select: { durationMinutes: true },
+      }),
+      prisma.absences.findMany({
+        where: {
+          userId,
+          workspaceId,
+          status: "APPROVED",
+          startDate: { lte: endOfWeek },
+          endDate: { gte: startOfWeek },
+        },
+        select: { startDate: true, endDate: true },
+      }),
+    ]);
 
     return {
       totalWorkedMinutes: timeSheets.reduce(
@@ -74,35 +151,49 @@ export class DashboardService {
         (sum, ts) => sum + ts.overtime100FhcnMinutes,
         0,
       ),
-      activityMinutes: timeSheets.reduce(
-        (sum, timeSheet) =>
-          sum +
-          timeSheet.activities.reduce(
-            (total, activity) => total + activity.durationMinutes,
-            0,
-          ),
-        0,
-      ),
+      activityMinutes: sumActivityMinutes(activities),
+      absenceDays: countAbsenceDays(absences, startOfWeekLocal, endOfWeekLocal),
     };
   }
 
   static async getMonthSummary(userId: string, workspaceId: string = userId) {
     const prisma = (await import("@/lib/prisma")).default;
     const now = DateTime.now().setZone(TIMEZONE);
-    const startOfMonth = dateOnlyStart(now.startOf("month"));
-    const endOfMonth = dateOnlyEnd(now.endOf("month"));
+    const startOfMonthLocal = now.startOf("month");
+    const endOfMonthLocal = now.endOf("month");
+    const startOfMonth = dateOnlyStart(startOfMonthLocal);
+    const endOfMonth = dateOnlyEnd(endOfMonthLocal);
 
-    const timeSheets = await prisma.timesheet.findMany({
-      where: {
-        userId,
-        workspaceId,
-        date: {
-          gte: startOfMonth,
-          lte: endOfMonth,
+    const [timeSheets, activities, absences] = await Promise.all([
+      prisma.timesheet.findMany({
+        where: {
+          userId,
+          workspaceId,
+          date: {
+            gte: startOfMonth,
+            lte: endOfMonth,
+          },
         },
-      },
-      include: { activities: { select: { durationMinutes: true } } },
-    });
+      }),
+      prisma.activity.findMany({
+        where: {
+          userId,
+          workspaceId,
+          startTime: activityRange(startOfMonthLocal, endOfMonthLocal),
+        },
+        select: { durationMinutes: true },
+      }),
+      prisma.absences.findMany({
+        where: {
+          userId,
+          workspaceId,
+          status: "APPROVED",
+          startDate: { lte: endOfMonth },
+          endDate: { gte: startOfMonth },
+        },
+        select: { startDate: true, endDate: true },
+      }),
+    ]);
 
     return {
       totalWorkedMinutes: timeSheets.reduce(
@@ -126,15 +217,8 @@ export class DashboardService {
         (sum, ts) => sum + ts.overtime100FhcnMinutes,
         0,
       ),
-      activityMinutes: timeSheets.reduce(
-        (sum, timeSheet) =>
-          sum +
-          timeSheet.activities.reduce(
-            (total, activity) => total + activity.durationMinutes,
-            0,
-          ),
-        0,
-      ),
+      activityMinutes: sumActivityMinutes(activities),
+      absenceDays: countAbsenceDays(absences, startOfMonthLocal, endOfMonthLocal),
     };
   }
 }

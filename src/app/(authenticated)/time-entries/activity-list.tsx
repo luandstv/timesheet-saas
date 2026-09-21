@@ -14,7 +14,7 @@ type Activity = {
   startTime: Date;
   endTime: Date | null;
   durationMinutes: number;
-  period: string;
+  period: string | null;
 };
 
 export function ActivityList({ activities }: { activities: Activity[] }) {
@@ -34,7 +34,7 @@ export function ActivityList({ activities }: { activities: Activity[] }) {
   if (activities.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        Nenhuma atividade registrada hoje.
+        Nenhuma atividade registrada para este dia.
       </p>
     );
   }
@@ -49,20 +49,22 @@ export function ActivityList({ activities }: { activities: Activity[] }) {
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">{activity.description}</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              {activity.startTime.toLocaleTimeString("pt-BR", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-              {activity.endTime &&
-                ` – ${activity.endTime.toLocaleTimeString("pt-BR", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}`}
+              {activity.endTime
+                ? `${activity.startTime.toLocaleTimeString("pt-BR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })} – ${activity.endTime.toLocaleTimeString("pt-BR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}`
+                : "Horário não informado"}
               {activity.incidentCode ? ` · ${activity.incidentCode}` : ""}
             </p>
           </div>
           <span className="text-sm font-medium text-primary">
-            {formatMinutesToHours(activity.durationMinutes)} · {activity.period}
+            {activity.period
+              ? `${formatMinutesToHours(activity.durationMinutes)} · ${activity.period}`
+              : "Dia registrado"}
           </span>
           <Button
             type="button"

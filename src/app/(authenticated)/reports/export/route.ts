@@ -44,6 +44,7 @@ function detailHeaders() {
     "Extras 100% FHCN",
     "Acionamentos (minutos)",
     "Quantidade de acionamentos",
+    "Dias de ausência aprovados",
   ];
 }
 
@@ -60,6 +61,7 @@ function detailValues(report: ReportResult) {
     row.overtime100FhcnMinutes,
     row.activityMinutes,
     row.activityCount,
+    row.absenceDays,
   ]);
 }
 
@@ -240,6 +242,7 @@ export async function GET(request: Request) {
           "Extras 100%",
           "Acionamentos (minutos)",
           "Quantidade de acionamentos",
+          "Dias de ausência aprovados",
         ]
           .map(csv)
           .join(","),
@@ -254,6 +257,7 @@ export async function GET(request: Request) {
             row.overtime100Minutes,
             row.activityMinutes,
             row.activityCount,
+            row.absenceDays,
           ]
             .map(csv)
             .join(","),
@@ -281,6 +285,7 @@ export async function GET(request: Request) {
         "Extras 100% FHCN",
         "Acionamentos (minutos)",
         "Quantidade de acionamentos",
+        "Dias de ausência aprovados",
       ]
         .map(csv)
         .join(","),
@@ -297,6 +302,7 @@ export async function GET(request: Request) {
           row.overtime100FhcnMinutes,
           row.activityMinutes,
           row.activityCount,
+          row.absenceDays,
         ]
           .map(csv)
           .join(","),

@@ -8,19 +8,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-function localDateTimeValue(date: Date) {
+function localDateValue(date: Date) {
   const offset = date.getTimezoneOffset() * 60000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
 }
 
-export function ActivityForm() {
+export function ActivityForm({ initialDate }: { initialDate: string }) {
   const now = new Date();
   const [description, setDescription] = useState("");
   const [incidentCode, setIncidentCode] = useState("");
-  const [startTime, setStartTime] = useState(
-    localDateTimeValue(new Date(now.getTime() - 60 * 60 * 1000)),
-  );
-  const [endTime, setEndTime] = useState(localDateTimeValue(now));
+  const [activityDate, setActivityDate] = useState(initialDate || localDateValue(now));
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -34,12 +33,16 @@ export function ActivityForm() {
     const result = await createActivity({
       description,
       incidentCode,
+      activityDate,
       startTime,
       endTime,
     });
     if (result.success) {
       setDescription("");
       setIncidentCode("");
+      setActivityDate(initialDate);
+      setStartTime("");
+      setEndTime("");
       setSuccess(true);
     } else {
       setError(result.error ?? "Não foi possível salvar a atividade.");
@@ -64,7 +67,18 @@ export function ActivityForm() {
           disabled={pending}
         />
       </div>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-4">
+        <div className="grid gap-1.5">
+          <Label htmlFor="activity-date">Dia</Label>
+          <Input
+            id="activity-date"
+            type="date"
+            value={activityDate}
+            onChange={(event) => setActivityDate(event.target.value)}
+            required
+            disabled={pending}
+          />
+        </div>
         <div className="grid gap-1.5 sm:col-span-1">
           <Label htmlFor="activity-incident">Incidente (opcional)</Label>
           <Input
@@ -77,31 +91,36 @@ export function ActivityForm() {
           />
         </div>
         <div className="grid gap-1.5">
-          <Label htmlFor="activity-start">Início</Label>
+          <Label htmlFor="activity-start">Início (opcional)</Label>
           <Input
             id="activity-start"
-            type="datetime-local"
+            type="time"
             value={startTime}
             onChange={(event) => setStartTime(event.target.value)}
-            required
             disabled={pending}
           />
         </div>
         <div className="grid gap-1.5">
-          <Label htmlFor="activity-end">Fim</Label>
+          <Label htmlFor="activity-end">Fim (opcional)</Label>
           <Input
             id="activity-end"
-            type="datetime-local"
+            type="time"
             value={endTime}
             onChange={(event) => setEndTime(event.target.value)}
-            required
             disabled={pending}
           />
         </div>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-xs text-muted-foreground" role="status" aria-live="polite">
-          {success ? "Atividade registrada." : error}
+        <div
+          className="space-y-1 text-xs text-muted-foreground"
+          role="status"
+          aria-live="polite"
+        >
+          <p>
+            O horário é opcional. Sem horário, o registro fica associado somente ao dia.
+          </p>
+          {(success || error) && <p>{success ? "Atividade registrada." : error}</p>}
         </div>
         <Button type="submit" disabled={pending}>
           {pending ? <LoaderCircle className="motion-safe:animate-spin" /> : <Plus />}

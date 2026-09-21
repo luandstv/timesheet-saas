@@ -10,17 +10,30 @@ import { TimeEntryService } from "./time-entry.service";
 export type ActivityInput = {
   description: string;
   incidentCode?: string | null;
-  startTime: string;
-  endTime: string;
+  activityDate: string;
+  startTime?: string | null;
+  endTime?: string | null;
 };
 
-function parseDateTime(value: string, label: string) {
-  const parsed = DateTime.fromISO(value, { zone: TIMEZONE });
+function parseActivityDate(value: string) {
+  const parsed = DateTime.fromFormat(value, "yyyy-MM-dd", { zone: TIMEZONE });
+  if (!parsed.isValid || parsed.toFormat("yyyy-MM-dd") !== value) {
+    throw new Error("Informe uma data válida para a atividade.");
+  }
+  return parsed.startOf("day");
+}
+
+function parseActivityTime(date: DateTime, value: string, label: string) {
+  const parsed = DateTime.fromFormat(
+    `${date.toFormat("yyyy-MM-dd")}T${value}`,
+    "yyyy-MM-dd'T'HH:mm",
+    { zone: TIMEZONE },
+  );
   if (!parsed.isValid) throw new Error(`Informe um horário válido para ${label}.`);
   return parsed;
 }
 
-function periodFor(date: DateTime) {
+function periodFor(date: DateTime): "FHC" | "FHCN" {
   return date.hour >= FHCN_START_HOUR || date.hour < FHCN_END_HOUR ? "FHCN" : "FHC";
 }
 
@@ -43,22 +56,44 @@ function validateInput(input: ActivityInput) {
     throw new Error("O identificador do incidente deve ter no máximo 80 caracteres.");
   }
 
-  const start = parseDateTime(input.startTime, "o início");
-  const end = parseDateTime(input.endTime, "o fim");
+  const activityDate = parseActivityDate(input.activityDate);
+  const startValue = input.startTime?.trim() || null;
+  const endValue = input.endTime?.trim() || null;
+  if ((startValue && !endValue) || (!startValue && endValue)) {
+    throw new Error("Informe início e fim ou deixe os dois horários em branco.");
+  }
+
   const now = DateTime.now().setZone(TIMEZONE);
-  if (start > now || end > now) {
+  if (activityDate > now.startOf("day")) {
     throw new Error("A atividade não pode estar no futuro.");
   }
-  if (end <= start) {
-    throw new Error("O fim da atividade deve ser posterior ao início.");
+
+  if (!startValue && !endValue) {
+    return {
+      description,
+      incidentCode,
+      activityDate,
+      start: activityDate,
+      end: null,
+      durationMinutes: 0,
+      period: null,
+    };
   }
+
+  const start = parseActivityTime(activityDate, startValue!, "o início");
+  const end = parseActivityTime(activityDate, endValue!, "o fim");
+  if (start > now || end > now)
+    throw new Error("A atividade não pode estar no futuro.");
+  if (end <= start) throw new Error("O fim da atividade deve ser posterior ao início.");
 
   return {
     description,
     incidentCode,
+    activityDate,
     start,
     end,
     durationMinutes: durationInMinutes(start, end),
+    period: periodFor(start),
   };
 }
 
@@ -69,28 +104,38 @@ export class ActivityService {
     return prisma.$transaction(
       async (tx) => {
         await requireMember(tx, workspaceId, actorId, true);
-        const timeSheet = await TimeEntryService.getOrCreateTimeSheet(
-          actorId,
-          validated.start,
+        await assertMonthOpen(
           tx,
           workspaceId,
+          actorId,
+          validated.activityDate.toJSDate(),
         );
-        await assertMonthOpen(tx, workspaceId, actorId, timeSheet.date);
-        if (timeSheet.status !== "OPEN") {
-          throw new Error("Esta jornada está fechada para novos acionamentos.");
+
+        let timeSheetId: string | null = null;
+        if (validated.end) {
+          const timeSheet = await TimeEntryService.getOrCreateTimeSheet(
+            actorId,
+            validated.start,
+            tx,
+            workspaceId,
+          );
+          if (timeSheet.status !== "OPEN") {
+            throw new Error("Esta jornada está fechada para novos acionamentos.");
+          }
+          timeSheetId = timeSheet.id;
         }
 
         return tx.activity.create({
           data: {
             userId: actorId,
             workspaceId,
-            timeSheetId: timeSheet.id,
+            timeSheetId,
             description: validated.description,
             incidentCode: validated.incidentCode,
             startTime: validated.start.toJSDate(),
-            endTime: validated.end.toJSDate(),
+            endTime: validated.end?.toJSDate() ?? null,
             durationMinutes: validated.durationMinutes,
-            period: periodFor(validated.start),
+            period: validated.period,
           },
         });
       },
@@ -109,7 +154,7 @@ export class ActivityService {
         workspaceId,
         startTime: { gte: day, lt: nextDay },
       },
-      orderBy: { startTime: "desc" },
+      orderBy: { createdAt: "desc" },
     });
   }
 
