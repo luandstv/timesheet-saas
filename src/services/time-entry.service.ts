@@ -1,7 +1,12 @@
 import { DateTime } from "luxon";
 import prisma from "@/lib/prisma";
-import { TIMEZONE } from "@/lib/constants";
+import {
+  DEFAULT_WORK_END_HOUR,
+  DEFAULT_WORK_START_HOUR,
+  TIMEZONE,
+} from "@/lib/constants";
 import { dateOnlyStart } from "@/lib/date-only";
+import { classifyEntryMode } from "@/lib/entry-mode";
 import type { Prisma } from "../../generated/prisma/client";
 
 import { requireMember, lockWorkspace, lockPerson } from "./workspace.service";
@@ -111,43 +116,69 @@ export class TimeEntryService {
           );
         }
 
+        const user =
+          typeof tx.user?.findUnique === "function"
+            ? await tx.user.findUnique({
+                where: { id: userId },
+                select: {
+                  dailyHours: true,
+                  workStartHour: true,
+                  workStartMinute: true,
+                  workEndHour: true,
+                  workEndMinute: true,
+                },
+              })
+            : null;
+        const onCallSchedule =
+          typeof tx.onCallSchedule?.findUnique === "function"
+            ? await tx.onCallSchedule.findUnique({
+                where: {
+                  workspaceId_userId_date: {
+                    workspaceId,
+                    userId,
+                    date: timeSheet.date,
+                  },
+                },
+                select: { id: true },
+              })
+            : null;
+        const effectiveUser = user ?? {
+          dailyHours: 8,
+          workStartHour: DEFAULT_WORK_START_HOUR,
+          workStartMinute: 0,
+          workEndHour: DEFAULT_WORK_END_HOUR,
+          workEndMinute: 0,
+        };
+        const entryMode = classifyEntryMode(now.toJSDate(), Boolean(onCallSchedule), {
+          startHour: effectiveUser.workStartHour,
+          startMinute: effectiveUser.workStartMinute,
+          endHour: effectiveUser.workEndHour,
+          endMinute: effectiveUser.workEndMinute,
+        });
+
         const entry = await tx.timeEntry.create({
           data: {
             timeSheetId: timeSheet.id,
             type,
             timestamp: now.toJSDate(),
-            entryMode: "REGULAR",
+            entryMode,
             requestId,
           },
         });
 
         if (type === "CLOCK_OUT") {
-          const user = await tx.user.findUnique({
-            where: { id: userId },
-            select: {
-              dailyHours: true,
-              workStartHour: true,
-              workStartMinute: true,
-              workEndHour: true,
-              workEndMinute: true,
+          const { TimeCalculationService } = await import("./time-calculation.service");
+          await TimeCalculationService.calculateAndUpdateTimeSheet(
+            timeSheet.id,
+            effectiveUser.dailyHours,
+            {
+              startHour: effectiveUser.workStartHour,
+              startMinute: effectiveUser.workStartMinute,
+              endHour: effectiveUser.workEndHour,
+              endMinute: effectiveUser.workEndMinute,
             },
-          });
-
-          if (user) {
-            const { TimeCalculationService } =
-              await import("./time-calculation.service");
-            await TimeCalculationService.calculateAndUpdateTimeSheet(
-              timeSheet.id,
-              user.dailyHours,
-              {
-                startHour: user.workStartHour,
-                startMinute: user.workStartMinute,
-                endHour: user.workEndHour,
-                endMinute: user.workEndMinute,
-              },
-              tx,
-            );
-          }
+            tx,
+          );
         }
 
         return { entry, type, timeSheet };
