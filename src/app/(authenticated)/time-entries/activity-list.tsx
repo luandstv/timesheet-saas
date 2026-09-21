@@ -239,8 +239,8 @@ export function ActivityList({
                   </p>
                 </div>
                 <span className="text-sm font-medium text-primary">
-                  {activity.period
-                    ? `${formatMinutesToHours(activity.durationMinutes)} · ${activity.period}`
+                  {activity.durationMinutes > 0
+                    ? `${formatMinutesToHours(activity.durationMinutes)} · ${activity.period ?? "Horário comercial"}`
                     : "Dia registrado"}
                 </span>
                 <div className="flex items-center gap-1">
