@@ -1,11 +1,10 @@
 import { DateTime } from "luxon";
 
 import prisma from "@/lib/prisma";
-import { dateOnlyStart } from "@/lib/date-only";
 import { FHCN_END_HOUR, FHCN_START_HOUR, TIMEZONE } from "@/lib/constants";
 
 import { assertMonthOpen } from "./effective-time.service";
-import { requireMember, type Database } from "./workspace.service";
+import { requireMember } from "./workspace.service";
 import { TimeEntryService } from "./time-entry.service";
 
 export type ActivityInput = {
