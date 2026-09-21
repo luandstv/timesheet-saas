@@ -12,7 +12,15 @@ import { HelpMenu } from "./header-tools";
 import { appNavigation } from "./app-navigation";
 import { NavigationIcon } from "./navigation-icon";
 
-export function Sidebar({ name, email }: { name: string; email: string }) {
+export function Sidebar({
+  name,
+  email,
+  avatarUrl,
+}: {
+  name: string;
+  email: string;
+  avatarUrl?: string | null;
+}) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   return (
@@ -98,7 +106,7 @@ export function Sidebar({ name, email }: { name: string; email: string }) {
             </div>
           )}
           <div className="flex items-center gap-3 border-t border-border pt-4">
-            <UserNav name={name} email={email} />
+            <UserNav name={name} email={email} avatarUrl={avatarUrl} />
             {!collapsed && (
               <Link
                 href="/profile"

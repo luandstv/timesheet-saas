@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { dateOnlyEnd, dateOnlyStart, formatDateOnly } from "@/lib/date-only";
 import { TIMEZONE } from "@/lib/constants";
 import { describeOnCallDay, type OnCallHolidayMode } from "@/lib/on-call";
+import { resolveAvatarUrl } from "@/lib/avatar";
 import { requireMember } from "./workspace.service";
 
 export type OnCallDay = {
@@ -19,6 +20,7 @@ export type OnCallTeamPerson = {
   userId: string;
   name: string;
   email: string;
+  avatarUrl: string | null;
   totalOnCallMinutes: number;
 };
 
@@ -100,7 +102,7 @@ export class OnCallService {
           date: true,
           totalOnCallMinutes: true,
           holidayOverride: true,
-          user: { select: { id: true, name: true, email: true } },
+          user: { select: { id: true, name: true, email: true, avatarPath: true } },
         },
       }),
       prisma.holiday.findMany({
@@ -110,6 +112,16 @@ export class OnCallService {
     ]);
     const holidayDates = new Set(
       holidays.map((holiday) => formatDateOnly(holiday.date)),
+    );
+    const usersById = new Map(
+      schedules.map((schedule) => [schedule.user.id, schedule.user] as const),
+    );
+    const avatarUrls = new Map(
+      await Promise.all(
+        [...usersById.entries()].map(async ([userId, user]) => {
+          return [userId, await resolveAvatarUrl(user.avatarPath)] as const;
+        }),
+      ),
     );
     const grouped = new Map<string, OnCallTeamDay>();
 
@@ -130,6 +142,7 @@ export class OnCallService {
         userId: schedule.user.id,
         name: schedule.user.name,
         email: schedule.user.email,
+        avatarUrl: avatarUrls.get(schedule.user.id) ?? null,
         totalOnCallMinutes: schedule.totalOnCallMinutes,
       });
       grouped.set(date, current);

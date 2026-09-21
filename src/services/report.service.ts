@@ -14,6 +14,8 @@ export type ReportRow = {
   overtime75FhcnMinutes: number;
   overtime100FhcMinutes: number;
   overtime100FhcnMinutes: number;
+  activityMinutes: number;
+  activityCount: number;
 };
 
 export type ReportSummary = {
@@ -23,6 +25,7 @@ export type ReportSummary = {
   overtime75FhcnMinutes: number;
   overtime100FhcMinutes: number;
   overtime100FhcnMinutes: number;
+  activityMinutes: number;
 };
 
 export type ReportResult = {
@@ -42,6 +45,8 @@ export type TeamReportRow = {
   normalMinutes: number;
   overtime75Minutes: number;
   overtime100Minutes: number;
+  activityMinutes: number;
+  activityCount: number;
   daysWithRecords: number;
 };
 
@@ -76,6 +81,7 @@ function createEmptySummary(): ReportSummary {
     overtime75FhcnMinutes: 0,
     overtime100FhcMinutes: 0,
     overtime100FhcnMinutes: 0,
+    activityMinutes: 0,
   };
 }
 
@@ -87,6 +93,7 @@ function buildSummary(rows: ReportRow[]): ReportSummary {
     acc.overtime75FhcnMinutes += row.overtime75FhcnMinutes;
     acc.overtime100FhcMinutes += row.overtime100FhcMinutes;
     acc.overtime100FhcnMinutes += row.overtime100FhcnMinutes;
+    acc.activityMinutes += row.activityMinutes;
 
     return acc;
   }, createEmptySummary());
@@ -105,6 +112,8 @@ function emptyTeamRow(user: {
     normalMinutes: 0,
     overtime75Minutes: 0,
     overtime100Minutes: 0,
+    activityMinutes: 0,
+    activityCount: 0,
     daysWithRecords: 0,
   };
 }
@@ -142,6 +151,7 @@ export async function getReportData({
       overtime75FhcnMinutes: true,
       overtime100FhcMinutes: true,
       overtime100FhcnMinutes: true,
+      activities: { select: { durationMinutes: true } },
     },
   });
 
@@ -158,6 +168,11 @@ export async function getReportData({
     overtime75FhcnMinutes: timeSheet.overtime75FhcnMinutes,
     overtime100FhcMinutes: timeSheet.overtime100FhcMinutes,
     overtime100FhcnMinutes: timeSheet.overtime100FhcnMinutes,
+    activityMinutes: timeSheet.activities.reduce(
+      (sum, activity) => sum + activity.durationMinutes,
+      0,
+    ),
+    activityCount: timeSheet.activities.length,
   }));
 
   const summary = buildSummary(rows);
@@ -200,6 +215,7 @@ export async function getTeamReportData({
       overtime75FhcnMinutes: true,
       overtime100FhcMinutes: true,
       overtime100FhcnMinutes: true,
+      activities: { select: { durationMinutes: true } },
     },
   });
 
@@ -213,6 +229,11 @@ export async function getTeamReportData({
       sheet.overtime75FhcMinutes + sheet.overtime75FhcnMinutes;
     current.overtime100Minutes +=
       sheet.overtime100FhcMinutes + sheet.overtime100FhcnMinutes;
+    current.activityMinutes += sheet.activities.reduce(
+      (sum, activity) => sum + activity.durationMinutes,
+      0,
+    );
+    current.activityCount += sheet.activities.length;
     rows.set(sheet.user.id, current);
   }
 

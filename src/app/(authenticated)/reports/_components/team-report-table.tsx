@@ -90,6 +90,7 @@ export function TeamReportTable({ rows, startDate, endDate }: TeamReportTablePro
                   <Header label="Horas normais" />
                   <Header label="Extras 75%" />
                   <Header label="Extras 100%" />
+                  <Header label="Acionamentos" />
                   <Header label="Conferência" />
                 </tr>
               </thead>
@@ -122,6 +123,12 @@ export function TeamReportTable({ rows, startDate, endDate }: TeamReportTablePro
                         <td className="p-4 align-middle tabular-nums">
                           {formatMinutesToCompact(row.overtime100Minutes)}
                         </td>
+                        <td
+                          className="p-4 align-middle tabular-nums"
+                          title={`${row.activityCount} registro(s)`}
+                        >
+                          {formatMinutesToCompact(row.activityMinutes)}
+                        </td>
                         <td className="p-4 align-middle">
                           <Button asChild variant="outline" size="sm">
                             <Link href={detailHref}>
@@ -135,7 +142,7 @@ export function TeamReportTable({ rows, startDate, endDate }: TeamReportTablePro
                   })
                 ) : (
                   <tr>
-                    <td colSpan={7} className="h-24 text-center text-muted-foreground">
+                    <td colSpan={8} className="h-24 text-center text-muted-foreground">
                       Nenhum colaborador encontrado para essa busca.
                     </td>
                   </tr>

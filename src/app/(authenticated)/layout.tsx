@@ -7,6 +7,7 @@ import { HeaderTools } from "@/components/shared/header-tools";
 import { BrandLogo } from "@/components/shared/brand-mark";
 import { AppFooter } from "@/components/shared/app-footer";
 import prisma from "@/lib/prisma";
+import { resolveAvatarUrl } from "@/lib/avatar";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +46,7 @@ export default async function AuthenticatedLayout({
       })
     : 0;
   const notifications = await prisma.userNotification.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, workspaceId: workspace.id },
     orderBy: { createdAt: "desc" },
     take: 20,
     select: {
@@ -54,12 +55,14 @@ export default async function AuthenticatedLayout({
       message: true,
       href: true,
       createdAt: true,
+      readAt: true,
     },
   });
+  const avatarUrl = await resolveAvatarUrl(user.avatarPath);
 
   return (
     <div className="flex min-h-dvh w-full overflow-x-clip bg-background">
-      <Sidebar name={user.name} email={user.email} />
+      <Sidebar name={user.name} email={user.email} avatarUrl={avatarUrl} />
 
       <div className="flex min-h-dvh min-w-0 flex-1 flex-col pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
         <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border bg-card/40 px-4 sm:gap-4 sm:px-6 lg:px-8">
@@ -79,10 +82,11 @@ export default async function AuthenticatedLayout({
             notifications={notifications.map((notification) => ({
               ...notification,
               createdAt: notification.createdAt.toISOString(),
+              readAt: notification.readAt?.toISOString() ?? null,
             }))}
           />
           <ThemeToggle />
-          <UserNav name={user.name} email={user.email} />
+          <UserNav name={user.name} email={user.email} avatarUrl={avatarUrl} />
         </header>
         <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
           {!member.active && (

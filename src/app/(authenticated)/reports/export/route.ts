@@ -42,6 +42,8 @@ function detailHeaders() {
     "Extras 75% FHCN",
     "Extras 100% FHC",
     "Extras 100% FHCN",
+    "Acionamentos (minutos)",
+    "Quantidade de acionamentos",
   ];
 }
 
@@ -56,6 +58,8 @@ function detailValues(report: ReportResult) {
     row.overtime75FhcnMinutes,
     row.overtime100FhcMinutes,
     row.overtime100FhcnMinutes,
+    row.activityMinutes,
+    row.activityCount,
   ]);
 }
 
@@ -234,6 +238,8 @@ export async function GET(request: Request) {
           "Horas normais",
           "Extras 75%",
           "Extras 100%",
+          "Acionamentos (minutos)",
+          "Quantidade de acionamentos",
         ]
           .map(csv)
           .join(","),
@@ -246,6 +252,8 @@ export async function GET(request: Request) {
             row.normalMinutes,
             row.overtime75Minutes,
             row.overtime100Minutes,
+            row.activityMinutes,
+            row.activityCount,
           ]
             .map(csv)
             .join(","),
@@ -271,6 +279,8 @@ export async function GET(request: Request) {
         "Extras 75% FHCN",
         "Extras 100% FHC",
         "Extras 100% FHCN",
+        "Acionamentos (minutos)",
+        "Quantidade de acionamentos",
       ]
         .map(csv)
         .join(","),
@@ -285,6 +295,8 @@ export async function GET(request: Request) {
           row.overtime75FhcnMinutes,
           row.overtime100FhcMinutes,
           row.overtime100FhcnMinutes,
+          row.activityMinutes,
+          row.activityCount,
         ]
           .map(csv)
           .join(","),

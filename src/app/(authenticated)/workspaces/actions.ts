@@ -4,9 +4,11 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getAuthenticatedUser } from "@/lib/auth";
+import { getWorkspaceContext } from "@/lib/workspace-context";
 import { WorkspaceService, requireMember } from "@/services/workspace.service";
 import { AdjustmentService } from "@/services/adjustment.service";
 import prisma from "@/lib/prisma";
+import { AbsenceService } from "@/services/absence.service";
 
 const id = z.string().uuid();
 const text = z
@@ -23,6 +25,7 @@ const checkbox = z.preprocess((v) => v === "on" || v === "true", z.boolean());
 const schema = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("switch"), workspaceId: id }),
   z.object({ operation: z.literal("clearNotifications") }),
+  z.object({ operation: z.literal("readNotification"), notificationId: id }),
   z.object({ operation: z.literal("create"), name: z.string().trim().min(2).max(80) }),
   z.object({
     operation: z.literal("policy"),
@@ -83,6 +86,32 @@ const schema = z.discriminatedUnion("operation", [
     reopen: checkbox,
     reason: z.string().trim().max(2000),
   }),
+  z.object({
+    operation: z.literal("absenceCreate"),
+    workspaceId: id,
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    type: z.enum([
+      "MEDICAL_LEAVE",
+      "VACATION",
+      "COMPENSATORY_OFF",
+      "DAY_OFF",
+      "JUSTIFIED_ABSENCE",
+      "UNJUSTIFIED_ABSENCE",
+      "BEREAVEMENT",
+      "MATERNITY",
+      "PATERNITY",
+      "OTHER",
+    ]),
+    reason: z.string().trim().min(3).max(1000),
+  }),
+  z.object({
+    operation: z.literal("absenceDecide"),
+    workspaceId: id,
+    absenceId: id,
+    decision: z.enum(["APPROVED", "REJECTED"]),
+    reason: z.string().trim().min(3).max(1000),
+  }),
 ]);
 
 export type ActionResult = { ok?: boolean; message?: string; invitation?: string };
@@ -111,7 +140,26 @@ export async function workspaceAction(
         select = input.workspaceId;
         break;
       case "clearNotifications":
-        await prisma.userNotification.deleteMany({ where: { userId: user.id } });
+        {
+          const { workspace } = await getWorkspaceContext();
+          await prisma.userNotification.deleteMany({
+            where: { userId: user.id, workspaceId: workspace.id },
+          });
+        }
+        break;
+      case "readNotification":
+        {
+          const { workspace } = await getWorkspaceContext();
+          await prisma.userNotification.updateMany({
+            where: {
+              id: input.notificationId,
+              userId: user.id,
+              workspaceId: workspace.id,
+              readAt: null,
+            },
+            data: { readAt: new Date() },
+          });
+        }
         break;
       case "create":
         select = (await WorkspaceService.createCompany(user.id, input.name)).id;
@@ -180,6 +228,18 @@ export async function workspaceAction(
           input.reason,
         );
         break;
+      case "absenceCreate":
+        await AbsenceService.create(user.id, input.workspaceId, input);
+        break;
+      case "absenceDecide":
+        await AbsenceService.decide(
+          user.id,
+          input.workspaceId,
+          input.absenceId,
+          input.decision,
+          input.reason,
+        );
+        break;
     }
     if (select)
       (await cookies()).set("jornix-workspace", select, {
@@ -192,9 +252,12 @@ export async function workspaceAction(
     if (
       input.operation === "request" ||
       input.operation === "decide" ||
-      input.operation === "month"
+      input.operation === "month" ||
+      input.operation === "absenceCreate" ||
+      input.operation === "absenceDecide"
     ) {
       revalidatePath("/adjustments");
+      revalidatePath("/absences");
     }
     revalidatePath("/", "layout");
     return {

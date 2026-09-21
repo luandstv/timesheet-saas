@@ -23,14 +23,39 @@ export const workScheduleSchema = z.object({
     .max(24, "Máximo de 24 horas hora diárias"),
   weeklyHours: z
     .number()
+    .int("Informe um número inteiro de horas")
     .min(1, "Mínimo de 1 hora semanal")
     .max(168, "Máximo de 168 horas semanais"),
 });
 
 export const salarySchema = z.object({
-  baseSalary: z.number().min(0, "Salário deve ser positivo"),
-  monthlyHours: z.number().min(1, "Mínimo de 1 hora").max(744, "Máximo de 744 horas"),
+  baseSalary: z
+    .number()
+    .finite("Informe um salário válido")
+    .min(0, "Salário deve ser positivo")
+    .max(999999999.99, "Informe um salário válido"),
+  monthlyHours: z
+    .number()
+    .int("Informe um número inteiro de horas")
+    .min(1, "Mínimo de 1 hora")
+    .max(744, "Máximo de 744 horas"),
+});
+
+export const profileSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, "Informe seu nome completo")
+    .max(120, "O nome deve ter no máximo 120 caracteres"),
+  phone: z
+    .string()
+    .trim()
+    .max(30, "O telefone deve ter no máximo 30 caracteres")
+    .regex(/^[0-9+().\s-]*$/, "Use apenas números e os símbolos + ( ) . -")
+    .optional()
+    .or(z.literal("")),
 });
 
 export type WorkScheduleFormData = z.infer<typeof workScheduleSchema>;
 export type SalaryFormData = z.infer<typeof salarySchema>;
+export type ProfileFormData = z.infer<typeof profileSchema>;

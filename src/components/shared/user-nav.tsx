@@ -12,14 +12,15 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { Avatar, AvatarFallback } from "../ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 interface UserNavProps {
   name: string;
   email: string;
+  avatarUrl?: string | null;
 }
 
-export function UserNav({ name, email }: UserNavProps) {
+export function UserNav({ name, email, avatarUrl }: UserNavProps) {
   const router = useRouter();
 
   async function handleLogaut() {
@@ -45,6 +46,7 @@ export function UserNav({ name, email }: UserNavProps) {
           className="relative h-9 w-9 shrink-0 rounded-full"
         >
           <Avatar className="h-9 w-9">
+            {avatarUrl && <AvatarImage src={avatarUrl} alt={`Foto de ${name}`} />}
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
         </Button>

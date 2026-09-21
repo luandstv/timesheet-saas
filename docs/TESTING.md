@@ -16,7 +16,7 @@ dependência de transformação.
 
 ## Cobertura atual
 
-Os testes em `tests/` cobrem 50 cenários:
+Os testes em `tests/` cobrem 61 cenários:
 
 - normalização de datas civis no fuso brasileiro;
 - intervalos inclusivos para colunas SQL `DATE`;
@@ -45,6 +45,8 @@ Os testes em `tests/` cobrem 50 cenários:
 - projeção de correções, inclusões, exclusões, ajustes provisórios e
   preservação dos movimentos originais;
 - validação de sobreposição, sequência, futuro e saídas em outra jornada.
+- classificação de pontos regulares, de sobreaviso e acionamentos emergenciais;
+- regras de 15h/24h do calendário de sobreaviso.
 
 Os testes são unitários e não acessam PostgreSQL, Supabase ou o navegador.
 Isso mantém a execução rápida e determinística.
@@ -74,6 +76,8 @@ Para aumentar a confiança da aplicação, os próximos testes devem cobrir:
 - fluxo de atualização de configurações;
 - integração das Server Actions com Prisma usando banco de teste;
 - fluxos E2E com Playwright para login, entrada, saída e relatórios.
+- fluxo E2E de confirmação e recuperação de senha;
+- fluxo E2E de registro e aprovação de ausência.
 
 Server Components assíncronos devem ser verificados preferencialmente por
 testes E2E, pois não são totalmente suportados pelos runners de unidade.

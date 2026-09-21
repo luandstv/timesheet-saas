@@ -3,6 +3,7 @@ import {
   ChartNoAxesCombined,
   ClipboardCheck,
   Clock3,
+  FileClock,
   Coins,
   LayoutDashboard,
   Settings2,
@@ -27,6 +28,12 @@ export const appNavigation = [
     shortTitle: "Sobreaviso",
     href: "/on-call",
     icon: CalendarDays,
+  },
+  {
+    title: "Ausências",
+    shortTitle: "Ausências",
+    href: "/absences",
+    icon: FileClock,
   },
   {
     title: "Relatórios",

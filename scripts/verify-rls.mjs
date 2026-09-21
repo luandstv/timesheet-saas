@@ -21,6 +21,7 @@ const protectedTables = [
   "adjustment_requests",
   "monthly_closures",
   "workspace_audit",
+  "user_notifications",
 ];
 
 const client = new Client({ connectionString: process.env.DIRECT_URL });

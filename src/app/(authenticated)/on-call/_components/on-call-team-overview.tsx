@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import type { OnCallTeamDay } from "@/services/on-call.service";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 function formatDay(date: string) {
   return DateTime.fromISO(date, { zone: TIMEZONE })
@@ -24,6 +25,15 @@ function formatDayLong(date: string) {
     .setLocale("pt-BR")
     .toFormat("cccc, dd 'de' LLLL")
     .replace(/^./, (value) => value.toUpperCase());
+}
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 }
 
 export function OnCallTeamOverview({
@@ -121,8 +131,16 @@ export function OnCallTeamOverview({
                       key={person.userId}
                       href={`/on-call/profile/${encodeURIComponent(person.userId)}?month=${monthKey}`}
                       onClick={(event) => event.stopPropagation()}
-                      className="max-w-full truncate rounded-md bg-primary/12 px-2 py-1 text-xs font-medium text-primary"
+                      className="flex max-w-full items-center gap-1.5 truncate rounded-md bg-primary/12 px-2 py-1 text-xs font-medium text-primary"
                     >
+                      <Avatar size="sm" className="size-5">
+                        {person.avatarUrl && (
+                          <AvatarImage src={person.avatarUrl} alt="" />
+                        )}
+                        <AvatarFallback className="bg-primary/15 text-[9px] text-primary">
+                          {initials(person.name)}
+                        </AvatarFallback>
+                      </Avatar>
                       {person.name}
                     </Link>
                   ))}
@@ -161,11 +179,21 @@ export function OnCallTeamOverview({
                   href={`/on-call/profile/${encodeURIComponent(person.userId)}?month=${monthKey}`}
                   className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-background/45 px-3 py-2.5"
                 >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{person.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {person.email}
-                    </p>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <Avatar className="size-8">
+                      {person.avatarUrl && (
+                        <AvatarImage src={person.avatarUrl} alt="" />
+                      )}
+                      <AvatarFallback className="bg-primary/15 text-xs text-primary">
+                        {initials(person.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{person.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {person.email}
+                      </p>
+                    </div>
                   </div>
                   <Badge variant="outline" className="shrink-0 text-xs">
                     {formatMinutesToHours(person.totalOnCallMinutes)}

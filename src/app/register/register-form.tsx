@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 
 export function RegisterForm() {
   const [serverError, setServerError] = useState<string | null>(null);
+  const [serverMessage, setServerMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -24,6 +25,7 @@ export function RegisterForm() {
   async function onSubmit(data: RegisterFormData) {
     setIsLoading(true);
     setServerError(null);
+    setServerMessage(null);
 
     const result = await registerAction({
       name: data.name,
@@ -33,6 +35,9 @@ export function RegisterForm() {
 
     if (result?.error) {
       setServerError(result.error);
+      setIsLoading(false);
+    } else if (result?.message) {
+      setServerMessage(result.message);
       setIsLoading(false);
     }
   }
@@ -96,6 +101,11 @@ export function RegisterForm() {
       </div>
 
       {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+      {serverMessage && (
+        <p role="status" className="text-sm text-muted-foreground">
+          {serverMessage}
+        </p>
+      )}
 
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? "Criando conta..." : "Criar conta"}

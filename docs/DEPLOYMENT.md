@@ -10,12 +10,13 @@ Em ambiente CI, o pnpm usa o lockfile congelado. Localmente, use
 
 Configure as seguintes variáveis nos ambientes em que a aplicação será executada:
 
-| Variável                        | Uso                                                      |
-| ------------------------------- | -------------------------------------------------------- |
-| `DATABASE_URL`                  | Conexão PostgreSQL usada pela aplicação, pelo pooler     |
-| `DIRECT_URL`                    | Conexão usada pela configuração Prisma e pelas migrações |
-| `NEXT_PUBLIC_SUPABASE_URL`      | URL do projeto Supabase Auth                             |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Chave pública do mesmo projeto Supabase                  |
+| Variável                        | Uso                                                         |
+| ------------------------------- | ----------------------------------------------------------- |
+| `DATABASE_URL`                  | Conexão PostgreSQL usada pela aplicação, pelo pooler        |
+| `DIRECT_URL`                    | Conexão usada pela configuração Prisma e pelas migrações    |
+| `NEXT_PUBLIC_SUPABASE_URL`      | URL do projeto Supabase Auth                                |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Chave pública do mesmo projeto Supabase                     |
+| `NEXT_PUBLIC_SITE_URL`          | Origem pública usada nos links de confirmação e recuperação |
 
 Preview deve apontar preferencialmente para um banco e projeto Auth de testes.
 Durante o desenvolvimento atual, Preview e Production compartilham os mesmos
@@ -69,9 +70,14 @@ a publicação for concluída.
 ## 3. Fluxos com conta de teste
 
 - Sem sessão, abrir dashboard e confirmar o redirecionamento para login.
+- Abrir “Esqueci minha senha”, solicitar a recuperação e confirmar o callback
+  configurado no Supabase; o link deve abrir `/reset-password` somente com sessão
+  válida.
 - Entrar com uma conta de teste confirmada e carregar dashboard, ponto e relatórios.
 - Registrar entrada, recarregar a página e verificar que oferece saída.
 - Registrar saída e conferir o par e os minutos na mesma jornada nos relatórios.
+- Registrar uma ausência futura como colaborador, aprovar/rejeitar como gestor e
+  confirmar a notificação recebida pela pessoa solicitante.
 - Abrir uma conta com entrada de ontem pendente: deve oferecer saída e mostrar
   a data anterior. Ao fechar, o timestamp deve ser atual, o movimento deve
   aparecer em “Registros de hoje” e os totais devem ficar na jornada original.

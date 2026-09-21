@@ -1,19 +1,31 @@
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, Clock3, Mail, UserRound } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  Clock3,
+  ContactRound,
+  Mail,
+  Phone,
+  UserRound,
+} from "lucide-react";
 import { DateTime } from "luxon";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMinutesToHours } from "@/lib/format";
 import { TIMEZONE } from "@/lib/constants";
 import type { OnCallDay } from "@/services/on-call.service";
+import { ProfileAvatarForm } from "@/app/(authenticated)/profile/_components/profile-avatar-form";
 
 export type PersonProfileData = {
   id: string;
   name: string;
   email: string;
+  phone: string | null;
+  avatarUrl: string | null;
   role: "OWNER" | "MANAGER" | "COLLABORATOR";
   dailyHours: number;
   weeklyHours: number;
@@ -88,11 +100,22 @@ export function PersonProfile({
       </Button>
 
       <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:p-7">
-        <Avatar size="lg" className="size-16 bg-primary/15 text-primary">
-          <AvatarFallback className="bg-primary/15 text-lg font-semibold text-primary">
-            {initials(profile.name)}
-          </AvatarFallback>
-        </Avatar>
+        {isOwn ? (
+          <ProfileAvatarForm
+            userId={profile.id}
+            name={profile.name}
+            avatarUrl={profile.avatarUrl}
+          />
+        ) : (
+          <Avatar size="lg" className="size-16 bg-primary/15 text-primary">
+            {profile.avatarUrl && (
+              <AvatarImage src={profile.avatarUrl} alt={`Foto de ${profile.name}`} />
+            )}
+            <AvatarFallback className="bg-primary/15 text-lg font-semibold text-primary">
+              {initials(profile.name)}
+            </AvatarFallback>
+          </Avatar>
+        )}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-semibold tracking-tight">{profile.name}</h1>
@@ -104,6 +127,12 @@ export function PersonProfile({
             <Mail className="size-4 shrink-0" aria-hidden="true" />
             {profile.email}
           </p>
+          {profile.phone && (
+            <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+              <Phone className="size-4 shrink-0" aria-hidden="true" />
+              {profile.phone}
+            </p>
+          )}
           <p className="mt-1 text-sm text-muted-foreground">{profile.workspaceName}</p>
         </div>
         {isOwn && (
@@ -136,6 +165,29 @@ export function PersonProfile({
         </Card>
 
         <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ContactRound className="size-4 text-primary" aria-hidden="true" />
+              Contatos
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <ContactLine
+              icon={<Mail className="size-4" aria-hidden="true" />}
+              label="E-mail"
+              value={profile.email}
+              href={`mailto:${profile.email}`}
+            />
+            <ContactLine
+              icon={<Phone className="size-4" aria-hidden="true" />}
+              label="Telefone"
+              value={profile.phone ?? "Não informado"}
+              href={profile.phone ? `tel:${profile.phone}` : undefined}
+            />
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Clock3 className="size-4 text-primary" aria-hidden="true" />
@@ -218,5 +270,38 @@ function ProfileLine({ label, value }: { label: string; value: string }) {
       <span className="text-muted-foreground">{label}</span>
       <span className="text-right font-medium">{value}</span>
     </div>
+  );
+}
+
+function ContactLine({
+  icon,
+  label,
+  value,
+  href,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  href?: string;
+}) {
+  const content = (
+    <>
+      <span className="flex items-center gap-2 text-muted-foreground">
+        {icon}
+        {label}
+      </span>
+      <span className="max-w-[70%] truncate text-right font-medium">{value}</span>
+    </>
+  );
+
+  return href ? (
+    <a
+      href={href}
+      className="flex items-center justify-between gap-4 rounded-lg border border-transparent py-1 transition-colors hover:border-border hover:bg-muted/40"
+    >
+      {content}
+    </a>
+  ) : (
+    <div className="flex items-center justify-between gap-4 py-1">{content}</div>
   );
 }
