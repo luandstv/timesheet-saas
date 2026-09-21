@@ -70,9 +70,14 @@ a publicação for concluída.
 ## 3. Fluxos com conta de teste
 
 - Sem sessão, abrir dashboard e confirmar o redirecionamento para login.
+- Abrir “Esqueci minha senha”, solicitar a recuperação e confirmar o callback
+  configurado no Supabase; o link deve abrir `/reset-password` somente com sessão
+  válida.
 - Entrar com uma conta de teste confirmada e carregar dashboard, ponto e relatórios.
 - Registrar entrada, recarregar a página e verificar que oferece saída.
 - Registrar saída e conferir o par e os minutos na mesma jornada nos relatórios.
+- Registrar uma ausência futura como colaborador, aprovar/rejeitar como gestor e
+  confirmar a notificação recebida pela pessoa solicitante.
 - Abrir uma conta com entrada de ontem pendente: deve oferecer saída e mostrar
   a data anterior. Ao fechar, o timestamp deve ser atual, o movimento deve
   aparecer em “Registros de hoje” e os totais devem ficar na jornada original.

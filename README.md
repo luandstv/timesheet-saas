@@ -18,7 +18,9 @@ acompanhamento de horas trabalhadas. O produto usa o horário civil de
   semana e feriados são apurados integralmente como 100%.
 - Relatórios por intervalo com resumo e detalhamento diário.
 - Relatórios por pessoa e equipe, com filtros por dia e exportação CSV compatível
-  com Excel.
+  com Excel, incluindo o tempo e a quantidade de acionamentos registrados.
+- Registro de ausências com períodos futuros, prevenção de sobreposição, aprovação
+  por responsável e notificações da decisão.
 - Configuração de jornada, carga semanal e dados salariais.
 - Calendário de sobreaviso com regra padrão de 15h em dias úteis e 24h em fins de
   semana/feriados, incluindo exceção manual de feriado.
@@ -35,6 +37,8 @@ acompanhamento de horas trabalhadas. O produto usa o horário civil de
   esquecimento.
 - Fechamento mensal por pessoa e espaço, reabertura justificada e histórico de
   auditoria.
+- Recuperação de senha por e-mail com callback PKCE do Supabase e troca de senha
+  em sessão de recuperação.
 
 ### Pendências conhecidas
 
@@ -43,8 +47,9 @@ acompanhamento de horas trabalhadas. O produto usa o horário civil de
 - A fórmula do DSR precisa passar por validação contábil e parametrização legal
   antes de ser usada como folha oficial.
 - Exportação PDF e envio por email ainda não fazem parte do primeiro formato de
-  exportação (CSV).
-- O painel de notificações ainda está reservado para uma próxima integração.
+  exportação (CSV/Excel compatível).
+- O XLSX nativo, envio de relatórios por e-mail, férias recorrentes e períodos
+  parciais de sobreaviso continuam no roadmap.
 - O workflow de CI está preparado em `.github/workflows/ci.yml` e a conexão
   GitHub → Vercel está confirmada. Falta enviar o workflow e validar a primeira
   execução da CI e o primeiro deploy automático.
@@ -76,6 +81,7 @@ As pendências visuais e de produto estão detalhadas em
 | `/reports`      | Relatórios consolidados por período                 |
 | `/settings`     | Jornada, carga horária e salário                    |
 | `/on-call`      | Calendário de disponibilidade de sobreaviso         |
+| `/absences`     | Registro e revisão de ausências                     |
 | `/compensation` | Estimativa privada de remuneração do período        |
 | `/workspaces`   | Espaços, equipe, convites e permissões              |
 | `/adjustments`  | Ajustes de movimentos, decisões e fechamento mensal |
