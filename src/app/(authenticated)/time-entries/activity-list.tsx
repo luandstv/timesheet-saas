@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderCircle, Pencil, Save, Trash2, X } from "lucide-react";
+import { AlertCircle, LoaderCircle, Pencil, Save, Trash2, X } from "lucide-react";
 import { useState } from "react";
 
 import { updateActivity, removeActivity } from "./actions";
@@ -274,7 +274,15 @@ export function ActivityList({
           </div>
         );
       })}
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && (
+        <p
+          className="inline-flex items-center gap-2 rounded-md border border-destructive/50 bg-destructive/10 px-2.5 py-2 text-xs font-medium text-destructive"
+          role="alert"
+        >
+          <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
+          {error}
+        </p>
+      )}
     </div>
   );
 }

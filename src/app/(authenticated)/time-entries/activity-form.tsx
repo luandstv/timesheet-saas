@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderCircle, Plus } from "lucide-react";
+import { AlertCircle, CheckCircle2, LoaderCircle, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -122,15 +122,25 @@ export function ActivityForm({
         </div>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div
-          className="space-y-1 text-xs text-muted-foreground"
-          role="status"
-          aria-live="polite"
-        >
-          <p>
+        <div className="space-y-2 text-xs" aria-live="polite">
+          <p className="text-muted-foreground">
             O horário é opcional. Sem horário, o registro fica associado somente ao dia.
           </p>
-          {(success || error) && <p>{success ? "Atividade registrada." : error}</p>}
+          {error && (
+            <p
+              className="inline-flex items-center gap-2 rounded-md border border-destructive/50 bg-destructive/10 px-2.5 py-2 font-medium text-destructive"
+              role="alert"
+            >
+              <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
+              {error}
+            </p>
+          )}
+          {success && !error && (
+            <p className="inline-flex items-center gap-2 font-medium text-emerald-400">
+              <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
+              Atividade registrada.
+            </p>
+          )}
         </div>
         <Button type="submit" disabled={pending}>
           {pending ? <LoaderCircle className="motion-safe:animate-spin" /> : <Plus />}
