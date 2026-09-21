@@ -143,6 +143,71 @@ export class ActivityService {
     );
   }
 
+  static async update(
+    actorId: string,
+    workspaceId: string,
+    activityId: string,
+    input: ActivityInput,
+  ) {
+    const validated = validateInput(input);
+
+    return prisma.$transaction(
+      async (tx) => {
+        await requireMember(tx, workspaceId, actorId, true);
+        const activity = await tx.activity.findFirst({
+          where: { id: activityId, userId: actorId, workspaceId },
+        });
+        if (!activity) throw new Error("Atividade não encontrada neste espaço.");
+
+        await assertMonthOpen(tx, workspaceId, actorId, activity.startTime);
+        await assertMonthOpen(
+          tx,
+          workspaceId,
+          actorId,
+          validated.activityDate.toJSDate(),
+        );
+
+        let timeSheetId: string | null = null;
+        if (validated.end) {
+          const timeSheet = await TimeEntryService.getOrCreateTimeSheet(
+            actorId,
+            validated.start,
+            tx,
+            workspaceId,
+          );
+          if (timeSheet.status !== "OPEN") {
+            throw new Error("Esta jornada está fechada para novos acionamentos.");
+          }
+          timeSheetId = timeSheet.id;
+        } else if (activity.timeSheetId) {
+          const timeSheet = await tx.timesheet.findUnique({
+            where: { id: activity.timeSheetId },
+            select: { status: true },
+          });
+          if (timeSheet?.status !== "OPEN") {
+            throw new Error("Esta jornada está fechada para alterações.");
+          }
+        }
+
+        return tx.activity.update({
+          where: { id: activity.id },
+          data: {
+            timesheet: timeSheetId
+              ? { connect: { id: timeSheetId } }
+              : { disconnect: true },
+            description: validated.description,
+            incidentCode: validated.incidentCode,
+            startTime: validated.start.toJSDate(),
+            endTime: validated.end?.toJSDate() ?? null,
+            durationMinutes: validated.durationMinutes,
+            period: validated.period,
+          },
+        });
+      },
+      { maxWait: 10000, timeout: 30000 },
+    );
+  }
+
   static async listDay(userId: string, workspaceId: string, date: DateTime) {
     const localDate = date.setZone(TIMEZONE);
     const day = localDate.startOf("day").toJSDate();

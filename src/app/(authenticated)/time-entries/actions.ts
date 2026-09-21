@@ -15,6 +15,7 @@ const activitySchema = z.object({
 });
 
 const requestIdSchema = z.string().uuid();
+const activityIdSchema = z.string().uuid();
 
 export async function clockIn(requestId: string, workspaceId: string) {
   const user = await getAuthenticatedUser();
@@ -97,6 +98,42 @@ export async function removeActivity(
         error instanceof Error
           ? error.message
           : "Não foi possível remover a atividade.",
+    };
+  }
+}
+
+export async function updateActivity(input: unknown): Promise<ActivityActionResult> {
+  const parsed = activitySchema
+    .extend({ activityId: activityIdSchema })
+    .safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: "Confira a descrição, a data e os horários da atividade.",
+    };
+  }
+
+  try {
+    const user = await getAuthenticatedUser();
+    const { getWorkspaceContext } = await import("@/lib/workspace-context");
+    const { workspace } = await getWorkspaceContext();
+    await ActivityService.update(
+      user.id,
+      workspace.id,
+      parsed.data.activityId,
+      parsed.data,
+    );
+    revalidatePath("/time-entries");
+    revalidatePath("/dashboard");
+    revalidatePath("/reports");
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Não foi possível atualizar a atividade.",
     };
   }
 }

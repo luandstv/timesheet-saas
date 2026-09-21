@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { ClockCard } from "@/components/shared/clock-card";
 import { TimeEntriesList } from "@/components/shared/time-entries-list";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,10 +10,7 @@ import { DashboardService } from "@/services/dashboard.service";
 import { TimeEntryService } from "@/services/time-entry.service";
 import { DateTime } from "luxon";
 import { Badge } from "@/components/ui/badge";
-import { ActivityForm } from "./activity-form";
-import { ActivityList } from "./activity-list";
-import { ActivityService } from "@/services/activity.service";
-import { ActivityDateFilter } from "./activity-date-filter";
+import { ActivitySection, ActivitySectionSkeleton } from "./activity-section";
 
 type TimeEntriesPageProps = {
   searchParams?: Promise<{ activityDate?: string }>;
@@ -32,14 +30,12 @@ export default async function TimeEntriesPage({ searchParams }: TimeEntriesPageP
     /^\d{4}-\d{2}-\d{2}$/.test(requestedActivityDate ?? "")
       ? parsedActivityDate
       : now.startOf("day");
-  const activityDateValue = selectedActivityDate.toFormat("yyyy-MM-dd");
   const activityDateLabel = selectedActivityDate.toFormat("dd/MM/yyyy");
 
-  const [entries, clockState, todaySummary, activities] = await Promise.all([
+  const [entries, clockState, todaySummary] = await Promise.all([
     TimeEntryService.getTodayMovements(user.id, workspace.id),
     TimeEntryService.getClockState(user.id),
     DashboardService.getTodaySummary(user.id, workspace.id),
-    ActivityService.listDay(user.id, workspace.id, selectedActivityDate),
   ]);
   const clock = buildClockPresentation(clockState, now);
   const fullDateString = now.toFormat("cccc, dd 'de' LLLL 'de' yyyy", {
@@ -142,27 +138,14 @@ export default async function TimeEntriesPage({ searchParams }: TimeEntriesPageP
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <CardTitle className="text-lg">Atividades e acionamentos</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Registre várias atividades por dia, com horário opcional, para facilitar
-                a conferência posterior.
-              </p>
-            </div>
-            <ActivityDateFilter value={activityDateValue} />
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <ActivityForm key={activityDateValue} initialDate={activityDateValue} />
-          <p className="text-sm font-medium text-muted-foreground">
-            Registros de {activityDateLabel}
-          </p>
-          <ActivityList activities={activities} />
-        </CardContent>
-      </Card>
+      <Suspense fallback={<ActivitySectionSkeleton dateLabel={activityDateLabel} />}>
+        <ActivitySection
+          userId={user.id}
+          workspaceId={workspace.id}
+          date={selectedActivityDate}
+          dateLabel={activityDateLabel}
+        />
+      </Suspense>
     </div>
   );
 }
