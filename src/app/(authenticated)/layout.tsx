@@ -46,7 +46,7 @@ export default async function AuthenticatedLayout({
       })
     : 0;
   const notifications = await prisma.userNotification.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, workspaceId: workspace.id },
     orderBy: { createdAt: "desc" },
     take: 20,
     select: {
@@ -55,6 +55,7 @@ export default async function AuthenticatedLayout({
       message: true,
       href: true,
       createdAt: true,
+      readAt: true,
     },
   });
   const avatarUrl = await resolveAvatarUrl(user.avatarPath);

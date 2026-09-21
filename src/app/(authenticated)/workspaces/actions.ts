@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getAuthenticatedUser } from "@/lib/auth";
+import { getWorkspaceContext } from "@/lib/workspace-context";
 import { WorkspaceService, requireMember } from "@/services/workspace.service";
 import { AdjustmentService } from "@/services/adjustment.service";
 import prisma from "@/lib/prisma";
@@ -111,7 +112,12 @@ export async function workspaceAction(
         select = input.workspaceId;
         break;
       case "clearNotifications":
-        await prisma.userNotification.deleteMany({ where: { userId: user.id } });
+        {
+          const { workspace } = await getWorkspaceContext();
+          await prisma.userNotification.deleteMany({
+            where: { userId: user.id, workspaceId: workspace.id },
+          });
+        }
         break;
       case "create":
         select = (await WorkspaceService.createCompany(user.id, input.name)).id;
