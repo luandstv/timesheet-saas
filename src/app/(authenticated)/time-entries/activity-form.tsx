@@ -1,6 +1,7 @@
 "use client";
 
 import { LoaderCircle, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { createActivity } from "./actions";
@@ -13,7 +14,14 @@ function localDateValue(date: Date) {
   return new Date(date.getTime() - offset).toISOString().slice(0, 10);
 }
 
-export function ActivityForm({ initialDate }: { initialDate: string }) {
+export function ActivityForm({
+  initialDate,
+  onSaved,
+}: {
+  initialDate: string;
+  onSaved?: () => void;
+}) {
+  const router = useRouter();
   const now = new Date();
   const [description, setDescription] = useState("");
   const [incidentCode, setIncidentCode] = useState("");
@@ -44,6 +52,8 @@ export function ActivityForm({ initialDate }: { initialDate: string }) {
       setStartTime("");
       setEndTime("");
       setSuccess(true);
+      onSaved?.();
+      if (!onSaved) router.refresh();
     } else {
       setError(result.error ?? "Não foi possível salvar a atividade.");
     }

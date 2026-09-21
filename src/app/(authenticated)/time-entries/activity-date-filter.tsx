@@ -7,13 +7,20 @@ import { useTransition } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function ActivityDateFilter({ value }: { value: string }) {
+export function ActivityDateFilter({
+  value,
+  onNavigate,
+}: {
+  value: string;
+  onNavigate?: () => void;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
 
   function handleChange(nextValue: string) {
-    if (!nextValue) return;
+    if (!nextValue || nextValue === value) return;
+    onNavigate?.();
     startTransition(() => {
       router.replace(`${pathname}?activityDate=${encodeURIComponent(nextValue)}`, {
         scroll: false,

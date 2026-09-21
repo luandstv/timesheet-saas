@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatMinutesToHours } from "@/lib/format";
 
-type Activity = {
+export type Activity = {
   id: string;
   description: string;
   incidentCode: string | null;
@@ -58,7 +58,13 @@ function draftFor(activity: Activity): ActivityDraft {
   };
 }
 
-export function ActivityList({ activities }: { activities: Activity[] }) {
+export function ActivityList({
+  activities,
+  onChanged,
+}: {
+  activities: Activity[];
+  onChanged?: () => void;
+}) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<ActivityDraft | null>(null);
@@ -86,6 +92,7 @@ export function ActivityList({ activities }: { activities: Activity[] }) {
     if (result.success) {
       setEditingId(null);
       setDraft(null);
+      onChanged?.();
     } else {
       setError(result.error ?? "Não foi possível atualizar a atividade.");
     }
@@ -97,8 +104,11 @@ export function ActivityList({ activities }: { activities: Activity[] }) {
     setPendingId(id);
     setError(null);
     const result = await removeActivity(id);
-    if (!result.success)
+    if (result.success) {
+      onChanged?.();
+    } else {
       setError(result.error ?? "Não foi possível remover a atividade.");
+    }
     setPendingId(null);
   }
 

@@ -1,8 +1,6 @@
 import { ActivityService } from "@/services/activity.service";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ActivityDateFilter } from "./activity-date-filter";
-import { ActivityForm } from "./activity-form";
-import { ActivityList } from "./activity-list";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ActivitySectionClient } from "./activity-section-client";
 
 export async function ActivitySection({
   userId,
@@ -19,27 +17,12 @@ export async function ActivitySection({
   const dateValue = date.toFormat("yyyy-MM-dd");
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <CardTitle className="text-lg">Atividades e acionamentos</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Registre várias atividades por dia, com horário opcional, para facilitar a
-              conferência posterior.
-            </p>
-          </div>
-          <ActivityDateFilter value={dateValue} />
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <ActivityForm key={dateValue} initialDate={dateValue} />
-        <p className="text-sm font-medium text-muted-foreground">
-          Registros de {dateLabel}
-        </p>
-        <ActivityList activities={activities} />
-      </CardContent>
-    </Card>
+    <ActivitySectionClient
+      key={dateValue}
+      activities={activities}
+      dateValue={dateValue}
+      dateLabel={dateLabel}
+    />
   );
 }
 
