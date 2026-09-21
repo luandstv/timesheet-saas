@@ -8,6 +8,7 @@ import { getWorkspaceContext } from "@/lib/workspace-context";
 import { WorkspaceService, requireMember } from "@/services/workspace.service";
 import { AdjustmentService } from "@/services/adjustment.service";
 import prisma from "@/lib/prisma";
+import { AbsenceService } from "@/services/absence.service";
 
 const id = z.string().uuid();
 const text = z
@@ -84,6 +85,32 @@ const schema = z.discriminatedUnion("operation", [
     month: z.string().regex(/^\d{4}-\d{2}$/),
     reopen: checkbox,
     reason: z.string().trim().max(2000),
+  }),
+  z.object({
+    operation: z.literal("absenceCreate"),
+    workspaceId: id,
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    type: z.enum([
+      "MEDICAL_LEAVE",
+      "VACATION",
+      "COMPENSATORY_OFF",
+      "DAY_OFF",
+      "JUSTIFIED_ABSENCE",
+      "UNJUSTIFIED_ABSENCE",
+      "BEREAVEMENT",
+      "MATERNITY",
+      "PATERNITY",
+      "OTHER",
+    ]),
+    reason: z.string().trim().min(3).max(1000),
+  }),
+  z.object({
+    operation: z.literal("absenceDecide"),
+    workspaceId: id,
+    absenceId: id,
+    decision: z.enum(["APPROVED", "REJECTED"]),
+    reason: z.string().trim().min(3).max(1000),
   }),
 ]);
 
@@ -201,6 +228,18 @@ export async function workspaceAction(
           input.reason,
         );
         break;
+      case "absenceCreate":
+        await AbsenceService.create(user.id, input.workspaceId, input);
+        break;
+      case "absenceDecide":
+        await AbsenceService.decide(
+          user.id,
+          input.workspaceId,
+          input.absenceId,
+          input.decision,
+          input.reason,
+        );
+        break;
     }
     if (select)
       (await cookies()).set("jornix-workspace", select, {
@@ -213,9 +252,12 @@ export async function workspaceAction(
     if (
       input.operation === "request" ||
       input.operation === "decide" ||
-      input.operation === "month"
+      input.operation === "month" ||
+      input.operation === "absenceCreate" ||
+      input.operation === "absenceDecide"
     ) {
       revalidatePath("/adjustments");
+      revalidatePath("/absences");
     }
     revalidatePath("/", "layout");
     return {
