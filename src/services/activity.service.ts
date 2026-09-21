@@ -127,9 +127,9 @@ export class ActivityService {
 
         return tx.activity.create({
           data: {
-            userId: actorId,
-            workspaceId,
-            timeSheetId,
+            user: { connect: { id: actorId } },
+            workspace: { connect: { id: workspaceId } },
+            timesheet: timeSheetId ? { connect: { id: timeSheetId } } : undefined,
             description: validated.description,
             incidentCode: validated.incidentCode,
             startTime: validated.start.toJSDate(),
