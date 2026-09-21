@@ -10,12 +10,13 @@ Em ambiente CI, o pnpm usa o lockfile congelado. Localmente, use
 
 Configure as seguintes variáveis nos ambientes em que a aplicação será executada:
 
-| Variável                        | Uso                                                      |
-| ------------------------------- | -------------------------------------------------------- |
-| `DATABASE_URL`                  | Conexão PostgreSQL usada pela aplicação, pelo pooler     |
-| `DIRECT_URL`                    | Conexão usada pela configuração Prisma e pelas migrações |
-| `NEXT_PUBLIC_SUPABASE_URL`      | URL do projeto Supabase Auth                             |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Chave pública do mesmo projeto Supabase                  |
+| Variável                        | Uso                                                         |
+| ------------------------------- | ----------------------------------------------------------- |
+| `DATABASE_URL`                  | Conexão PostgreSQL usada pela aplicação, pelo pooler        |
+| `DIRECT_URL`                    | Conexão usada pela configuração Prisma e pelas migrações    |
+| `NEXT_PUBLIC_SUPABASE_URL`      | URL do projeto Supabase Auth                                |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Chave pública do mesmo projeto Supabase                     |
+| `NEXT_PUBLIC_SITE_URL`          | Origem pública usada nos links de confirmação e recuperação |
 
 Preview deve apontar preferencialmente para um banco e projeto Auth de testes.
 Durante o desenvolvimento atual, Preview e Production compartilham os mesmos

@@ -2,6 +2,7 @@
 
 import { LoginFormData, loginSchema } from "@/schemas/auth.schema";
 import { useState } from "react";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { login } from "./actions";
@@ -47,6 +48,12 @@ export function LoginForm() {
         {errors.email && (
           <p className="text-sm text-destructive">{errors.email.message}</p>
         )}
+      </div>
+
+      <div className="-mt-1 text-right">
+        <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+          Esqueci minha senha
+        </Link>
       </div>
 
       <div className="space-y-2">
