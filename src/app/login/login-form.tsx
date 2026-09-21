@@ -50,12 +50,6 @@ export function LoginForm() {
         )}
       </div>
 
-      <div className="-mt-1 text-right">
-        <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-          Esqueci minha senha
-        </Link>
-      </div>
-
       <div className="space-y-2">
         <Label htmlFor="login-password">Senha</Label>
         <Input
@@ -75,6 +69,15 @@ export function LoginForm() {
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? "Entrando..." : "Entrar"}
       </Button>
+
+      <p className="-mt-1 text-center text-sm">
+        <Link
+          href="/forgot-password"
+          className="font-medium text-primary hover:text-primary/80 hover:underline"
+        >
+          Esqueci minha senha
+        </Link>
+      </p>
     </form>
   );
 }
