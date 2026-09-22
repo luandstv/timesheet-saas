@@ -12,7 +12,38 @@ import {
 import { formatMinutesToHours } from "@/lib/format";
 import type { HoursBudgetOverview } from "@/services/hours-budget.service";
 
-export function TeamHoursSummary({ overview }: { overview: HoursBudgetOverview }) {
+export function TeamHoursSummary({
+  overview,
+  canManage,
+}: {
+  overview: HoursBudgetOverview | null;
+  canManage: boolean;
+}) {
+  if (!overview) {
+    return (
+      <Card className="border-primary/30 bg-primary/5">
+        <CardHeader className="flex flex-row items-start justify-between gap-4">
+          <div>
+            <CardTitle>Horas contratadas do time</CardTitle>
+            <CardDescription>
+              Ative o controle mensal para acompanhar metas, consumo e excedentes.
+            </CardDescription>
+          </div>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/team-hours">{canManage ? "Configurar" : "Ver controle"}</Link>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            {canManage
+              ? "Informe as horas contratadas na tela do time para começar."
+              : "O owner ou gestor ainda precisa ativar este recurso neste espaço."}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-4">

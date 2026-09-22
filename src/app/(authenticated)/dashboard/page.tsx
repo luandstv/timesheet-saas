@@ -78,6 +78,10 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     workspace.kind === "COMPANY"
       ? await HoursBudgetService.getOverview(user.id, workspace.id)
       : null;
+  const canManageTeamHours =
+    workspace.kind === "COMPANY" &&
+    member.active &&
+    (member.role === "OWNER" || member.role === "MANAGER");
   const model = buildDashboardModel(user, data, context);
   const { header, journey, metrics, activity } = model;
   const { weekStart, weekEnd } = context;
@@ -187,7 +191,9 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         </Card>
       </section>
 
-      {teamHours && <TeamHoursSummary overview={teamHours} />}
+      {workspace.kind === "COMPANY" && (
+        <TeamHoursSummary overview={teamHours} canManage={canManageTeamHours} />
+      )}
 
       <section className="grid gap-4 lg:grid-cols-3">
         <Card size="sm">

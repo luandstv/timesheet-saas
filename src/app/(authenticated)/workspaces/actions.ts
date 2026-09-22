@@ -24,6 +24,8 @@ const role = z.enum(["MANAGER", "COLLABORATOR"]);
 const checkbox = z.preprocess((v) => v === "on" || v === "true", z.boolean());
 const schema = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("switch"), workspaceId: id }),
+  z.object({ operation: z.literal("leave"), workspaceId: id }),
+  z.object({ operation: z.literal("archive"), workspaceId: id }),
   z.object({ operation: z.literal("clearNotifications") }),
   z.object({ operation: z.literal("readNotification"), notificationId: id }),
   z.object({
@@ -145,6 +147,13 @@ export async function workspaceAction(
       case "switch":
         await requireMember(prisma, input.workspaceId, user.id);
         select = input.workspaceId;
+        break;
+      case "leave":
+        select = await WorkspaceService.leave(user.id, input.workspaceId);
+        break;
+      case "archive":
+        select = (await WorkspaceService.archiveCompany(user.id, input.workspaceId))
+          .personalWorkspaceId;
         break;
       case "clearNotifications":
         {

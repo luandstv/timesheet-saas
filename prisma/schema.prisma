@@ -37,6 +37,7 @@ model Workspace {
   personalUserId   String?                @unique @map("personal_user_id") @db.Uuid
   joinCode         String                 @unique @default(uuid()) @map("join_code")
   allowProvisional Boolean                @default(false) @map("allow_provisional")
+  archivedAt       DateTime?              @map("archived_at")
   createdAt        DateTime               @default(now()) @map("created_at")
   members          WorkspaceMember[]
   timesheets       Timesheet[]

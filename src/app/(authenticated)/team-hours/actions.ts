@@ -134,7 +134,12 @@ export async function saveHoursFeatures(input: unknown): Promise<HoursActionResu
   try {
     const { user, workspace } = await context();
     if (workspace.id !== parsed.data.workspaceId) throw new Error("Espaço inválido.");
-    await HoursBudgetService.configureFeatures(user.id, workspace.id, parsed.data);
+    await HoursBudgetService.configureFeatures(user.id, workspace.id, {
+      hoursControlEnabled: parsed.data.hoursControlEnabled,
+      adjustmentsRequireApproval: parsed.data.adjustmentsRequireApproval,
+      hoursNotificationsEnabled: parsed.data.hoursNotificationsEnabled,
+      hoursAlertsEnabled: parsed.data.hoursAlertsEnabled,
+    });
     refreshHours();
     return { ok: true, message: "Recursos atualizados imediatamente." };
   } catch (error) {

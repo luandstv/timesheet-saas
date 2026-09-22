@@ -16,7 +16,7 @@ export async function requireMember(
     where: { workspaceId_userId: { workspaceId, userId } },
     include: { workspace: true },
   });
-  if (!member || (write && !member.active))
+  if (!member || member.workspace.archivedAt || (write && !member.active))
     throw new Error("Você não tem acesso ativo a este espaço.");
   return member;
 }
@@ -112,6 +112,51 @@ async function checkManager(
 }
 
 export class WorkspaceService {
+  static async leave(actorId: string, workspaceId: string) {
+    return prisma.$transaction(
+      async (tx) => {
+        await lockWorkspace(tx, workspaceId);
+        const member = await requireMember(tx, workspaceId, actorId, true);
+        if (member.workspace.kind !== "COMPANY")
+          throw new Error("O espaço pessoal não pode ser desvinculado.");
+        if (member.role === "OWNER")
+          throw new Error("O responsável deve arquivar a empresa em vez de sair.");
+        const { TimeEntryService } = await import("./time-entry.service");
+        const state = await TimeEntryService.getClockState(actorId, tx);
+        if (
+          state.lastEntry?.type === "CLOCK_IN" &&
+          state.lastEntry.timesheet.workspaceId === workspaceId
+        )
+          throw new Error("Encerre ou ajuste o ponto aberto antes de sair da empresa.");
+        await tx.workspaceMember.update({
+          where: { id: member.id },
+          data: { active: false, managerId: null },
+        });
+        await audit(tx, workspaceId, actorId, actorId, "MEMBERSHIP_LEFT", {});
+        const personal = await createPersonalWorkspace(tx, actorId);
+        return personal.id;
+      },
+      { maxWait: 10000, timeout: 30000 },
+    );
+  }
+
+  static async archiveCompany(actorId: string, workspaceId: string) {
+    return prisma.$transaction(
+      async (tx) => {
+        await lockWorkspace(tx, workspaceId);
+        const member = await owner(tx, workspaceId, actorId);
+        await tx.workspace.update({
+          where: { id: workspaceId },
+          data: { archivedAt: new Date() },
+        });
+        await audit(tx, workspaceId, actorId, actorId, "COMPANY_ARCHIVED", {});
+        const personal = await createPersonalWorkspace(tx, actorId);
+        return { workspaceId: member.workspace.id, personalWorkspaceId: personal.id };
+      },
+      { maxWait: 10000, timeout: 30000 },
+    );
+  }
+
   static async createCompany(
     actorId: string,
     name: string,
