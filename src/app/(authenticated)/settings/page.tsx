@@ -1,5 +1,7 @@
 import { getAuthenticatedUser } from "@/lib/auth";
+import { getWorkspaceContext } from "@/lib/workspace-context";
 import prisma from "@/lib/prisma";
+import { HoursBudgetService } from "@/services/hours-budget.service";
 import {
   Card,
   CardContent,
@@ -10,9 +12,11 @@ import {
 import { WorkScheduleForm } from "./work-schedule-form";
 import { SalaryForm } from "./salary-form";
 import { ProfileForm } from "./profile-form";
+import { HoursFeaturesForm } from "./hours-features-form";
 
 export default async function SettingsPage() {
   const user = await getAuthenticatedUser();
+  const { workspace, member } = await getWorkspaceContext();
 
   const salaryConfig = await prisma.userSalaryConfig.findFirst({
     where: { userId: user.id },
@@ -86,6 +90,24 @@ export default async function SettingsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {workspace.kind === "COMPANY" && member.role === "OWNER" && (
+        <Card className="rounded-[22px]">
+          <CardHeader className="p-6 pb-3 sm:p-8 sm:pb-3">
+            <CardTitle>Recursos do espaço</CardTitle>
+            <CardDescription>
+              Controle horas contratadas e defina se ajustes precisam passar por
+              aprovação.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6 pt-3 sm:p-8 sm:pt-3">
+            <HoursFeaturesForm
+              workspaceId={workspace.id}
+              initial={await HoursBudgetService.getFeatures(workspace.id)}
+            />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

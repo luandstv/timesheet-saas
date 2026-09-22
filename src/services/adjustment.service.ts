@@ -18,6 +18,7 @@ import {
   type Database,
 } from "./workspace.service";
 import { TimeEntryService } from "./time-entry.service";
+import { HoursBudgetService } from "./hours-budget.service";
 
 type RequestInput = {
   date: string;
@@ -136,8 +137,11 @@ export class AdjustmentService {
           throw new Error(
             "Este movimento já tem uma solicitação pendente. Cancele-a antes de enviar outra.",
           );
+        const autoApproved =
+          member.workspace.kind !== "COMPANY" ||
+          !member.workspace.adjustmentsRequireApproval;
         const provisional =
-          member.workspace.kind === "COMPANY" &&
+          !autoApproved &&
           member.workspace.allowProvisional &&
           input.forgotten &&
           input.type === "MODIFICATION";
@@ -153,22 +157,34 @@ export class AdjustmentService {
             reason: input.reason,
             forgotten: input.forgotten,
             provisional,
+            status: autoApproved ? "APPROVED" : "PENDING",
             requestedById: actorId,
+            decidedById: autoApproved ? actorId : undefined,
+            decidedAt: autoApproved ? new Date() : undefined,
           },
         });
-        if (provisional) {
+        if (autoApproved || provisional) {
           await validateTimeSheets(tx, actorId, [sheet.id]);
           await recalculate(tx, sheet.id, actorId);
+          await HoursBudgetService.refreshAlerts(tx, workspaceId, actorId, sheet.date);
         }
-        await audit(tx, workspaceId, actorId, actorId, "ADJUSTMENT_REQUESTED", {
-          requestId: request.id,
-          type: input.type,
-          entryType,
-          reason: input.reason,
-          provisional,
-          original: target?.timestamp.toISOString() ?? null,
-          proposed: request.newTimestamp?.toISOString() ?? null,
-        });
+        await audit(
+          tx,
+          workspaceId,
+          actorId,
+          actorId,
+          autoApproved ? "ADJUSTMENT_APPROVED" : "ADJUSTMENT_REQUESTED",
+          {
+            requestId: request.id,
+            type: input.type,
+            entryType,
+            reason: input.reason,
+            provisional,
+            original: target?.timestamp.toISOString() ?? null,
+            proposed: request.newTimestamp?.toISOString() ?? null,
+            selfConfirmed: autoApproved,
+          },
+        );
         return request;
       },
       { maxWait: 10000, timeout: 60000 },
@@ -236,6 +252,15 @@ export class AdjustmentService {
         );
         for (const id of new Set(requests.map((request) => request.timeSheetId)))
           await recalculate(tx, id, userId);
+        for (const date of new Set(
+          requests.map((request) => request.timesheet.date.toISOString()),
+        ))
+          await HoursBudgetService.refreshAlerts(
+            tx,
+            workspaceId,
+            userId,
+            new Date(date),
+          );
 
         if (actorId !== userId && decision !== "CANCELLED") {
           const firstDate = formatDateOnly(requests[0].timesheet.date);

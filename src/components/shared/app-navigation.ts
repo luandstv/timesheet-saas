@@ -4,6 +4,7 @@ import {
   ClipboardCheck,
   Clock3,
   FileClock,
+  Gauge,
   Coins,
   LayoutDashboard,
   Settings2,
@@ -40,6 +41,12 @@ export const appNavigation = [
     shortTitle: "Relatórios",
     href: "/reports",
     icon: ChartNoAxesCombined,
+  },
+  {
+    title: "Horas do time",
+    shortTitle: "Horas",
+    href: "/team-hours",
+    icon: Gauge,
   },
   {
     title: "Minha remuneração",

@@ -170,6 +170,8 @@ export async function GET(request: Request) {
   }
 
   let lines: string[];
+  let exportHeaders: string[] = [];
+  let exportRows: unknown[][] = [];
   let filename = `jornix-relatorio-${startDate}-${endDate}.csv`;
   if (scope === "team") {
     const members = await prisma.workspaceMember.findMany({
@@ -231,39 +233,35 @@ export async function GET(request: Request) {
       ];
       filename = `${detailFilename}.csv`;
     } else {
-      lines = [
-        [
-          "Pessoa",
-          "Email",
-          "Dias com registros",
-          "Total trabalhado",
-          "Horas normais",
-          "Extras 75%",
-          "Extras 100%",
-          "Acionamentos (minutos)",
-          "Quantidade de acionamentos",
-          "Dias de ausência aprovados",
-        ]
-          .map(csv)
-          .join(","),
-        ...report.rows.map((row) =>
-          [
-            row.name,
-            row.email,
-            row.daysWithRecords,
-            row.totalWorkedMinutes,
-            row.normalMinutes,
-            row.overtime75Minutes,
-            row.overtime100Minutes,
-            row.activityMinutes,
-            row.activityCount,
-            row.absenceDays,
-          ]
-            .map(csv)
-            .join(","),
-        ),
+      exportHeaders = [
+        "Pessoa",
+        "Email",
+        "Dias com registros",
+        "Total trabalhado",
+        "Horas normais",
+        "Extras 75%",
+        "Extras 100%",
+        "Acionamentos (minutos)",
+        "Quantidade de acionamentos",
+        "Dias de ausência aprovados",
       ];
-      filename = `jornix-equipe-${startDate}-${endDate}.csv`;
+      exportRows = report.rows.map((row) => [
+        row.name,
+        row.email,
+        row.daysWithRecords,
+        row.totalWorkedMinutes,
+        row.normalMinutes,
+        row.overtime75Minutes,
+        row.overtime100Minutes,
+        row.activityMinutes,
+        row.activityCount,
+        row.absenceDays,
+      ]);
+      lines = [
+        exportHeaders.map(csv).join(","),
+        ...exportRows.map((row) => row.map(csv).join(",")),
+      ];
+      filename = `jornix-equipe-${startDate}-${endDate}`;
     }
   } else {
     const report = await getReportData({
@@ -272,42 +270,53 @@ export async function GET(request: Request) {
       startDate,
       endDate,
     });
-    lines = [
-      [
-        "Data",
-        "Tipo do dia",
-        "Status",
-        "Total trabalhado",
-        "Horas normais",
-        "Extras 75% FHC",
-        "Extras 75% FHCN",
-        "Extras 100% FHC",
-        "Extras 100% FHCN",
-        "Acionamentos (minutos)",
-        "Quantidade de acionamentos",
-        "Dias de ausência aprovados",
-      ]
-        .map(csv)
-        .join(","),
-      ...report.rows.map((row) =>
-        [
-          row.date,
-          row.dayType,
-          row.status,
-          row.totalWorkedMinutes,
-          row.normalMinutes,
-          row.overtime75FhcMinutes,
-          row.overtime75FhcnMinutes,
-          row.overtime100FhcMinutes,
-          row.overtime100FhcnMinutes,
-          row.activityMinutes,
-          row.activityCount,
-          row.absenceDays,
-        ]
-          .map(csv)
-          .join(","),
-      ),
+    exportHeaders = [
+      "Data",
+      "Tipo do dia",
+      "Status",
+      "Total trabalhado",
+      "Horas normais",
+      "Extras 75% FHC",
+      "Extras 75% FHCN",
+      "Extras 100% FHC",
+      "Extras 100% FHCN",
+      "Acionamentos (minutos)",
+      "Quantidade de acionamentos",
+      "Dias de ausência aprovados",
     ];
+    exportRows = report.rows.map((row) => [
+      row.date,
+      row.dayType,
+      row.status,
+      row.totalWorkedMinutes,
+      row.normalMinutes,
+      row.overtime75FhcMinutes,
+      row.overtime75FhcnMinutes,
+      row.overtime100FhcMinutes,
+      row.overtime100FhcnMinutes,
+      row.activityMinutes,
+      row.activityCount,
+      row.absenceDays,
+    ]);
+    lines = [
+      exportHeaders.map(csv).join(","),
+      ...exportRows.map((row) => row.map(csv).join(",")),
+    ];
+    filename = `jornix-relatorio-${startDate}-${endDate}`;
+  }
+
+  if (format === "pdf") {
+    return buildPdfResponse(`${filename}.pdf`, [
+      "Relatório de horas",
+      `Período: ${startDate} a ${endDate}`,
+      "",
+      exportHeaders.join(" | "),
+      ...exportRows.map((row) => row.join(" | ")),
+    ]);
+  }
+
+  if (format === "excel") {
+    return buildExcelResponse(`${filename}.xls`, exportHeaders, exportRows);
   }
 
   return new NextResponse(`\uFEFF${lines.join("\r\n")}\r\n`, {

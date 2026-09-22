@@ -112,16 +112,34 @@ async function checkManager(
 }
 
 export class WorkspaceService {
-  static async createCompany(actorId: string, name: string) {
+  static async createCompany(
+    actorId: string,
+    name: string,
+    contractedMinutes?: number,
+  ) {
+    const hasHoursBudget =
+      Number.isInteger(contractedMinutes) && (contractedMinutes ?? 0) > 0;
     return prisma.$transaction(
       async (tx) => {
         const workspace = await tx.workspace.create({
           data: {
             name,
             kind: "COMPANY",
+            hoursControlEnabled: hasHoursBudget,
             members: { create: { userId: actorId, role: "OWNER" } },
           },
         });
+        if (hasHoursBudget) {
+          const now = new Date();
+          const month = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+          await tx.workspaceHoursBudget.create({
+            data: {
+              workspaceId: workspace.id,
+              month,
+              contractedMinutes: contractedMinutes!,
+            },
+          });
+        }
         await audit(tx, workspace.id, actorId, actorId, "COMPANY_CREATED", { name });
         return workspace;
       },

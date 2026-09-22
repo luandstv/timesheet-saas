@@ -11,6 +11,7 @@ import type { Prisma } from "../../generated/prisma/client";
 
 import { requireMember, lockWorkspace, lockPerson } from "./workspace.service";
 import { loadEffectiveUser, assertMonthOpen } from "./effective-time.service";
+import { HoursBudgetService } from "./hours-budget.service";
 type TimeEntryDatabase = Prisma.TransactionClient;
 
 export class TimeEntryService {
@@ -178,6 +179,12 @@ export class TimeEntryService {
               endMinute: effectiveUser.workEndMinute,
             },
             tx,
+          );
+          await HoursBudgetService.refreshAlerts(
+            tx,
+            workspaceId,
+            userId,
+            timeSheet.date,
           );
         }
 

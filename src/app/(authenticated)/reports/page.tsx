@@ -7,7 +7,7 @@ import { ReportTable } from "./_components/report-table";
 import { ReportScopeNav } from "./_components/report-scope-nav";
 import { TeamReportTable } from "./_components/team-report-table";
 import prisma from "@/lib/prisma";
-import { CsvDownloadButton } from "./_components/csv-download-button";
+import { ReportFormatActions } from "./_components/report-format-actions";
 
 type ReportsPageProps = {
   searchParams?: Promise<{
@@ -27,8 +27,6 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
     member.active &&
     (member.role === "OWNER" || member.role === "MANAGER");
   const scope = canViewTeam && resolvedSearchParams.scope === "team" ? "team" : "mine";
-
-  const exportHref = `/reports/export?scope=${scope}&startDate=${startDate}&endDate=${endDate}`;
 
   if (scope === "team") {
     const members = await prisma.workspaceMember.findMany({
@@ -57,7 +55,10 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
               Acompanhe os registros da sua equipe por período.
             </p>
           </div>
-          <CsvDownloadButton href={exportHref} />
+          <ReportFormatActions
+            query={`scope=team&startDate=${startDate}&endDate=${endDate}`}
+            prefix="equipe"
+          />
         </div>
         <ReportScopeNav
           scope="team"
@@ -91,7 +92,10 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
             Consulte os apontamentos consolidados por período
           </p>
         </div>
-        <CsvDownloadButton href={exportHref} />
+        <ReportFormatActions
+          query={`scope=mine&startDate=${startDate}&endDate=${endDate}`}
+          prefix="relatorio"
+        />
       </div>
 
       <ReportScopeNav

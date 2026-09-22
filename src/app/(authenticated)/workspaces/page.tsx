@@ -265,6 +265,19 @@ export default async function WorkspacesPage() {
             <Field label="Nome da empresa">
               <Input name="name" required minLength={2} maxLength={80} />
             </Field>
+            <Field
+              label="Horas contratadas por mês (opcional)"
+              description="Ative o controle de horas do time informando o pool mensal."
+            >
+              <Input
+                name="contractedHours"
+                type="number"
+                min="0"
+                max="100000"
+                step="0.25"
+                placeholder="Ex.: 300"
+              />
+            </Field>
           </ActionForm>
         </CardContent>
       </Card>

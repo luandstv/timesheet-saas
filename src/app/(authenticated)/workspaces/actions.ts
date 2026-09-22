@@ -26,7 +26,14 @@ const schema = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("switch"), workspaceId: id }),
   z.object({ operation: z.literal("clearNotifications") }),
   z.object({ operation: z.literal("readNotification"), notificationId: id }),
-  z.object({ operation: z.literal("create"), name: z.string().trim().min(2).max(80) }),
+  z.object({
+    operation: z.literal("create"),
+    name: z.string().trim().min(2).max(80),
+    contractedHours: z.preprocess(
+      (value) => (value === "" || value === undefined ? undefined : Number(value)),
+      z.number().finite().min(0).max(100000).optional(),
+    ),
+  }),
   z.object({
     operation: z.literal("policy"),
     workspaceId: id,
@@ -162,7 +169,15 @@ export async function workspaceAction(
         }
         break;
       case "create":
-        select = (await WorkspaceService.createCompany(user.id, input.name)).id;
+        select = (
+          await WorkspaceService.createCompany(
+            user.id,
+            input.name,
+            input.contractedHours === undefined
+              ? undefined
+              : Math.round(input.contractedHours * 60),
+          )
+        ).id;
         break;
       case "policy":
         await WorkspaceService.configure(

@@ -27,6 +27,8 @@ import {
 } from "./_lib/dashboard";
 import { loadDashboardData } from "./_lib/load-dashboard";
 import { DashboardPeriodNav } from "./_components/dashboard-period-nav";
+import { TeamHoursSummary } from "./_components/team-hours-summary";
+import { HoursBudgetService } from "@/services/hours-budget.service";
 
 function IconTile({ children }: { children: ReactNode }) {
   return (
@@ -72,6 +74,10 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const { user, workspace, member, memberships } = await getWorkspaceContext();
   const context = resolveDashboardQuery((await searchParams) ?? {}, DateTime.now());
   const data = await loadDashboardData(user.id, workspace.id, context);
+  const teamHours =
+    workspace.kind === "COMPANY"
+      ? await HoursBudgetService.getOverview(user.id, workspace.id)
+      : null;
   const model = buildDashboardModel(user, data, context);
   const { header, journey, metrics, activity } = model;
   const { weekStart, weekEnd } = context;
@@ -180,6 +186,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           </CardContent>
         </Card>
       </section>
+
+      {teamHours && <TeamHoursSummary overview={teamHours} />}
 
       <section className="grid gap-4 lg:grid-cols-3">
         <Card size="sm">
