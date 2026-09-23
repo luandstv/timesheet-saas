@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ActionForm } from "@/components/shared/action-form";
 import { Field, ManagerField, RoleField } from "@/components/shared/workspace-fields";
+import { WorkspaceDangerActions } from "./workspace-danger-actions";
 
 export default async function WorkspacesPage() {
   const { user, member, workspace } = await getWorkspaceContext();
@@ -215,6 +216,21 @@ export default async function WorkspacesPage() {
           </Card>
         )}
       </div>
+      {workspace.kind === "COMPANY" && member.active && (
+        <Card className="border-destructive/20">
+          <CardHeader>
+            <CardTitle>Zona de segurança</CardTitle>
+            <CardDescription>
+              {isOwner
+                ? "Arquive a empresa para encerrar este espaço e preservar o histórico."
+                : "Desative seu vínculo para deixar de participar desta empresa."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <WorkspaceDangerActions workspaceId={workspace.id} isOwner={isOwner} />
+          </CardContent>
+        </Card>
+      )}
       {isOwner && joins.length > 0 && (
         <Card>
           <CardHeader>
@@ -264,6 +280,19 @@ export default async function WorkspacesPage() {
           >
             <Field label="Nome da empresa">
               <Input name="name" required minLength={2} maxLength={80} />
+            </Field>
+            <Field
+              label="Horas contratadas por mês (opcional)"
+              description="Ative o controle de horas do time informando o pool mensal."
+            >
+              <Input
+                name="contractedHours"
+                type="number"
+                min="0"
+                max="100000"
+                step="0.25"
+                placeholder="Ex.: 300"
+              />
             </Field>
           </ActionForm>
         </CardContent>

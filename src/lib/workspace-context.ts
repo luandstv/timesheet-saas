@@ -8,7 +8,7 @@ import { getAuthenticatedUser } from "./auth";
 export const getWorkspaceContext = cache(async () => {
   const user = await getAuthenticatedUser();
   const memberships = await prisma.workspaceMember.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, workspace: { archivedAt: null } },
     include: { workspace: true },
     orderBy: { createdAt: "asc" },
   });

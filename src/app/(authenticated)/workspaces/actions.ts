@@ -24,9 +24,18 @@ const role = z.enum(["MANAGER", "COLLABORATOR"]);
 const checkbox = z.preprocess((v) => v === "on" || v === "true", z.boolean());
 const schema = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("switch"), workspaceId: id }),
+  z.object({ operation: z.literal("leave"), workspaceId: id }),
+  z.object({ operation: z.literal("archive"), workspaceId: id }),
   z.object({ operation: z.literal("clearNotifications") }),
   z.object({ operation: z.literal("readNotification"), notificationId: id }),
-  z.object({ operation: z.literal("create"), name: z.string().trim().min(2).max(80) }),
+  z.object({
+    operation: z.literal("create"),
+    name: z.string().trim().min(2).max(80),
+    contractedHours: z.preprocess(
+      (value) => (value === "" || value === undefined ? undefined : Number(value)),
+      z.number().finite().min(0).max(100000).optional(),
+    ),
+  }),
   z.object({
     operation: z.literal("policy"),
     workspaceId: id,
@@ -139,6 +148,13 @@ export async function workspaceAction(
         await requireMember(prisma, input.workspaceId, user.id);
         select = input.workspaceId;
         break;
+      case "leave":
+        select = await WorkspaceService.leave(user.id, input.workspaceId);
+        break;
+      case "archive":
+        select = (await WorkspaceService.archiveCompany(user.id, input.workspaceId))
+          .personalWorkspaceId;
+        break;
       case "clearNotifications":
         {
           const { workspace } = await getWorkspaceContext();
@@ -162,7 +178,15 @@ export async function workspaceAction(
         }
         break;
       case "create":
-        select = (await WorkspaceService.createCompany(user.id, input.name)).id;
+        select = (
+          await WorkspaceService.createCompany(
+            user.id,
+            input.name,
+            input.contractedHours === undefined
+              ? undefined
+              : Math.round(input.contractedHours * 60),
+          )
+        ).id;
         break;
       case "policy":
         await WorkspaceService.configure(

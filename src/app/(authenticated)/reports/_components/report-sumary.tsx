@@ -36,6 +36,11 @@ export function ReportSummary({ summary }: ReportSummaryProps) {
       label: "Acionamentos registrados",
       value: summary.activityMinutes,
     },
+    {
+      label: "Dias de ausência aprovados",
+      value: summary.absenceDays ?? 0,
+      count: true,
+    },
   ];
 
   return (
@@ -53,7 +58,9 @@ export function ReportSummary({ summary }: ReportSummaryProps) {
             <CardContent>
               <p className="text-sm text-muted-foreground">{item.label}</p>
               <p className="mt-2 text-2xl font-bold tabular-nums">
-                {formatMinutesToHours(item.value)}
+                {"count" in item && item.count
+                  ? item.value
+                  : formatMinutesToHours(item.value)}
               </p>
             </CardContent>
           </Card>

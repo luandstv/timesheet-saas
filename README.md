@@ -19,8 +19,12 @@ acompanhamento de horas trabalhadas. O produto usa o horário civil de
 - Relatórios por intervalo com resumo e detalhamento diário.
 - Relatórios por pessoa e equipe, com filtros por dia e exportação CSV compatível
   com Excel, incluindo o tempo e a quantidade de acionamentos registrados.
+- Diário de atividades separado por data, com vários registros no mesmo dia,
+  descrição de incidente e intervalo de horário opcional; os registros entram
+  no dashboard, nos relatórios e nas exportações.
 - Registro de ausências com períodos futuros, prevenção de sobreposição, aprovação
-  por responsável e notificações da decisão.
+  por responsável, notificações da decisão e consolidação dos dias aprovados nos
+  relatórios.
 - Configuração de jornada, carga semanal e dados salariais.
 - Calendário de sobreaviso com regra padrão de 15h em dias úteis e 24h em fins de
   semana/feriados, incluindo exceção manual de feriado.
@@ -50,6 +54,9 @@ acompanhamento de horas trabalhadas. O produto usa o horário civil de
   exportação (CSV/Excel compatível).
 - O XLSX nativo, envio de relatórios por e-mail, férias recorrentes e períodos
   parciais de sobreaviso continuam no roadmap.
+- Anexos de comprovantes de ausência e o efeito de cada tipo de ausência na
+  estimativa de remuneração ainda precisam de uma regra contábil validada antes
+  de alterar os valores calculados.
 - O workflow de CI está preparado em `.github/workflows/ci.yml` e a conexão
   GitHub → Vercel está confirmada. Falta enviar o workflow e validar a primeira
   execução da CI e o primeiro deploy automático.

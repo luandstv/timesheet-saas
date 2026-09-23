@@ -14,6 +14,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "seed:on-call-demo": "node --experimental-strip-types --experimental-loader ./tests/loader.mjs scripts/seed-on-call-demo.ts",
+    "seed:hours-demo": "node --experimental-strip-types --experimental-loader ./tests/loader.mjs scripts/seed-hours-demo.ts",
     "verify:postgres-lock": "node scripts/verify-postgres-lock.mjs",
     "test": "node --experimental-strip-types --experimental-loader ./tests/loader.mjs --test tests/*.test.mjs"
   },

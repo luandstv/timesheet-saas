@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { ClockCard } from "@/components/shared/clock-card";
 import { TimeEntriesList } from "@/components/shared/time-entries-list";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,22 +7,40 @@ import { TIMEZONE } from "@/lib/constants";
 import { buildClockPresentation } from "@/lib/clock-presentation";
 import { formatMinutesToHours } from "@/lib/format";
 import { DashboardService } from "@/services/dashboard.service";
+import { HoursBudgetService } from "@/services/hours-budget.service";
 import { TimeEntryService } from "@/services/time-entry.service";
 import { DateTime } from "luxon";
 import { Badge } from "@/components/ui/badge";
-import { ActivityForm } from "./activity-form";
-import { ActivityList } from "./activity-list";
-import { ActivityService } from "@/services/activity.service";
+import { ActivitySection, ActivitySectionSkeleton } from "./activity-section";
 
-export default async function TimeEntriesPage() {
+type TimeEntriesPageProps = {
+  searchParams?: Promise<{ activityDate?: string }>;
+};
+
+export default async function TimeEntriesPage({ searchParams }: TimeEntriesPageProps) {
   const { user, workspace, member, memberships } = await getWorkspaceContext();
-  const [entries, clockState, todaySummary, activities] = await Promise.all([
+  const now = DateTime.now().setZone(TIMEZONE);
+  const query = (await searchParams) ?? {};
+  const requestedActivityDate = query.activityDate;
+  const parsedActivityDate = requestedActivityDate
+    ? DateTime.fromISO(requestedActivityDate, { zone: TIMEZONE })
+    : null;
+  const selectedActivityDate =
+    parsedActivityDate?.isValid &&
+    parsedActivityDate <= now.startOf("day") &&
+    /^\d{4}-\d{2}-\d{2}$/.test(requestedActivityDate ?? "")
+      ? parsedActivityDate
+      : now.startOf("day");
+  const activityDateLabel = selectedActivityDate.toFormat("dd/MM/yyyy");
+
+  const [entries, clockState, todaySummary, todayRule] = await Promise.all([
     TimeEntryService.getTodayMovements(user.id, workspace.id),
     TimeEntryService.getClockState(user.id),
     DashboardService.getTodaySummary(user.id, workspace.id),
-    ActivityService.listDay(user.id, workspace.id, DateTime.now().setZone(TIMEZONE)),
+    workspace.kind === "COMPANY"
+      ? HoursBudgetService.getRuleForDay(user.id, workspace.id, now)
+      : null,
   ]);
-  const now = DateTime.now().setZone(TIMEZONE);
   const clock = buildClockPresentation(clockState, now);
   const fullDateString = now.toFormat("cccc, dd 'de' LLLL 'de' yyyy", {
     locale: "pt-BR",
@@ -50,6 +69,7 @@ export default async function TimeEntriesPage() {
 
       <ClockCard
         workspaceId={workspace.id}
+        todayRule={todayRule ?? undefined}
         disabled={!member.active}
         blockedMessage={
           clockState.lastEntry?.type === "CLOCK_IN" &&
@@ -123,19 +143,14 @@ export default async function TimeEntriesPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Atividades e acionamentos</CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Registre o que foi feito durante uma extra ou um acionamento para facilitar
-            a conferência posterior.
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <ActivityForm />
-          <ActivityList activities={activities} />
-        </CardContent>
-      </Card>
+      <Suspense fallback={<ActivitySectionSkeleton dateLabel={activityDateLabel} />}>
+        <ActivitySection
+          userId={user.id}
+          workspaceId={workspace.id}
+          date={selectedActivityDate}
+          dateLabel={activityDateLabel}
+        />
+      </Suspense>
     </div>
   );
 }

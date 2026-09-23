@@ -129,3 +129,64 @@
     @apply font-sans;
   }
 }
+
+@keyframes team-hours-page-out-left {
+  to {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+}
+
+@keyframes team-hours-page-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+}
+
+@keyframes team-hours-page-out-right {
+  to {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+}
+
+@keyframes team-hours-page-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+}
+
+::view-transition-old(root) {
+  display: none;
+}
+
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-old(.team-hours-next) {
+  animation: 140ms ease-in both team-hours-page-out-left;
+}
+
+::view-transition-new(.team-hours-next) {
+  animation: 210ms 35ms ease-out both team-hours-page-in-right;
+}
+
+::view-transition-old(.team-hours-previous) {
+  animation: 140ms ease-in both team-hours-page-out-right;
+}
+
+::view-transition-new(.team-hours-previous) {
+  animation: 210ms 35ms ease-out both team-hours-page-in-left;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}

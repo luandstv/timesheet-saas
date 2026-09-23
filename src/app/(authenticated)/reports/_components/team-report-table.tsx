@@ -81,7 +81,7 @@ export function TeamReportTable({ rows, startDate, endDate }: TeamReportTablePro
 
         <CardContent id="team-report-results" className="p-0" aria-busy={searchPending}>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] caption-bottom text-sm">
+            <table className="w-full min-w-[980px] caption-bottom text-sm">
               <thead className="bg-muted/40 [&_tr]:border-b">
                 <tr className="border-b">
                   <Header label="Pessoa" />
@@ -91,6 +91,7 @@ export function TeamReportTable({ rows, startDate, endDate }: TeamReportTablePro
                   <Header label="Extras 75%" />
                   <Header label="Extras 100%" />
                   <Header label="Acionamentos" />
+                  <Header label="Ausências" />
                   <Header label="Conferência" />
                 </tr>
               </thead>
@@ -129,6 +130,9 @@ export function TeamReportTable({ rows, startDate, endDate }: TeamReportTablePro
                         >
                           {formatMinutesToCompact(row.activityMinutes)}
                         </td>
+                        <td className="p-4 align-middle tabular-nums">
+                          {row.absenceDays}
+                        </td>
                         <td className="p-4 align-middle">
                           <Button asChild variant="outline" size="sm">
                             <Link href={detailHref}>
@@ -142,7 +146,7 @@ export function TeamReportTable({ rows, startDate, endDate }: TeamReportTablePro
                   })
                 ) : (
                   <tr>
-                    <td colSpan={8} className="h-24 text-center text-muted-foreground">
+                    <td colSpan={9} className="h-24 text-center text-muted-foreground">
                       Nenhum colaborador encontrado para essa busca.
                     </td>
                   </tr>

@@ -18,6 +18,11 @@ enum WorkspaceRole {
   COLLABORATOR
 }
 
+enum HoursBudgetStatus {
+  OPEN
+  CLOSED
+}
+
 enum RequestStatus {
   PENDING
   APPROVED
@@ -32,6 +37,7 @@ model Workspace {
   personalUserId   String?                @unique @map("personal_user_id") @db.Uuid
   joinCode         String                 @unique @default(uuid()) @map("join_code")
   allowProvisional Boolean                @default(false) @map("allow_provisional")
+  archivedAt       DateTime?              @map("archived_at")
   createdAt        DateTime               @default(now()) @map("created_at")
   members          WorkspaceMember[]
   timesheets       Timesheet[]
@@ -43,22 +49,30 @@ model Workspace {
   onCallDays       onCallSchedule[]
   absences         Absences[]
   notifications    UserNotification[]
+  hoursBudgets     WorkspaceHoursBudget[]
+
+  hoursControlEnabled        Boolean @default(false) @map("hours_control_enabled")
+  adjustmentsRequireApproval Boolean @default(false) @map("adjustments_require_approval")
+  hoursNotificationsEnabled  Boolean @default(true) @map("hours_notifications_enabled")
+  hoursAlertsEnabled         Boolean @default(true) @map("hours_alerts_enabled")
 
   @@map("workspaces")
 }
 
 model WorkspaceMember {
-  id          String            @id @default(uuid()) @db.Uuid
-  workspaceId String            @map("workspace_id") @db.Uuid
-  userId      String            @map("user_id") @db.Uuid
-  role        WorkspaceRole     @default(COLLABORATOR)
-  active      Boolean           @default(true)
-  managerId   String?           @map("manager_id") @db.Uuid
-  createdAt   DateTime          @default(now()) @map("created_at")
-  workspace   Workspace         @relation(fields: [workspaceId], references: [id])
-  user        User              @relation(fields: [userId], references: [id])
-  manager     WorkspaceMember?  @relation("workspace_management", fields: [managerId], references: [id])
-  reports     WorkspaceMember[] @relation("workspace_management")
+  id               String                     @id @default(uuid()) @db.Uuid
+  workspaceId      String                     @map("workspace_id") @db.Uuid
+  userId           String                     @map("user_id") @db.Uuid
+  role             WorkspaceRole              @default(COLLABORATOR)
+  active           Boolean                    @default(true)
+  managerId        String?                    @map("manager_id") @db.Uuid
+  createdAt        DateTime                   @default(now()) @map("created_at")
+  workspace        Workspace                  @relation(fields: [workspaceId], references: [id])
+  user             User                       @relation(fields: [userId], references: [id])
+  manager          WorkspaceMember?           @relation("workspace_management", fields: [managerId], references: [id])
+  reports          WorkspaceMember[]          @relation("workspace_management")
+  hoursAllocations WorkspaceHoursAllocation[]
+  allocationRules  WorkspaceAllocationRule[]
 
   @@unique([workspaceId, userId])
   @@index([userId, active])
@@ -163,6 +177,65 @@ model UserNotification {
   @@map("user_notifications")
 }
 
+model WorkspaceHoursBudget {
+  id                String            @id @default(uuid()) @db.Uuid
+  workspaceId       String            @map("workspace_id") @db.Uuid
+  month             DateTime          @db.Date
+  contractedMinutes Int               @map("contracted_minutes")
+  status            HoursBudgetStatus @default(OPEN)
+  closedAt          DateTime?         @map("closed_at")
+  closedById        String?           @map("closed_by_id") @db.Uuid
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  workspace   Workspace                  @relation(fields: [workspaceId], references: [id])
+  allocations WorkspaceHoursAllocation[]
+  rules       WorkspaceAllocationRule[]
+
+  @@unique([workspaceId, month])
+  @@index([workspaceId, status, month])
+  @@map("workspace_hours_budgets")
+}
+
+model WorkspaceHoursAllocation {
+  id               String   @id @default(uuid()) @db.Uuid
+  budgetId         String   @map("budget_id") @db.Uuid
+  memberId         String   @map("member_id") @db.Uuid
+  allocatedMinutes Int      @map("allocated_minutes")
+  isManual         Boolean  @default(false) @map("is_manual")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  budget WorkspaceHoursBudget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  member WorkspaceMember      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([budgetId, memberId])
+  @@index([memberId, budgetId])
+  @@map("workspace_hours_allocations")
+}
+
+model WorkspaceAllocationRule {
+  id           String   @id @default(uuid()) @db.Uuid
+  budgetId     String   @map("budget_id") @db.Uuid
+  memberId     String   @map("member_id") @db.Uuid
+  createdById  String   @map("created_by_id") @db.Uuid
+  startDate    DateTime @map("start_date") @db.Date
+  endDate      DateTime @map("end_date") @db.Date
+  weekdays     Int[]
+  dailyMinutes Int      @map("daily_minutes")
+  shiftLabel   String   @map("shift_label")
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  budget    WorkspaceHoursBudget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  member    WorkspaceMember      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  createdBy User                 @relation("allocation_rule_creator", fields: [createdById], references: [id])
+
+  @@index([budgetId, memberId, active, startDate, endDate])
+  @@map("workspace_allocation_rules")
+}
+
 enum Role {
   ADMIN
   COLLABORATOR
@@ -247,17 +320,18 @@ model User {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
-  manager          User?                 @relation("management", fields: [managerId], references: [id])
-  subordinates     User[]                @relation("management")
-  timesheets       Timesheet[]
-  activities       Activity[]
-  onCallDays       onCallSchedule[]
-  salaryConfigs    UserSalaryConfig[]
-  adjustments      TimeEntryAdjustment[] @relation("adjustments")
-  absences         Absences[]            @relation("absences")
-  approvedabsences Absences[]            @relation("approved_absences")
-  memberships      WorkspaceMember[]
-  notifications    UserNotification[]
+  manager                User?                     @relation("management", fields: [managerId], references: [id])
+  subordinates           User[]                    @relation("management")
+  timesheets             Timesheet[]
+  activities             Activity[]
+  onCallDays             onCallSchedule[]
+  salaryConfigs          UserSalaryConfig[]
+  adjustments            TimeEntryAdjustment[]     @relation("adjustments")
+  absences               Absences[]                @relation("absences")
+  approvedabsences       Absences[]                @relation("approved_absences")
+  memberships            WorkspaceMember[]
+  notifications          UserNotification[]
+  createdAllocationRules WorkspaceAllocationRule[] @relation("allocation_rule_creator")
 
   @@map("users")
 }
@@ -330,13 +404,14 @@ model Activity {
   startTime       DateTime  @map("start_time")
   endTime         DateTime? @map("end_time")
   durationMinutes Int       @default(0) @map("duration_minutes")
-  period          Period
+  period          Period?
   createdAt       DateTime  @default(now()) @map("created_at")
 
   user      User       @relation(fields: [userId], references: [id])
   workspace Workspace  @relation(fields: [workspaceId], references: [id])
   timesheet Timesheet? @relation(fields: [timeSheetId], references: [id])
 
+  @@index([workspaceId, userId, startTime])
   @@map("activities")
 }
 

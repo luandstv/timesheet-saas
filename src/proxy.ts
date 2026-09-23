@@ -1,13 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
-
-const publicRoutes = [
-  "/login",
-  "/register",
-  "/forgot-password",
-  "/reset-password",
-  "/auth/callback",
-];
+import { authRouteRedirect } from "@/lib/auth-route-policy";
 
 export async function proxy(request: NextRequest) {
   const { supabaseResponse, user } = await updateSession(request);
@@ -23,9 +16,11 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (!user && !publicRoutes.includes(pathname)) {
+  const destination = authRouteRedirect(pathname, Boolean(user));
+
+  if (destination === "/login") {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = destination;
     const redirectResponse = NextResponse.redirect(url);
 
     request.cookies.getAll().forEach((cookie) => {
@@ -37,9 +32,9 @@ export async function proxy(request: NextRequest) {
     return redirectResponse;
   }
 
-  if (user && publicRoutes.includes(pathname)) {
+  if (destination) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = destination;
     return NextResponse.redirect(url);
   }
 

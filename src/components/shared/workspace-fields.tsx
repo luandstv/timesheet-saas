@@ -7,10 +7,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export function Field({ label, children }: { label: string; children: ReactNode }) {
+export function Field({
+  label,
+  description,
+  children,
+}: {
+  label: string;
+  description?: string;
+  children: ReactNode;
+}) {
   return (
     <label className="grid min-w-0 gap-2 text-sm font-medium">
       {label}
+      {description && (
+        <span className="text-xs font-normal text-muted-foreground">{description}</span>
+      )}
       {children}
     </label>
   );

@@ -2,6 +2,7 @@ import { DateTime } from "luxon";
 
 import prisma from "@/lib/prisma";
 import { FHCN_END_HOUR, FHCN_START_HOUR, TIMEZONE } from "@/lib/constants";
+import { isWithinWorkSchedule } from "@/lib/entry-mode";
 
 import { assertMonthOpen } from "./effective-time.service";
 import { requireMember } from "./workspace.service";
@@ -10,18 +11,55 @@ import { TimeEntryService } from "./time-entry.service";
 export type ActivityInput = {
   description: string;
   incidentCode?: string | null;
-  startTime: string;
-  endTime: string;
+  activityDate: string;
+  startTime?: string | null;
+  endTime?: string | null;
 };
 
-function parseDateTime(value: string, label: string) {
-  const parsed = DateTime.fromISO(value, { zone: TIMEZONE });
+function parseActivityDate(value: string) {
+  const parsed = DateTime.fromFormat(value, "yyyy-MM-dd", { zone: TIMEZONE });
+  if (!parsed.isValid || parsed.toFormat("yyyy-MM-dd") !== value) {
+    throw new Error("Informe uma data válida para a atividade.");
+  }
+  return parsed.startOf("day");
+}
+
+function parseActivityTime(date: DateTime, value: string, label: string) {
+  const parsed = DateTime.fromFormat(
+    `${date.toFormat("yyyy-MM-dd")}T${value}`,
+    "yyyy-MM-dd'T'HH:mm",
+    { zone: TIMEZONE },
+  );
   if (!parsed.isValid) throw new Error(`Informe um horário válido para ${label}.`);
   return parsed;
 }
 
-function periodFor(date: DateTime) {
-  return date.hour >= FHCN_START_HOUR || date.hour < FHCN_END_HOUR ? "FHCN" : "FHC";
+type WorkSchedule = {
+  workStartHour: number;
+  workStartMinute: number;
+  workEndHour: number;
+  workEndMinute: number;
+};
+
+function periodFor(
+  date: DateTime,
+  schedule: WorkSchedule,
+  isWeekendOrHoliday: boolean,
+): "FHC" | "FHCN" | null {
+  const isNight =
+    date.hour >= FHCN_START_HOUR ||
+    date.hour < FHCN_END_HOUR ||
+    (date.hour === FHCN_END_HOUR && date.minute === 0);
+  if (isNight) return "FHCN";
+
+  const isRegularWorkTime = isWithinWorkSchedule(date.toJSDate(), {
+    startHour: schedule.workStartHour,
+    startMinute: schedule.workStartMinute,
+    endHour: schedule.workEndHour,
+    endMinute: schedule.workEndMinute,
+  });
+
+  return isWeekendOrHoliday || !isRegularWorkTime ? "FHC" : null;
 }
 
 function durationInMinutes(start: DateTime, end: DateTime) {
@@ -43,22 +81,44 @@ function validateInput(input: ActivityInput) {
     throw new Error("O identificador do incidente deve ter no máximo 80 caracteres.");
   }
 
-  const start = parseDateTime(input.startTime, "o início");
-  const end = parseDateTime(input.endTime, "o fim");
+  const activityDate = parseActivityDate(input.activityDate);
+  const startValue = input.startTime?.trim() || null;
+  const endValue = input.endTime?.trim() || null;
+  if ((startValue && !endValue) || (!startValue && endValue)) {
+    throw new Error("Informe início e fim ou deixe os dois horários em branco.");
+  }
+
   const now = DateTime.now().setZone(TIMEZONE);
-  if (start > now || end > now) {
+  if (activityDate > now.startOf("day")) {
     throw new Error("A atividade não pode estar no futuro.");
   }
-  if (end <= start) {
-    throw new Error("O fim da atividade deve ser posterior ao início.");
+
+  if (!startValue && !endValue) {
+    return {
+      description,
+      incidentCode,
+      activityDate,
+      start: activityDate,
+      end: null,
+      durationMinutes: 0,
+      period: null,
+    };
   }
+
+  const start = parseActivityTime(activityDate, startValue!, "o início");
+  const end = parseActivityTime(activityDate, endValue!, "o fim");
+  if (start > now || end > now)
+    throw new Error("A atividade não pode estar no futuro.");
+  if (end <= start) throw new Error("O fim da atividade deve ser posterior ao início.");
 
   return {
     description,
     incidentCode,
+    activityDate,
     start,
     end,
     durationMinutes: durationInMinutes(start, end),
+    period: null,
   };
 }
 
@@ -69,28 +129,135 @@ export class ActivityService {
     return prisma.$transaction(
       async (tx) => {
         await requireMember(tx, workspaceId, actorId, true);
-        const timeSheet = await TimeEntryService.getOrCreateTimeSheet(
-          actorId,
-          validated.start,
+        await assertMonthOpen(
           tx,
           workspaceId,
+          actorId,
+          validated.activityDate.toJSDate(),
         );
-        await assertMonthOpen(tx, workspaceId, actorId, timeSheet.date);
-        if (timeSheet.status !== "OPEN") {
-          throw new Error("Esta jornada está fechada para novos acionamentos.");
+
+        let timeSheetId: string | null = null;
+        let period: "FHC" | "FHCN" | null = null;
+        if (validated.end) {
+          const timeSheet = await TimeEntryService.getOrCreateTimeSheet(
+            actorId,
+            validated.start,
+            tx,
+            workspaceId,
+          );
+          if (timeSheet.status !== "OPEN") {
+            throw new Error("Esta jornada está fechada para novos acionamentos.");
+          }
+          timeSheetId = timeSheet.id;
+          const user = await tx.user.findUnique({
+            where: { id: actorId },
+            select: {
+              workStartHour: true,
+              workStartMinute: true,
+              workEndHour: true,
+              workEndMinute: true,
+            },
+          });
+          if (!user) throw new Error("Usuário não encontrado.");
+          period = periodFor(
+            validated.start,
+            user,
+            timeSheet.isWeekend || timeSheet.isHoliday,
+          );
         }
 
         return tx.activity.create({
           data: {
-            userId: actorId,
-            workspaceId,
-            timeSheetId: timeSheet.id,
+            user: { connect: { id: actorId } },
+            workspace: { connect: { id: workspaceId } },
+            timesheet: timeSheetId ? { connect: { id: timeSheetId } } : undefined,
             description: validated.description,
             incidentCode: validated.incidentCode,
             startTime: validated.start.toJSDate(),
-            endTime: validated.end.toJSDate(),
+            endTime: validated.end?.toJSDate() ?? null,
             durationMinutes: validated.durationMinutes,
-            period: periodFor(validated.start),
+            period,
+          },
+        });
+      },
+      { maxWait: 10000, timeout: 30000 },
+    );
+  }
+
+  static async update(
+    actorId: string,
+    workspaceId: string,
+    activityId: string,
+    input: ActivityInput,
+  ) {
+    const validated = validateInput(input);
+
+    return prisma.$transaction(
+      async (tx) => {
+        await requireMember(tx, workspaceId, actorId, true);
+        const activity = await tx.activity.findFirst({
+          where: { id: activityId, userId: actorId, workspaceId },
+        });
+        if (!activity) throw new Error("Atividade não encontrada neste espaço.");
+
+        await assertMonthOpen(tx, workspaceId, actorId, activity.startTime);
+        await assertMonthOpen(
+          tx,
+          workspaceId,
+          actorId,
+          validated.activityDate.toJSDate(),
+        );
+
+        let timeSheetId: string | null = null;
+        let period: "FHC" | "FHCN" | null = null;
+        if (validated.end) {
+          const timeSheet = await TimeEntryService.getOrCreateTimeSheet(
+            actorId,
+            validated.start,
+            tx,
+            workspaceId,
+          );
+          if (timeSheet.status !== "OPEN") {
+            throw new Error("Esta jornada está fechada para novos acionamentos.");
+          }
+          timeSheetId = timeSheet.id;
+          const user = await tx.user.findUnique({
+            where: { id: actorId },
+            select: {
+              workStartHour: true,
+              workStartMinute: true,
+              workEndHour: true,
+              workEndMinute: true,
+            },
+          });
+          if (!user) throw new Error("Usuário não encontrado.");
+          period = periodFor(
+            validated.start,
+            user,
+            timeSheet.isWeekend || timeSheet.isHoliday,
+          );
+        } else if (activity.timeSheetId) {
+          const timeSheet = await tx.timesheet.findUnique({
+            where: { id: activity.timeSheetId },
+            select: { status: true },
+          });
+          if (timeSheet?.status !== "OPEN") {
+            throw new Error("Esta jornada está fechada para alterações.");
+          }
+        }
+
+        return tx.activity.update({
+          where: { id: activity.id },
+          data: {
+            timesheet: timeSheetId
+              ? { connect: { id: timeSheetId } }
+              : { disconnect: true },
+            description: validated.description,
+            incidentCode: validated.incidentCode,
+            startTime: validated.start.toJSDate(),
+            endTime: validated.end?.toJSDate() ?? null,
+            durationMinutes: validated.durationMinutes,
+            period,
           },
         });
       },
@@ -103,14 +270,42 @@ export class ActivityService {
     const day = localDate.startOf("day").toJSDate();
     const nextDay = localDate.plus({ days: 1 }).startOf("day").toJSDate();
 
-    return prisma.activity.findMany({
-      where: {
-        userId,
-        workspaceId,
-        startTime: { gte: day, lt: nextDay },
-      },
-      orderBy: { startTime: "desc" },
-    });
+    const [activities, user] = await Promise.all([
+      prisma.activity.findMany({
+        where: {
+          userId,
+          workspaceId,
+          startTime: { gte: day, lt: nextDay },
+        },
+        orderBy: { createdAt: "desc" },
+        include: {
+          timesheet: {
+            select: { isWeekend: true, isHoliday: true },
+          },
+        },
+      }),
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          workStartHour: true,
+          workStartMinute: true,
+          workEndHour: true,
+          workEndMinute: true,
+        },
+      }),
+    ]);
+
+    return activities.map(({ timesheet, ...activity }) => ({
+      ...activity,
+      period:
+        activity.endTime && user
+          ? periodFor(
+              DateTime.fromJSDate(activity.startTime).setZone(TIMEZONE),
+              user,
+              Boolean(timesheet?.isWeekend || timesheet?.isHoliday),
+            )
+          : null,
+    }));
   }
 
   static async remove(actorId: string, workspaceId: string, activityId: string) {

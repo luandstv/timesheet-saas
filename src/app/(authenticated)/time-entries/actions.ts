@@ -5,15 +5,18 @@ import { z } from "zod";
 import { getAuthenticatedUser } from "@/lib/auth";
 import { TimeEntryService } from "@/services/time-entry.service";
 import { ActivityService } from "@/services/activity.service";
+import type { Activity } from "./activity-types";
 
 const activitySchema = z.object({
   description: z.string().trim().min(3).max(500),
   incidentCode: z.string().trim().max(80).optional().or(z.literal("")),
-  startTime: z.string().min(1),
-  endTime: z.string().min(1),
+  activityDate: z.string().min(1),
+  startTime: z.string().optional().or(z.literal("")),
+  endTime: z.string().optional().or(z.literal("")),
 });
 
 const requestIdSchema = z.string().uuid();
+const activityIdSchema = z.string().uuid();
 
 export async function clockIn(requestId: string, workspaceId: string) {
   const user = await getAuthenticatedUser();
@@ -44,23 +47,24 @@ export async function clockIn(requestId: string, workspaceId: string) {
 export type ActivityActionResult = {
   success: boolean;
   error?: string;
+  activity?: Activity;
 };
 
 export async function createActivity(input: unknown): Promise<ActivityActionResult> {
   const parsed = activitySchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: "Confira a descrição e os horários da atividade." };
+    return {
+      success: false,
+      error: "Confira a descrição, a data e os horários da atividade.",
+    };
   }
 
   try {
     const user = await getAuthenticatedUser();
     const { getWorkspaceContext } = await import("@/lib/workspace-context");
     const { workspace } = await getWorkspaceContext();
-    await ActivityService.create(user.id, workspace.id, parsed.data);
-    revalidatePath("/time-entries");
-    revalidatePath("/dashboard");
-    revalidatePath("/reports");
-    return { success: true };
+    const activity = await ActivityService.create(user.id, workspace.id, parsed.data);
+    return { success: true, activity };
   } catch (error) {
     return {
       success: false,
@@ -82,9 +86,6 @@ export async function removeActivity(
     const { getWorkspaceContext } = await import("@/lib/workspace-context");
     const { workspace } = await getWorkspaceContext();
     await ActivityService.remove(user.id, workspace.id, activityId);
-    revalidatePath("/time-entries");
-    revalidatePath("/dashboard");
-    revalidatePath("/reports");
     return { success: true };
   } catch (error) {
     return {
@@ -93,6 +94,39 @@ export async function removeActivity(
         error instanceof Error
           ? error.message
           : "Não foi possível remover a atividade.",
+    };
+  }
+}
+
+export async function updateActivity(input: unknown): Promise<ActivityActionResult> {
+  const parsed = activitySchema
+    .extend({ activityId: activityIdSchema })
+    .safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: "Confira a descrição, a data e os horários da atividade.",
+    };
+  }
+
+  try {
+    const user = await getAuthenticatedUser();
+    const { getWorkspaceContext } = await import("@/lib/workspace-context");
+    const { workspace } = await getWorkspaceContext();
+    const activity = await ActivityService.update(
+      user.id,
+      workspace.id,
+      parsed.data.activityId,
+      parsed.data,
+    );
+    return { success: true, activity };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Não foi possível atualizar a atividade.",
     };
   }
 }

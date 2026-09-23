@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export function ResetPasswordForm() {
-  const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [pending, setPending] = useState(false);
@@ -26,13 +24,22 @@ export function ResetPasswordForm() {
     }
     setPending(true);
     setMessage(null);
-    const { error } = await createClient().auth.updateUser({ password });
+    const supabase = createClient();
+    const { error } = await supabase.auth.updateUser({ password });
     if (error) {
       setMessage("Não foi possível atualizar a senha. Solicite um novo link.");
       setPending(false);
       return;
     }
-    router.push("/login?reset=success");
+    const { error: signOutError } = await supabase.auth.signOut({ scope: "local" });
+    if (signOutError) {
+      setMessage(
+        "Senha atualizada, mas não foi possível encerrar a sessão. Saia da conta antes de entrar com a nova senha.",
+      );
+      setPending(false);
+      return;
+    }
+    window.location.replace("/login?reset=success");
   }
 
   return (

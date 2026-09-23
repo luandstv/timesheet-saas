@@ -16,11 +16,12 @@ Os valores da remuneração são uma estimativa pessoal e não substituem a folh
 
 ## JORNIX-UI-02 — Notificações
 
-- [ ] Definir eventos, persistência e estado de leitura.
+- [x] Definir eventos, persistência e estado de leitura.
 - [x] Integrar o painel de notificações do header com solicitações de ajuste pendentes.
-- [ ] Adicionar notificações persistidas e estado de leitura.
+- [x] Adicionar notificações persistidas, leitura individual e limpeza otimista.
 
-O painel já mostra a quantidade real de solicitações pendentes que o usuário pode revisar.
+O painel mostra solicitações de ajuste pendentes e eventos persistidos, como decisões
+de ajustes e ausências.
 
 ## Elementos já ligados a dados reais
 

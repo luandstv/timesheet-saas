@@ -27,6 +27,8 @@ import {
 } from "./_lib/dashboard";
 import { loadDashboardData } from "./_lib/load-dashboard";
 import { DashboardPeriodNav } from "./_components/dashboard-period-nav";
+import { TeamHoursSummary } from "./_components/team-hours-summary";
+import { HoursBudgetService } from "@/services/hours-budget.service";
 
 function IconTile({ children }: { children: ReactNode }) {
   return (
@@ -71,7 +73,23 @@ type DashboardPageProps = {
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const { user, workspace, member, memberships } = await getWorkspaceContext();
   const context = resolveDashboardQuery((await searchParams) ?? {}, DateTime.now());
-  const data = await loadDashboardData(user.id, workspace.id, context);
+  const [data, teamHours, todayRule] = await Promise.all([
+    loadDashboardData(user.id, workspace.id, context),
+    workspace.kind === "COMPANY"
+      ? HoursBudgetService.getOverview(
+          user.id,
+          workspace.id,
+          context.now.toFormat("yyyy-MM"),
+        )
+      : null,
+    workspace.kind === "COMPANY"
+      ? HoursBudgetService.getRuleForDay(user.id, workspace.id, context.now)
+      : null,
+  ]);
+  const canManageTeamHours =
+    workspace.kind === "COMPANY" &&
+    member.active &&
+    (member.role === "OWNER" || member.role === "MANAGER");
   const model = buildDashboardModel(user, data, context);
   const { header, journey, metrics, activity } = model;
   const { weekStart, weekEnd } = context;
@@ -128,6 +146,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       <section className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
         <ClockCard
           workspaceId={workspace.id}
+          todayRule={todayRule ?? undefined}
           disabled={!member.active}
           blockedMessage={
             data.clockState.lastEntry?.type === "CLOCK_IN" &&
@@ -180,6 +199,10 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           </CardContent>
         </Card>
       </section>
+
+      {workspace.kind === "COMPANY" && (
+        <TeamHoursSummary overview={teamHours} canManage={canManageTeamHours} />
+      )}
 
       <section className="grid gap-4 lg:grid-cols-3">
         <Card size="sm">

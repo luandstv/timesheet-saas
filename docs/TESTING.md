@@ -47,6 +47,8 @@ Os testes em `tests/` cobrem 61 cenários:
 - validação de sobreposição, sequência, futuro e saídas em outra jornada.
 - classificação de pontos regulares, de sobreaviso e acionamentos emergenciais;
 - regras de 15h/24h do calendário de sobreaviso.
+- A tela de atividades e o fluxo de aprovação de ausências ainda precisam de
+  cenários de integração com Prisma e de cobertura E2E.
 
 Os testes são unitários e não acessam PostgreSQL, Supabase ou o navegador.
 Isso mantém a execução rápida e determinística.
