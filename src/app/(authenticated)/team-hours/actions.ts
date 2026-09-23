@@ -26,6 +26,7 @@ async function context() {
 function refreshHours() {
   revalidatePath("/team-hours");
   revalidatePath("/dashboard");
+  revalidatePath("/time-entries");
   revalidatePath("/reports");
   revalidatePath("/settings");
 }

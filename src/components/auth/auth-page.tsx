@@ -20,7 +20,13 @@ const content = {
   },
 };
 
-export function AuthPage({ initialMode }: { initialMode: AuthMode }) {
+export function AuthPage({
+  initialMode,
+  loginNotice,
+}: {
+  initialMode: AuthMode;
+  loginNotice?: "reset-success" | "callback-error";
+}) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const panelsRef = useRef<HTMLDivElement>(null);
   const [panelHeight, setPanelHeight] = useState<number>();
@@ -82,7 +88,7 @@ export function AuthPage({ initialMode }: { initialMode: AuthMode }) {
                   {content[tab].description}
                 </p>
               </div>
-              {tab === "login" ? <LoginForm /> : <RegisterForm />}
+              {tab === "login" ? <LoginForm notice={loginNotice} /> : <RegisterForm />}
               <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">
                 {tab === "login" ? "Ainda não tem conta? " : "Já tem uma conta? "}
                 <button

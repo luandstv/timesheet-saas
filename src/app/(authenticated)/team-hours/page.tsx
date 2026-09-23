@@ -27,13 +27,14 @@ export default async function TeamHoursPage({
     (member.role === "OWNER" || member.role === "MANAGER");
 
   return (
-    <div className="mx-auto w-full max-w-6xl">
+    <div className="mx-auto w-full max-w-360">
       <TeamHoursClient
+        key={month}
         overview={overview}
         workspaceId={workspace.id}
         month={month}
         canManage={canManage}
-        isOwner={member.role === "OWNER"}
+        canConfigureFeatures={member.role === "OWNER" || member.role === "MANAGER"}
       />
     </div>
   );

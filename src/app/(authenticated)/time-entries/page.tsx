@@ -7,6 +7,7 @@ import { TIMEZONE } from "@/lib/constants";
 import { buildClockPresentation } from "@/lib/clock-presentation";
 import { formatMinutesToHours } from "@/lib/format";
 import { DashboardService } from "@/services/dashboard.service";
+import { HoursBudgetService } from "@/services/hours-budget.service";
 import { TimeEntryService } from "@/services/time-entry.service";
 import { DateTime } from "luxon";
 import { Badge } from "@/components/ui/badge";
@@ -32,10 +33,13 @@ export default async function TimeEntriesPage({ searchParams }: TimeEntriesPageP
       : now.startOf("day");
   const activityDateLabel = selectedActivityDate.toFormat("dd/MM/yyyy");
 
-  const [entries, clockState, todaySummary] = await Promise.all([
+  const [entries, clockState, todaySummary, todayRule] = await Promise.all([
     TimeEntryService.getTodayMovements(user.id, workspace.id),
     TimeEntryService.getClockState(user.id),
     DashboardService.getTodaySummary(user.id, workspace.id),
+    workspace.kind === "COMPANY"
+      ? HoursBudgetService.getRuleForDay(user.id, workspace.id, now)
+      : null,
   ]);
   const clock = buildClockPresentation(clockState, now);
   const fullDateString = now.toFormat("cccc, dd 'de' LLLL 'de' yyyy", {
@@ -65,6 +69,7 @@ export default async function TimeEntriesPage({ searchParams }: TimeEntriesPageP
 
       <ClockCard
         workspaceId={workspace.id}
+        todayRule={todayRule ?? undefined}
         disabled={!member.active}
         blockedMessage={
           clockState.lastEntry?.type === "CLOCK_IN" &&

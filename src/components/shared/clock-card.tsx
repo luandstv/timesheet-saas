@@ -15,12 +15,14 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { LiveClock } from "./live-clock";
+import { formatMinutesToHours } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 interface ClockCardProps {
   workspaceId: string;
   disabled?: boolean;
   blockedMessage?: string;
+  todayRule?: { dailyMinutes: number; shiftLabel: string };
   nextType: "CLOCK_IN" | "CLOCK_OUT";
   lastEntryTime: string | null;
   lastEntryDate?: string | null;
@@ -33,6 +35,7 @@ export function ClockCard({
   workspaceId,
   disabled = false,
   blockedMessage,
+  todayRule,
   nextType,
   lastEntryTime,
   lastEntryDate,
@@ -115,6 +118,27 @@ export function ClockCard({
                 saída usará o horário atual e será vinculada à jornada de{" "}
                 {lastEntryDate}.
               </p>
+            )}
+            {todayRule && (
+              <aside
+                aria-label="Orientação de horas para hoje"
+                className="mt-4 flex w-full max-w-sm items-start gap-2.5 rounded-xl border border-primary/35 bg-primary/10 px-3.5 py-3 text-left"
+              >
+                <CalendarDays
+                  className="mt-0.5 size-4 shrink-0 text-primary"
+                  aria-hidden="true"
+                />
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-primary">
+                    Orientação para hoje
+                  </p>
+                  <p className="mt-1 text-sm leading-5 text-foreground">
+                    Jornada prevista:{" "}
+                    <strong>{formatMinutesToHours(todayRule.dailyMinutes)}</strong>
+                    {" · "}Turno: <strong>{todayRule.shiftLabel}</strong>
+                  </p>
+                </div>
+              </aside>
             )}
             <Button
               onClick={handleClick}

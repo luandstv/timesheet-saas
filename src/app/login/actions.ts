@@ -12,7 +12,13 @@ export async function login(formData: { email: string; password: string }) {
   });
 
   if (error) {
-    return { error: error.message };
+    if (error.code === "invalid_credentials") {
+      return { error: "E-mail ou senha inválidos." };
+    }
+    if (error.code === "email_not_confirmed") {
+      return { error: "Confirme seu e-mail antes de entrar." };
+    }
+    return { error: "Não foi possível entrar. Tente novamente em instantes." };
   }
 
   redirect("/dashboard");

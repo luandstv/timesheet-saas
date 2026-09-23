@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-export function LoginForm() {
+export function LoginForm({ notice }: { notice?: "reset-success" | "callback-error" }) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -36,6 +36,22 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {notice === "reset-success" && (
+        <p
+          role="status"
+          className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300"
+        >
+          Senha atualizada. Entre com a nova senha.
+        </p>
+      )}
+      {notice === "callback-error" && (
+        <p
+          role="alert"
+          className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+        >
+          Não foi possível confirmar o link. Solicite um novo e tente novamente.
+        </p>
+      )}
       <div className="space-y-2">
         <Label htmlFor="login-email">Email</Label>
         <Input
@@ -64,7 +80,11 @@ export function LoginForm() {
         )}
       </div>
 
-      {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+      {serverError && (
+        <p role="alert" className="text-sm text-destructive">
+          {serverError}
+        </p>
+      )}
 
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? "Entrando..." : "Entrar"}

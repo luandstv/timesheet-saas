@@ -2,6 +2,7 @@ import { DateTime } from "luxon";
 
 import { TIMEZONE } from "@/lib/constants";
 import { dateOnlyStart, formatDateOnly } from "@/lib/date-only";
+import { splitContractedMinutes } from "@/lib/hours-allocation";
 import prisma from "@/lib/prisma";
 import type { Prisma } from "../../generated/prisma/client";
 
@@ -132,16 +133,6 @@ async function getEligibleMembers(
   });
 }
 
-function splitMinutes(total: number, count: number) {
-  if (count === 0) return [];
-  const base = Math.floor(total / count);
-  const remainder = Math.max(total, 0) % count;
-  return Array.from(
-    { length: count },
-    (_, index) => base + (index < remainder ? 1 : 0),
-  );
-}
-
 function formatMinutes(minutes: number) {
   const hours = Math.floor(Math.abs(minutes) / 60);
   const remainder = Math.abs(minutes) % 60;
@@ -163,7 +154,7 @@ async function ensureAllocations(
   const missing = members.filter((member) => !existingIds.has(member.id));
   const canRebalanceDefaults = existing.every((item) => !item.isManual);
   if (initialMinutes !== undefined && canRebalanceDefaults) {
-    const values = splitMinutes(initialMinutes, members.length);
+    const values = splitContractedMinutes(initialMinutes, members.length);
     for (const [index, member] of members.entries()) {
       await db.workspaceHoursAllocation.upsert({
         where: { budgetId_memberId: { budgetId, memberId: member.id } },
@@ -195,7 +186,8 @@ async function getOrCreateBudget(db: Database, workspaceId: string, month: strin
     where: { workspaceId_month: { workspaceId, month: monthDate(month) } },
   });
   if (existing) {
-    await ensureAllocations(db, existing.id, workspaceId, existing.contractedMinutes);
+    if (existing.status === "OPEN")
+      await ensureAllocations(db, existing.id, workspaceId, existing.contractedMinutes);
     return existing;
   }
 
@@ -273,6 +265,35 @@ function serializeRule(
 }
 
 export class HoursBudgetService {
+  static async getRuleForDay(actorId: string, workspaceId: string, date: DateTime) {
+    const day = date.setZone(TIMEZONE);
+    const dayDate = dateOnlyStart(day.toFormat("yyyy-MM-dd"));
+
+    return prisma.workspaceAllocationRule.findFirst({
+      where: {
+        active: true,
+        startDate: { lte: dayDate },
+        endDate: { gte: dayDate },
+        weekdays: { has: day.weekday },
+        budget: {
+          is: { workspaceId, month: monthDate(day.toFormat("yyyy-MM")) },
+        },
+        member: {
+          is: {
+            workspaceId,
+            userId: actorId,
+            active: true,
+            workspace: {
+              is: { kind: "COMPANY", hoursControlEnabled: true },
+            },
+          },
+        },
+      },
+      select: { dailyMinutes: true, shiftLabel: true },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
   static async getFeatures(workspaceId: string): Promise<HoursFeatureSettings> {
     const workspace = await prisma.workspace.findUniqueOrThrow({
       where: { id: workspaceId },
@@ -583,8 +604,13 @@ export class HoursBudgetService {
     return prisma.$transaction(async (tx) => {
       await lockWorkspace(tx, workspaceId);
       const actor = await requireMember(tx, workspaceId, actorId, true);
-      if (actor.role !== "OWNER" || actor.workspace.kind !== "COMPANY")
-        throw new Error("Apenas o owner pode configurar os recursos do espaço.");
+      if (
+        actor.workspace.kind !== "COMPANY" ||
+        (actor.role !== "OWNER" && actor.role !== "MANAGER")
+      )
+        throw new Error(
+          "Apenas o owner ou gestor pode configurar os recursos do espaço.",
+        );
       const data = Object.fromEntries(
         Object.entries(input).filter(([, value]) => value !== undefined),
       ) as Prisma.WorkspaceUpdateInput;
@@ -657,12 +683,23 @@ export class HoursBudgetService {
         throw new Error("Você não pode distribuir horas neste espaço.");
       const budget = await getOrCreateBudget(tx, workspaceId, month);
       if (budget.status === "CLOSED") throw new Error("Esta competência está fechada.");
+      const validatedAllocations: Array<{
+        memberId: string;
+        allocatedMinutes: number;
+        userId: string;
+      }> = [];
       for (const item of allocations) {
         if (!Number.isInteger(item.allocatedMinutes) || item.allocatedMinutes < 0)
           throw new Error("A cota individual deve ser um número inteiro positivo.");
-        await requireHoursMember(tx, workspaceId, actorId, item.memberId);
+        const { target } = await requireHoursMember(
+          tx,
+          workspaceId,
+          actorId,
+          item.memberId,
+        );
+        validatedAllocations.push({ ...item, userId: target.userId });
       }
-      for (const item of allocations) {
+      for (const item of validatedAllocations) {
         const previous = await tx.workspaceHoursAllocation.findUnique({
           where: {
             budgetId_memberId: { budgetId: budget.id, memberId: item.memberId },
@@ -681,19 +718,14 @@ export class HoursBudgetService {
           },
           update: { allocatedMinutes: item.allocatedMinutes, isManual: true },
         });
-        const target = await tx.workspaceMember.findUnique({
-          where: { id: item.memberId },
-          select: { userId: true },
-        });
         if (
-          target &&
           (previous?.allocatedMinutes ?? 0) !== item.allocatedMinutes &&
-          target.userId !== actorId &&
+          item.userId !== actorId &&
           actor.workspace.hoursNotificationsEnabled
         ) {
           await tx.userNotification.create({
             data: {
-              userId: target.userId,
+              userId: item.userId,
               workspaceId,
               type: "HOURS_ALLOCATION_UPDATED",
               title: "Sua meta de horas foi atualizada",
@@ -702,17 +734,11 @@ export class HoursBudgetService {
             },
           });
         }
-        await audit(
-          tx,
-          workspaceId,
-          actorId,
-          item.memberId,
-          "HOURS_ALLOCATION_UPDATED",
-          {
-            month,
-            allocatedMinutes: item.allocatedMinutes,
-          },
-        );
+        await audit(tx, workspaceId, actorId, item.userId, "HOURS_ALLOCATION_UPDATED", {
+          month,
+          memberId: item.memberId,
+          allocatedMinutes: item.allocatedMinutes,
+        });
       }
     });
   }

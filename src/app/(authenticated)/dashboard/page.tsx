@@ -73,11 +73,19 @@ type DashboardPageProps = {
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const { user, workspace, member, memberships } = await getWorkspaceContext();
   const context = resolveDashboardQuery((await searchParams) ?? {}, DateTime.now());
-  const data = await loadDashboardData(user.id, workspace.id, context);
-  const teamHours =
+  const [data, teamHours, todayRule] = await Promise.all([
+    loadDashboardData(user.id, workspace.id, context),
     workspace.kind === "COMPANY"
-      ? await HoursBudgetService.getOverview(user.id, workspace.id)
-      : null;
+      ? HoursBudgetService.getOverview(
+          user.id,
+          workspace.id,
+          context.now.toFormat("yyyy-MM"),
+        )
+      : null,
+    workspace.kind === "COMPANY"
+      ? HoursBudgetService.getRuleForDay(user.id, workspace.id, context.now)
+      : null,
+  ]);
   const canManageTeamHours =
     workspace.kind === "COMPANY" &&
     member.active &&
@@ -138,6 +146,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       <section className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
         <ClockCard
           workspaceId={workspace.id}
+          todayRule={todayRule ?? undefined}
           disabled={!member.active}
           blockedMessage={
             data.clockState.lastEntry?.type === "CLOCK_IN" &&

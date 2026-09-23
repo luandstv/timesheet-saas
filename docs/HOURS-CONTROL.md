@@ -8,7 +8,7 @@ meta entre gestores e colaboradores e desconta os pares de ponto fechados.
 
 Ao criar uma empresa, informe **Horas contratadas por mês** para ativar o
 recurso. Também é possível abrir `Horas do time` e ativar o controle depois.
-O owner configura os recursos em `Configurações > Recursos do espaço`:
+O owner ou gestor configura os recursos em `Configurações > Recursos do espaço`:
 
 - controle contratual de horas;
 - exigência de aprovação para ajustes;
@@ -36,6 +36,20 @@ consumo individual, excedentes e exportação em CSV, XLSX e PDF.
 O colaborador pode consultar o resumo compartilhado e o detalhe de cada pessoa.
 O detalhe mantém a competência na URL (`/team-hours/{memberId}?month=YYYY-MM`),
 facilitando o compartilhamento entre gestores.
+
+## Dados de demonstração
+
+Com uma cota aberta e distribuída para os colaboradores de teste do espaço do
+Michel Telo, gere pontos aleatórios para a competência atual com:
+
+```bash
+pnpm seed:hours-demo
+```
+
+O script é idempotente: remove somente os pares criados por ele na execução
+anterior, recalcula os totais e cria uma nova distribuição determinística. Cada
+colaborador fica limitado à cota alocada menos as horas que já existiam, então o
+script não aumenta o consumo acima do limite individual ou contratado.
 
 ## Banco e publicação
 

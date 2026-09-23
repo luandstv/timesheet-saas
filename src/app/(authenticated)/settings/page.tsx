@@ -91,23 +91,24 @@ export default async function SettingsPage() {
         </Card>
       </div>
 
-      {workspace.kind === "COMPANY" && member.role === "OWNER" && (
-        <Card className="rounded-[22px]">
-          <CardHeader className="p-6 pb-3 sm:p-8 sm:pb-3">
-            <CardTitle>Recursos do espaço</CardTitle>
-            <CardDescription>
-              Controle horas contratadas e defina se ajustes precisam passar por
-              aprovação.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-6 pt-3 sm:p-8 sm:pt-3">
-            <HoursFeaturesForm
-              workspaceId={workspace.id}
-              initial={await HoursBudgetService.getFeatures(workspace.id)}
-            />
-          </CardContent>
-        </Card>
-      )}
+      {workspace.kind === "COMPANY" &&
+        (member.role === "OWNER" || member.role === "MANAGER") && (
+          <Card id="hours-features" className="rounded-[22px]">
+            <CardHeader className="p-6 pb-3 sm:p-8 sm:pb-3">
+              <CardTitle>Recursos do espaço</CardTitle>
+              <CardDescription>
+                Controle horas contratadas e defina se ajustes precisam passar por
+                aprovação.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 pt-3 sm:p-8 sm:pt-3">
+              <HoursFeaturesForm
+                workspaceId={workspace.id}
+                initial={await HoursBudgetService.getFeatures(workspace.id)}
+              />
+            </CardContent>
+          </Card>
+        )}
     </div>
   );
 }
